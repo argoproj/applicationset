@@ -12,8 +12,8 @@ spec:
   #  2. environment label is either 'staging' or 'prod'
   - clusters:
       filters:
-      - '{{name}} matches "sales-.*"'
-      - '{{metadata.labels.environment}} in [staging, prod]'
+      - expr: '{{name}} matches "sales-.*"'
+      - expr: '{{metadata.labels.environment}} in [staging, prod]'
       values:
         version: '2.0.0'
   # Filter items from `config/clusters.json` in the `cluster-deployments` git repo,
@@ -30,7 +30,7 @@ spec:
       files:
       - path: config/clusters.json
       filters:
-      - '{{cluster.enabled}} == true'
+      - expr: '{{cluster.enabled}} == true'
   template:
     metadata:
       name: '{{name}}-guestbook'
