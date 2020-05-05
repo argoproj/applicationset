@@ -1,0 +1,40 @@
+# App templates can also be defined as part of the generator's template stanza. Sometimes it is
+# useful to do this in order to override the spec.template stanza, and when simple string
+# parameterization are insufficient. In the below examples, the generators[].XXX.template is 
+# a partial definition, which overrides/patch the default template.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: guestbook
+spec:
+  generators:
+  - git:
+      repoURL: https://github.com/infra-team/cluster-deployments.git
+      files:
+      - path: "**/kustomization.yaml"
+      template:
+        spec:
+          source:
+            path: '{{path.dirname}}'
+
+  - git:
+      repoURL: https://github.com/infra-team/cluster-deployments.git
+      files:
+      - path: "**/Chart.yaml"
+      template:
+        spec:
+          source:
+            path: '{{path.dirname}}'
+            helm:
+              valueFiles:
+              - values-prod.yaml
+  template:
+    metadata:
+      name: '{{cluster.name}}-guestbook'
+    spec:
+      source:
+        repoURL: https://github.com/infra-team/cluster-deployments.git
+        
+      destination:
+        server: http://kubernetes.default.svc
+        namespace: '{{path.basename}}'
