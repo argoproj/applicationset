@@ -1,0 +1,26 @@
+# The cluster generator produces an items list from all clusters registered to Argo CD.
+# It automatically provides the following fields as values to the app template:
+#  - name
+#  - server
+#  - metadata.labels.<key>
+#  - metadata.annotations.<key>
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: guestbook
+spec:
+  generators:
+  - clusters: {}
+  template:
+    metadata:
+      name: '{{name}}-guestbook'
+      labels:
+        environment: '{{metadata.labels.environment}}'
+    spec:
+      source:
+        repoURL: https://github.com/infra-team/cluster-deployments.git
+        targetRevision: HEAD
+        chart: guestbook
+      destination:
+        server: '{{server}}'
+        namespace: guestbook
