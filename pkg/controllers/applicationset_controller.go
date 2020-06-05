@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"k8s.io/client-go/tools/record"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,17 +33,23 @@ type ApplicationSetReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 
 func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("applicationset", req.NamespacedName)
+	ctx := context.Background()
+	log := r.Log.WithValues("applicationset", req.NamespacedName)
 
-	// your logic here
+	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
+	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
+		log.Info("Unable to fetch applicationSetInfo %v", err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
+	r.Log.Info("%++v", applicationSetInfo)
 	return ctrl.Result{}, nil
 }
 

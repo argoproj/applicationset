@@ -18,9 +18,25 @@ type ApplicationSet struct {
 
 // ApplicationSetSpec represents a class of application set state.
 type ApplicationSetSpec struct {
-	Generators ApplicationSetGenerators `json:"generators"`
-	Template   ApplicationSetTemplate   `json:"template"`
+	Generators ApplicationSetGenerators  `json:"generators"`
+	Template   ApplicationSetTemplate    `json:"template"`
+	Operation  *v1alpha1.SyncOperation   `json:"operation,omitempty"`
+	SyncPolicy *ApplicationSetSyncPolicy `json:"syncPolicy,omitempty"`
 }
+
+// ApplicationSetSyncPolicy will provide a syncPolicy similar to Applications
+type ApplicationSetSyncPolicy struct {
+	// Automated will keep an application synced to the target revision
+	Automated *SyncPolicyAutomated `json:"automated,omitempty"`
+}
+
+// SyncPolicyAutomated
+type SyncPolicyAutomated struct {
+	// Prune will prune resources automatically as part of automated sync (default: false)
+	Prune       bool `json:"prune,omitempty"`
+	InitialSync bool `json:"initialSync,omitempty"`
+}
+
 // ApplicationSetTemplate represents argocd ApplicationSpec
 type ApplicationSetTemplate struct {
 	metav1.ObjectMeta `json:"metadata"`
