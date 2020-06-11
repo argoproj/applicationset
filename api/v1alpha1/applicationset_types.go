@@ -20,7 +20,6 @@ type ApplicationSet struct {
 type ApplicationSetSpec struct {
 	Generators ApplicationSetGenerators  `json:"generators"`
 	Template   ApplicationSetTemplate    `json:"template"`
-	Operation  *v1alpha1.SyncOperation   `json:"operation,omitempty"`
 	SyncPolicy *ApplicationSetSyncPolicy `json:"syncPolicy,omitempty"`
 }
 
@@ -33,8 +32,9 @@ type ApplicationSetSyncPolicy struct {
 // SyncPolicyAutomated
 type SyncPolicyAutomated struct {
 	// Prune will prune resources automatically as part of automated sync (default: false)
-	Prune       bool `json:"prune,omitempty"`
-	InitialSync bool `json:"initialSync,omitempty"`
+	Prune bool `json:"prune,omitempty"`
+	// Initial will perform an initial sync for any newly created Applications which do not have automated sync turned on.
+	Initial bool `json:"initial,omitempty"`
 }
 
 // ApplicationSetTemplate represents argocd ApplicationSpec
@@ -50,7 +50,7 @@ type ApplicationSetGenerators struct {
 
 // GeneratorsList include items info
 type GeneratorsList struct {
-	Items GeneratorsItems `json:"items"`
+	Items []GeneratorsItems `json:"items"`
 }
 
 // GeneratorsItems include cluster and url info

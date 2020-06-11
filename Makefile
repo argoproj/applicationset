@@ -1,6 +1,6 @@
 VERSION?=$(shell cat VERSION)
 IMAGE_TAG?=v$(VERSION)
-IMAGE_PREFIX?=registry.cn-hangzhou.aliyuncs.com/appcenter
+IMAGE_PREFIX?=argoprojlabs
 DOCKER_PUSH?=true
 
 .PHONY: build
@@ -9,7 +9,7 @@ build:
 
 .PHONY: image
 image:
-	docker build -t registry.cn-hangzhou.aliyuncs.com/appcenter/argocd-aplicationset:$(IMAGE_TAG) .
+	docker build -t $(IMAGE_PREFIX)/argocd-aplicationset:$(IMAGE_TAG) .
 	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE_PREFIX)/argocd-aplicationset:$(IMAGE_TAG) ; fi
 
 # Generate manifests e.g. CRD, RBAC etc.

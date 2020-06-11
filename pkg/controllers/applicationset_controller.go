@@ -20,7 +20,7 @@ import (
 	"context"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/go-logr/logr"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -31,7 +31,6 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 	Recorder record.EventRecorder
 }
@@ -41,15 +40,15 @@ type ApplicationSetReconciler struct {
 
 func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
-	log := r.Log.WithValues("applicationset", req.NamespacedName)
+	_ = log.WithField("applicationset", req.NamespacedName)
 
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
 	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
 		log.Info("Unable to fetch applicationSetInfo %v", err)
+
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	r.Log.Info("%++v", applicationSetInfo)
 	return ctrl.Result{}, nil
 }
 
