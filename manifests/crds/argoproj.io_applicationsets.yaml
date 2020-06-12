@@ -36,11 +36,11 @@ spec:
               description: ApplicationSetGenerators include list item info
               properties:
                 list:
-                  description: GeneratorsList include items info
+                  description: ListGenerators include items info
                   properties:
                     items:
                       items:
-                        description: GeneratorsItems include cluster and url info
+                        description: ItemGenerators include cluster and url info
                         properties:
                           cluster:
                             type: string

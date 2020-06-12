@@ -45,16 +45,16 @@ type ApplicationSetTemplate struct {
 
 // ApplicationSetGenerators include list item info
 type ApplicationSetGenerators struct {
-	List GeneratorsList `json:"list, omitempty"`
+	List *ListGenerators `json:"list, omitempty"`
 }
 
-// GeneratorsList include items info
-type GeneratorsList struct {
-	Items []GeneratorsItems `json:"items"`
+// ListGenerators include items info
+type ListGenerators struct {
+	Items []ItemGenerators `json:"items"`
 }
 
-// GeneratorsItems include cluster and url info
-type GeneratorsItems struct {
+// ItemGenerators include cluster and url info
+type ItemGenerators struct {
 	Cluster string `json:"cluster"`
 	Url     string `json:"url"`
 }

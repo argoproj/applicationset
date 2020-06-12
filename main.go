@@ -55,7 +55,6 @@ func main() {
 
 	if err = (&controllers.ApplicationSetReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
 		Scheme: mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("applicationset-controller"),
 	}).SetupWithManager(mgr); err != nil {
