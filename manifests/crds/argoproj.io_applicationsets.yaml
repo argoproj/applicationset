@@ -33,30 +33,32 @@ spec:
           description: ApplicationSetSpec represents a class of application set state.
           properties:
             generators:
-              description: ApplicationSetGenerators include list item info
-              properties:
-                list:
-                  description: ListGenerators include items info
-                  properties:
-                    items:
+              items:
+                description: ApplicationSetGenerator include list item info
+                properties:
+                  list:
+                    description: ListGenerator include items info
+                    properties:
                       items:
-                        description: ItemGenerators include cluster and url info
-                        properties:
-                          cluster:
-                            type: string
-                          url:
-                            type: string
-                        required:
-                        - cluster
-                        - url
-                        type: object
-                      type: array
-                  required:
-                  - items
-                  type: object
-              required:
-              - list
-              type: object
+                        items:
+                          description: ListGeneratorItem include cluster and url info
+                          properties:
+                            cluster:
+                              type: string
+                            url:
+                              type: string
+                          required:
+                          - cluster
+                          - url
+                          type: object
+                        type: array
+                    required:
+                    - items
+                    type: object
+                required:
+                - list
+                type: object
+              type: array
             syncPolicy:
               description: ApplicationSetSyncPolicy will provide a syncPolicy similar
                 to Applications

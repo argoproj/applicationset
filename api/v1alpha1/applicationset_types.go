@@ -18,7 +18,7 @@ type ApplicationSet struct {
 
 // ApplicationSetSpec represents a class of application set state.
 type ApplicationSetSpec struct {
-	Generators ApplicationSetGenerators  `json:"generators"`
+	Generators []ApplicationSetGenerator `json:"generators"`
 	Template   ApplicationSetTemplate    `json:"template"`
 	SyncPolicy *ApplicationSetSyncPolicy `json:"syncPolicy,omitempty"`
 }
@@ -40,21 +40,21 @@ type SyncPolicyAutomated struct {
 // ApplicationSetTemplate represents argocd ApplicationSpec
 type ApplicationSetTemplate struct {
 	metav1.ObjectMeta `json:"metadata"`
-	TemplateSpec      v1alpha1.ApplicationSpec `json:"spec"`
+	Spec              v1alpha1.ApplicationSpec `json:"spec"`
 }
 
-// ApplicationSetGenerators include list item info
-type ApplicationSetGenerators struct {
-	List *ListGenerators `json:"list, omitempty"`
+// ApplicationSetGenerator include list item info
+type ApplicationSetGenerator struct {
+	List *ListGenerator `json:"list, omitempty"`
 }
 
-// ListGenerators include items info
-type ListGenerators struct {
-	Items []ItemGenerators `json:"items"`
+// ListGenerator include items info
+type ListGenerator struct {
+	Items []ListGeneratorItem `json:"items"`
 }
 
-// ItemGenerators include cluster and url info
-type ItemGenerators struct {
+// ListGeneratorItem include cluster and url info
+type ListGeneratorItem struct {
 	Cluster string `json:"cluster"`
 	Url     string `json:"url"`
 }
