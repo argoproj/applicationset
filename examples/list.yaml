@@ -15,7 +15,7 @@ spec:
         url: https://9.8.7.6
   template:
     metadata:
-      name: '{{name}}-guestbook'
+      name: '{{cluster}}-guestbook'
     spec:
       source:
         repoURL: https://github.com/infra-team/cluster-deployments.git
