@@ -45,7 +45,8 @@ type ApplicationSetTemplate struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List *ListGenerator `json:"list, omitempty"`
+	List     *ListGenerator    `json:"list, omitempty"`
+	Clusters *ClusterGenerator `json:"clusters,omitempty"`
 }
 
 // ListGenerator include items info
@@ -57,6 +58,14 @@ type ListGenerator struct {
 type ListGeneratorItem struct {
 	Cluster string `json:"cluster"`
 	Url     string `json:"url"`
+}
+
+// ClusterGenerator defines a generator to match against clusters registered with ArgoCD.
+type ClusterGenerator struct {
+	// Selector defines a label selector to match against all clusters registered with ArgoCD.
+	// Clusters today are stored as Kubernetes Secrets, thus the Secret labels will be used
+	// for matching the selector.
+	Selector metav1.LabelSelector `json:"selector,omitempty"`
 }
 
 // +kubebuilder:object:root=true
