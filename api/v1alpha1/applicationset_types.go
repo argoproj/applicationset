@@ -45,7 +45,7 @@ type ApplicationSetTemplate struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List     *ListGenerator    `json:"list, omitempty"`
+	List     *ListGenerator    `json:"list,omitempty"`
 	Clusters *ClusterGenerator `json:"clusters,omitempty"`
 }
 
