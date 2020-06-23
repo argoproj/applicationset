@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"k8s.io/client-go/tools/record"
 
 	log "github.com/sirupsen/logrus"
@@ -46,6 +47,14 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
 		log.Info("Unable to fetch applicationSetInfo %v", err)
 
+		var generator generators.Generator
+		generator = generators.NewListGenerator()
+		for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
+			if tmpGenerator.List != nil {
+				newApplications, err :=  generator.GenerateApplications(&applicationSetInfo)
+				log.Infof("newApplications %++v error %++v", newApplications, err)
+			}
+		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
