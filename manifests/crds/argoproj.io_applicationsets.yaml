@@ -104,8 +104,11 @@ spec:
                         type: array
                       repoURL:
                         type: string
+                      revision:
+                        type: string
                     required:
                     - repoURL
+                    - revision
                     type: object
                   list:
                     description: ListGenerator include items info

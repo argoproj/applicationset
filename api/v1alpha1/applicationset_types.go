@@ -71,6 +71,7 @@ type ClusterGenerator struct {
 
 type GitGenerator struct {
 	RepoURL     string                      `json:"repoURL"`
+	Revision    string                      `json:"revision"`
 	Directories []GitDirectoryGeneratorItem `json:"directories,omitempty"`
 }
 

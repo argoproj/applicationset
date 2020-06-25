@@ -1,24 +1,30 @@
 package generators
 
 import (
+	"context"
 	"fmt"
 	"path"
 
 	"github.com/argoproj-labs/applicationset/pkg/utils"
+	argocdv1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/reposerver/apiclient"
 
-	log "github.com/sirupsen/logrus"
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
-
+	log "github.com/sirupsen/logrus"
 )
 
 var _ Generator = (*GitGenerator)(nil)
 
 type GitGenerator struct {
+	repoClientset apiclient.Clientset
 }
 
-func NewGitGenerator() Generator {
-	g := &GitGenerator{}
+func NewGitGenerator(repoServerAddress string) Generator {
+	repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5)
+	g := &GitGenerator{
+		repoClientset: repoClientset,
+	}
 	return g
 }
 
@@ -40,13 +46,13 @@ func (g *GitGenerator) GenerateApplications(appSet *argoprojiov1alpha1.Applicati
 		return nil, fmt.Errorf("There isn't git generator ")
 	}
 
-
-
 	if len(GitGenerator.Directories) > 0 {
-		//git get all directories & filter by paths
-		var pathes []string
+		paths, err := g.GetAllPaths(GitGenerator)
+		if err != nil {
+			return nil, err
+		}
 
-		for _, p := range pathes {
+		for p := range paths {
 
 			var tmplApplication argov1alpha1.Application
 			tmplApplication.Namespace = appSet.Spec.Template.Namespace
@@ -63,8 +69,35 @@ func (g *GitGenerator) GenerateApplications(appSet *argoprojiov1alpha1.Applicati
 
 		}
 
-
 	}
 
 	return nil, nil
+}
+
+func (g *GitGenerator) GetAllPaths(GitGenerator *argoprojiov1alpha1.GitGenerator) ([]string, error) {
+	closer, repoClient, err := g.repoClientset.NewRepoServerClient()
+	defer closer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	listAppsRequest := &apiclient.ListAppsRequest{
+		Repo: &argocdv1alpha1.Repository{
+			Repo: GitGenerator.RepoURL,
+		},
+		Revision: GitGenerator.Revision,
+	}
+
+	appList, err := repoClient.ListApps(context.TODO(), listAppsRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []string
+
+	for name, _ := range appList.Apps {
+		res = append(res, name)
+	}
+
+	return res, nil
 }
