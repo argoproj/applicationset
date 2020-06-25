@@ -47,7 +47,7 @@ type ApplicationSetTemplate struct {
 type ApplicationSetGenerator struct {
 	List     *ListGenerator    `json:"list,omitempty"`
 	Clusters *ClusterGenerator `json:"clusters,omitempty"`
-	Git 	 *GitGenerator `json:"git,omitempty"`
+	Git      *GitGenerator     `json:"git,omitempty"`
 }
 
 // ListGenerator include items info
@@ -70,7 +70,7 @@ type ClusterGenerator struct {
 }
 
 type GitGenerator struct {
-	RepoURL string `json:"repoURL"`
+	RepoURL     string                      `json:"repoURL"`
 	Directories []GitDirectoryGeneratorItem `json:"directories,omitempty"`
 }
 
