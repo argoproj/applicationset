@@ -47,6 +47,7 @@ type ApplicationSetTemplate struct {
 type ApplicationSetGenerator struct {
 	List     *ListGenerator    `json:"list,omitempty"`
 	Clusters *ClusterGenerator `json:"clusters,omitempty"`
+	git 	 *GitGenerator `json:"git,omitempty"`
 }
 
 // ListGenerator include items info
@@ -66,6 +67,15 @@ type ClusterGenerator struct {
 	// Clusters today are stored as Kubernetes Secrets, thus the Secret labels will be used
 	// for matching the selector.
 	Selector metav1.LabelSelector `json:"selector,omitempty"`
+}
+
+type GitGenerator struct {
+	repoURL string `json:"repoURL"`
+	directories []GitDirectoryGeneratorItem `json:"directories,omitempty"`
+}
+
+type GitDirectoryGeneratorItem struct {
+	path string `json:"path"`
 }
 
 // +kubebuilder:object:root=true
