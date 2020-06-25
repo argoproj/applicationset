@@ -52,7 +52,7 @@ func (g *GitGenerator) GenerateApplications(appSet *argoprojiov1alpha1.Applicati
 			return nil, err
 		}
 
-		for p := range paths {
+		for _, p := range paths {
 
 			var tmplApplication argov1alpha1.Application
 			tmplApplication.Namespace = appSet.Spec.Template.Namespace
@@ -86,6 +86,7 @@ func (g *GitGenerator) GetAllPaths(GitGenerator *argoprojiov1alpha1.GitGenerator
 			Repo: GitGenerator.RepoURL,
 		},
 		Revision: GitGenerator.Revision,
+		//Path: GitGenerator.Directories,
 	}
 
 	appList, err := repoClient.ListApps(context.TODO(), listAppsRequest)
