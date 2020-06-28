@@ -29,12 +29,14 @@ spec:
   generators:
   - git:
       repoURL: https://github.com/infra-team/cluster-deployments.git
+      revision: HEAD
       directories:
       - path: add-ons/*
   template:
     metadata:
       name: '{{path.basename}}'
     spec:
+      project: project
       source:
         repoURL: https://github.com/infra-team/cluster-deployments.git
         targetRevision: HEAD
