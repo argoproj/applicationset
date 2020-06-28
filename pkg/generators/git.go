@@ -46,12 +46,14 @@ func (g *GitGenerator) GenerateApplications(appSet *argoprojiov1alpha1.Applicati
 		return nil, fmt.Errorf("There isn't git generator ")
 	}
 
+
 	if len(GitGenerator.Directories) > 0 {
 		paths, err := g.GetAllPaths(GitGenerator)
 		if err != nil {
 			return nil, err
 		}
 
+		res := make([]argov1alpha1.Application, len(paths))
 		for _, p := range paths {
 
 			var tmplApplication argov1alpha1.Application
@@ -67,8 +69,10 @@ func (g *GitGenerator) GenerateApplications(appSet *argoprojiov1alpha1.Applicati
 			log.Infof("tmpApplication %++v", tmpApplication)
 			log.Infof("error %v", err)
 
+			res = append(res, *tmpApplication)
 		}
 
+		return res, nil
 	}
 
 	return nil, nil
