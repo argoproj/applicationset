@@ -51,11 +51,11 @@ type ApplicationSetGenerator struct {
 
 // ListGenerator include items info
 type ListGenerator struct {
-	Items []ListGeneratorItem `json:"items"`
+	Elements []ListGeneratorElement `json:"elements"`
 }
 
 // ListGeneratorItem include cluster and url info
-type ListGeneratorItem struct {
+type ListGeneratorElement struct {
 	Cluster string `json:"cluster"`
 	Url     string `json:"url"`
 }
@@ -72,9 +72,9 @@ type ClusterGenerator struct {
 
 // ApplicationSetList contains a list of ApplicationSet
 type ApplicationSetList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ApplicationSet `json:"items"`
+	metav1.TypeMeta     `json:",inline"`
+	metav1.ListMeta     `json:"metadata,omitempty"`
+	ApplicationSetItems []ApplicationSet `json:"items"`
 }
 
 func init() {
