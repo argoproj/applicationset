@@ -91,6 +91,22 @@ spec:
                             type: object
                         type: object
                     type: object
+                  git:
+                    properties:
+                      directories:
+                        items:
+                          properties:
+                            path:
+                              type: string
+                          required:
+                          - path
+                          type: object
+                        type: array
+                      repoURL:
+                        type: string
+                    required:
+                    - repoURL
+                    type: object
                   list:
                     description: ListGenerator include items info
                     properties:
@@ -110,8 +126,6 @@ spec:
                     required:
                     - items
                     type: object
-                required:
-                - list
                 type: object
               type: array
             syncPolicy:
