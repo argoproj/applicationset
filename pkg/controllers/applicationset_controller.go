@@ -34,6 +34,7 @@ type ApplicationSetReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
+	RepoServerAddr string
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -46,17 +47,25 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
 	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
 		log.Info("Unable to fetch applicationSetInfo %v", err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
-		var generator generators.Generator
-		generator = generators.NewListGenerator()
+		var listGenerator generators.Generator
+		listGenerator = generators.NewListGenerator()
+
+		var gitGenerator generators.Generator
+		gitGenerator = generators.NewGitGenerator(r.RepoServerAddr)
 		for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
 			if tmpGenerator.List != nil {
-				newApplications, err :=  generator.GenerateApplications(&applicationSetInfo)
+				newApplications, err :=  listGenerator.GenerateApplications(&applicationSetInfo)
+				log.Infof("newApplications %++v error %++v", newApplications, err)
+			}
+			if tmpGenerator.Git != nil {
+				newApplications, err :=  gitGenerator.GenerateApplications(&applicationSetInfo)
 				log.Infof("newApplications %++v error %++v", newApplications, err)
 			}
 		}
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
+
 
 	return ctrl.Result{}, nil
 }
