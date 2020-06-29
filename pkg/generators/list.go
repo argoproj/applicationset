@@ -18,19 +18,17 @@ func NewListGenerator() Generator {
 	return g
 }
 
-func (g *ListGenerator) GenerateApplications(appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
-	if appSet == nil {
+func (g *ListGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator,
+	appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+	if appSetGenerator == nil || appSet == nil {
 		return nil, fmt.Errorf("ApplicationSet is empty")
 	}
 
-	var listGenerator *argoprojiov1alpha1.ListGenerator
-
-	for _, tmpGenerator := range appSet.Spec.Generators {
-		if tmpGenerator.List != nil {
-			listGenerator = tmpGenerator.List
-			break
-		}
+	if appSetGenerator.List == nil {
+		return nil, nil
 	}
+
+	listGenerator := appSetGenerator.List
 
 	if listGenerator == nil {
 		return nil, fmt.Errorf("There isn't list generator ")
@@ -42,7 +40,7 @@ func (g *ListGenerator) GenerateApplications(appSet *argoprojiov1alpha1.Applicat
 	tmplApplication.Spec = appSet.Spec.Template.Spec
 
 	params := make(map[string]string, 2)
-	for _, tmpItem := range listGenerator.Items {
+	for _, tmpItem := range listGenerator.Elements {
 		params[utils.ClusterListGeneratorKeyName] = tmpItem.Cluster
 		params[utils.UrlGeneratorKeyName] = tmpItem.Url
 		tmpApplication, err := utils.RenderTemplateParams(&tmplApplication, params)

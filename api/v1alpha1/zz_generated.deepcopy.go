@@ -64,8 +64,8 @@ func (in *ApplicationSetList) DeepCopyInto(out *ApplicationSetList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
 	in.ListMeta.DeepCopyInto(&out.ListMeta)
-	if in.ApplicationSetItems != nil {
-		in, out := &in.ApplicationSetItems, &out.ApplicationSetItems
+	if in.Items != nil {
+		in, out := &in.Items, &out.Items
 		*out = make([]ApplicationSet, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])

@@ -18,7 +18,8 @@ func NewClusterGenerator() Generator {
 	return g
 }
 
-func (g *ClusterGenerator) GenerateApplications(appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+func (g *ClusterGenerator) GenerateApplications(appSet *argoprojiov1alpha1.ApplicationSetGenerator,
+	appSets *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	if appSet == nil {
 		return nil, fmt.Errorf("ApplicationSet is empty")
 	}

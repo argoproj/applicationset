@@ -32,7 +32,7 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
 
@@ -46,16 +46,14 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
 	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
 		log.Info("Unable to fetch applicationSetInfo %v", err)
-
-		var generator generators.Generator
-		generator = generators.NewListGenerator()
-		for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
-			if tmpGenerator.List != nil {
-				newApplications, err :=  generator.GenerateApplications(&applicationSetInfo)
-				log.Infof("newApplications %++v error %++v", newApplications, err)
-			}
-		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	var generator generators.Generator
+	generator = generators.NewListGenerator()
+	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
+		newApplications, err := generator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		log.Infof("newApplications %++v error %++v", newApplications, err)
 	}
 
 	return ctrl.Result{}, nil
