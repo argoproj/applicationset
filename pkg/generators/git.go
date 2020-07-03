@@ -16,7 +16,9 @@ func NewGitGenerator() Generator {
 	return g
 }
 
-func (g *GitGenerator) GenerateApplications(appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+func (g *GitGenerator) GenerateApplications(
+	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator,
+	appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	if appSet == nil {
 		return nil, fmt.Errorf("ApplicationSet is empty")
 	}
