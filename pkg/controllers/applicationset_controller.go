@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 )
 
 // ApplicationSetReconciler reconciles a ApplicationSet object
@@ -49,14 +50,24 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	var generator generators.Generator
-	generator = generators.NewListGenerator()
+	listGenerator := generators.NewListGenerator()
+	clusterGenerator := generators.NewClusterGenerator(r.Client)
+
+	// desiredApplications is the main list of all expected Applications from all generators in this appset.
+	var desiredApplications  []argov1alpha1.Application
 	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
-		desiredApplications, err := generator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		log.Infof("desiredApplications %+v", desiredApplications)
+		var apps []argov1alpha1.Application
+		var err error
+		if tmpGenerator.List != nil {
+			apps, err = listGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		} else if tmpGenerator.Clusters != nil {
+			apps, err = clusterGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		}
+		log.Infof("apps from generator: %+v", apps)
 		if err != nil {
 			log.WithError(err).Error("error generating applications")
 		}
+		desiredApplications = append(desiredApplications, apps...)
 	}
 
 	return ctrl.Result{}, nil
