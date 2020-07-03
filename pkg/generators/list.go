@@ -31,7 +31,7 @@ func (g *ListGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1
 	listGenerator := appSetGenerator.List
 
 	if listGenerator == nil {
-		return nil, fmt.Errorf("There isn't list generator ")
+		return nil, fmt.Errorf("Empty list generator ")
 	}
 
 	var tmplApplication argov1alpha1.Application
@@ -44,8 +44,8 @@ func (g *ListGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1
 		params[utils.ClusterListGeneratorKeyName] = tmpItem.Cluster
 		params[utils.UrlGeneratorKeyName] = tmpItem.Url
 		tmpApplication, err := utils.RenderTemplateParams(&tmplApplication, params)
-		log.Infof("tmpApplication %++v", tmpApplication)
-		log.Infof("error %v", err)
+		log.Debugf("tmpApplication %++v", tmpApplication)
+		log.Debugf("error %v", err)
 	}
 	return nil, nil
 }

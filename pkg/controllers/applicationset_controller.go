@@ -52,8 +52,11 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	var generator generators.Generator
 	generator = generators.NewListGenerator()
 	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
-		newApplications, err := generator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		log.Infof("newApplications %+v error %++v", newApplications, err)
+		desiredApplications, err := generator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		log.Infof("desiredApplications %+v", desiredApplications)
+		if err != nil {
+			log.WithError(err).Error("error generating applications")
+		}
 	}
 
 	return ctrl.Result{}, nil

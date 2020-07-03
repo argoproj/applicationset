@@ -12,7 +12,7 @@ spec:
     listKind: ApplicationSetList
     plural: applicationsets
     singular: applicationset
-  scope: ""
+  scope: Namespaced
   validation:
     openAPIV3Schema:
       description: ApplicationSet is a set of Application resources
