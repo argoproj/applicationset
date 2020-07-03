@@ -10,5 +10,6 @@ type Generator interface {
 	// GenerateApplications interprets the ApplicationSet and generates all relevant Applications.
 	// The expected / desired list of Applications is returned, it then needs to be reconciled
 	// against the current state of the Applications in the cluster.
-	GenerateApplications(appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error)
+	GenerateApplications(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator,
+		appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error)
 }

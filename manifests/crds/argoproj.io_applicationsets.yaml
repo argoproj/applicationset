@@ -3,8 +3,6 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
   creationTimestamp: null
   name: applicationsets.argoproj.io
 spec:
@@ -110,7 +108,7 @@ spec:
                   list:
                     description: ListGenerator include items info
                     properties:
-                      items:
+                      elements:
                         items:
                           description: ListGeneratorItem include cluster and url info
                           properties:
@@ -124,7 +122,7 @@ spec:
                           type: object
                         type: array
                     required:
-                    - items
+                    - elements
                     type: object
                 type: object
               type: array

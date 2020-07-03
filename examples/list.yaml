@@ -6,7 +6,7 @@ metadata:
 spec:
   generators:
   - list:
-      items:
+      elements:
       - cluster: engineering-dev
         url: https://1.2.3.4
       - cluster: engineering-prod
@@ -17,6 +17,7 @@ spec:
     metadata:
       name: '{{cluster}}-guestbook'
     spec:
+      project: ""
       source:
         repoURL: https://github.com/infra-team/cluster-deployments.git
         targetRevision: HEAD
