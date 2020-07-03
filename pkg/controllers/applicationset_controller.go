@@ -33,9 +33,9 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Scheme   		*runtime.Scheme
-	Recorder 		record.EventRecorder
-	RepoServerAddr	string
+	Scheme         *runtime.Scheme
+	Recorder       record.EventRecorder
+	RepoServerAddr string
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
