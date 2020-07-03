@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	argoCDSecretTypeLabel   = "argocd.argoproj.io/secret-type"
-	argoCDSecretTypeCluster = "cluster"
+	ArgoCDSecretTypeLabel   = "argocd.argoproj.io/secret-type"
+	ArgoCDSecretTypeCluster = "cluster"
 )
 
 var _ Generator = (*ClusterGenerator)(nil)
@@ -46,7 +46,7 @@ func (g *ClusterGenerator) GenerateApplications(
 	// List all Clusters:
 	clusterSecretList := &corev1.SecretList{}
 	secretLabels := map[string]string{
-		argoCDSecretTypeLabel: argoCDSecretTypeCluster,
+		ArgoCDSecretTypeLabel: ArgoCDSecretTypeCluster,
 	}
 	for k, v := range appSetGenerator.Clusters.Selector.MatchLabels {
 		secretLabels[k] = v

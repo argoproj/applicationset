@@ -19,7 +19,10 @@ package controllers
 import (
 	"context"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,6 +41,7 @@ type ApplicationSetReconciler struct {
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 
 func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
@@ -76,5 +80,15 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&argoprojiov1alpha1.ApplicationSet{}).
+		Watches(
+			&source.Kind{Type: &corev1.Secret{}},
+			&clusterSecretEventHandler{
+				Client: mgr.GetClient(),
+				Log: log.WithField("type", "createSecretEventHandler"),
+			}).
+		// TODO: also watch Applications and respond on changes if we own them.
 		Complete(r)
 }
+
+var _ handler.EventHandler = &clusterSecretEventHandler{}
+
