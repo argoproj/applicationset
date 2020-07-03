@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"k8s.io/client-go/tools/record"
 
 	log "github.com/sirupsen/logrus"
@@ -32,8 +33,9 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Scheme   		*runtime.Scheme
+	Recorder 		record.EventRecorder
+	RepoServerAddr	string
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -49,14 +51,26 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	var generator generators.Generator
-	generator = generators.NewListGenerator()
+	ListGenerator := generators.NewListGenerator()
+	GitGenerator := generators.NewGitGenerator(r.RepoServerAddr)
 	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
-		desiredApplications, err := generator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		log.Infof("desiredApplications %+v", desiredApplications)
+		var desiredApplications []argov1alpha1.Application
+		var err error
+		if tmpGenerator.List != nil {
+			desiredApplications, err = ListGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		}
+
+		if tmpGenerator.Git != nil {
+			desiredApplications, err = GitGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		}
+
 		if err != nil {
 			log.WithError(err).Error("error generating applications")
+			continue
 		}
+
+		log.Infof("desiredApplications %+v", desiredApplications)
+
 	}
 
 	return ctrl.Result{}, nil
