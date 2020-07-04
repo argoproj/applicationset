@@ -41,13 +41,13 @@ func (g *GitGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1.
 		}
 
 		res := make([]argov1alpha1.Application, len(paths))
-		for _, p := range paths {
+		for i, p := range paths {
 			app, err := g.generateApplicationFromPath(appSet, p)
 			if err != nil {
 				log.Errorf("Error %e while  generating app from path: %s", err, p)
 				continue
 			}
-			res = append(res, *app)
+			res[i] = *app
 		}
 
 		return res, nil
