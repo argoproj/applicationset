@@ -20,6 +20,7 @@ import (
 	"context"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/reposerver/apiclient"
 	"k8s.io/client-go/tools/record"
 
 	log "github.com/sirupsen/logrus"
@@ -52,7 +53,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	ListGenerator := generators.NewListGenerator()
-	GitGenerator := generators.NewGitGenerator(r.RepoServerAddr)
+	GitGenerator := generators.NewGitGenerator(apiclient.NewRepoServerClientset(r.RepoServerAddr, 5))
 	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
 		var desiredApplications []argov1alpha1.Application
 		var err error

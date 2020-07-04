@@ -18,7 +18,6 @@ type GitGenerator struct {
 }
 
 func NewGitGenerator(repoClientset apiclient.Clientset) Generator {
-	//repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5)
 	g := &GitGenerator{
 		repoClientset: repoClientset,
 	}
