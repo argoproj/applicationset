@@ -13,11 +13,11 @@ import (
 	"testing"
 )
 
-type Clientset struct {
+type clientSet struct {
 	RepoServerServiceClient apiclient.RepoServerServiceClient
 }
 
-func (c *Clientset) NewRepoServerClient() (util.Closer, apiclient.RepoServerServiceClient, error) {
+func (c *clientSet) NewRepoServerClient() (util.Closer, apiclient.RepoServerServiceClient, error) {
 	return util.NewCloser(func() error { return nil }), c.RepoServerServiceClient, nil
 }
 
@@ -143,7 +143,7 @@ func TestGenerateApplications(t *testing.T) {
 	for _, c := range cases {
 		mockRepoServiceClient := mocks.RepoServerServiceClient{}
 		mockRepoServiceClient.On("ListApps", mock.Anything, mock.Anything).Return(c.repoApps, c.repoError)
-		mockRepoClient := &Clientset{RepoServerServiceClient: &mockRepoServiceClient}
+		mockRepoClient := &clientSet{RepoServerServiceClient: &mockRepoServiceClient}
 
 		var gitGenerator = NewGitGenerator(mockRepoClient)
 		applicationSetInfo := argoprojiov1alpha1.ApplicationSet{
