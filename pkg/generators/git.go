@@ -44,7 +44,7 @@ func (g *GitGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1.
 		for i, p := range paths {
 			app, err := g.generateApplicationFromPath(appSet, p)
 			if err != nil {
-				log.Errorf("Error %e while  generating app from path: %s", err, p)
+				log.WithError(err).WithField("path", p).Error("error while generating app from path")
 				continue
 			}
 			res[i] = *app
