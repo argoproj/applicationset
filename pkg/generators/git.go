@@ -17,8 +17,8 @@ type GitGenerator struct {
 	repoClientset apiclient.Clientset
 }
 
-func NewGitGenerator(repoServerAddress string) Generator {
-	repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5)
+func NewGitGenerator(repoClientset apiclient.Clientset) Generator {
+	//repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5)
 	g := &GitGenerator{
 		repoClientset: repoClientset,
 	}
