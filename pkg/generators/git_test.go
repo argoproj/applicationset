@@ -18,37 +18,37 @@ type Clientset struct {
 }
 
 func (c *Clientset) NewRepoServerClient() (util.Closer, apiclient.RepoServerServiceClient, error) {
-	return util.NewCloser(func() error{ return nil}), c.RepoServerServiceClient, nil
+	return util.NewCloser(func() error { return nil }), c.RepoServerServiceClient, nil
 }
 
-func getRenderTemplate(name string) *argov1alpha1.Application{
+func getRenderTemplate(name string) *argov1alpha1.Application {
 	return &argov1alpha1.Application{
-	ObjectMeta: metav1.ObjectMeta{
-		Name:                       name,
-		Namespace:                  "namespace",
-	},
-		Spec:       argov1alpha1.ApplicationSpec{
-		Source:               argov1alpha1.ApplicationSource{
-			RepoURL:        "RepoURL",
-			Path:           name,
-			TargetRevision: "HEAD",
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "namespace",
 		},
-		Destination:          argov1alpha1.ApplicationDestination{
-			Server:    "server",
-			Namespace: "destinationNamespace",
+		Spec: argov1alpha1.ApplicationSpec{
+			Source: argov1alpha1.ApplicationSource{
+				RepoURL:        "RepoURL",
+				Path:           name,
+				TargetRevision: "HEAD",
+			},
+			Destination: argov1alpha1.ApplicationDestination{
+				Server:    "server",
+				Namespace: "destinationNamespace",
+			},
+			Project: "project",
 		},
-		Project:              "project",
-	},
 	}
 }
 
 func TestGenerateApplications(t *testing.T) {
 	cases := []struct {
-		template argoprojiov1alpha1.ApplicationSetTemplate
-		Directories []argoprojiov1alpha1.GitDirectoryGeneratorItem
-		repoApps *apiclient.AppList
-		repoError error
-		expected []argov1alpha1.Application
+		template      argoprojiov1alpha1.ApplicationSetTemplate
+		Directories   []argoprojiov1alpha1.GitDirectoryGeneratorItem
+		repoApps      *apiclient.AppList
+		repoError     error
+		expected      []argov1alpha1.Application
 		expectedError error
 	}{
 		{
@@ -57,22 +57,22 @@ func TestGenerateApplications(t *testing.T) {
 					Name:      "{{path.basename}}",
 					Namespace: "namespace",
 				},
-				Spec:       argov1alpha1.ApplicationSpec{
-					Source:               argov1alpha1.ApplicationSource{
+				Spec: argov1alpha1.ApplicationSpec{
+					Source: argov1alpha1.ApplicationSource{
 						RepoURL:        "RepoURL",
 						Path:           "{{path}}",
 						TargetRevision: "HEAD",
 					},
-					Destination:          argov1alpha1.ApplicationDestination{
+					Destination: argov1alpha1.ApplicationDestination{
 						Server:    "server",
 						Namespace: "destinationNamespace",
 					},
-					Project:              "project",
+					Project: "project",
 				},
 			},
 			[]argoprojiov1alpha1.GitDirectoryGeneratorItem{{"path"}},
 			&apiclient.AppList{
-				Apps:                 map[string]string{
+				Apps: map[string]string{
 					"app1": "",
 					"app2": "",
 				},
@@ -90,22 +90,22 @@ func TestGenerateApplications(t *testing.T) {
 					Name:      "{{path.basename}}",
 					Namespace: "namespace",
 				},
-				Spec:       argov1alpha1.ApplicationSpec{
-					Source:               argov1alpha1.ApplicationSource{
+				Spec: argov1alpha1.ApplicationSpec{
+					Source: argov1alpha1.ApplicationSource{
 						RepoURL:        "RepoURL",
 						Path:           "{{path}}",
 						TargetRevision: "HEAD",
 					},
-					Destination:          argov1alpha1.ApplicationDestination{
+					Destination: argov1alpha1.ApplicationDestination{
 						Server:    "server",
 						Namespace: "destinationNamespace",
 					},
-					Project:              "project",
+					Project: "project",
 				},
 			},
 			[]argoprojiov1alpha1.GitDirectoryGeneratorItem{{"path"}},
 			&apiclient.AppList{
-				Apps:                 map[string]string{},
+				Apps: map[string]string{},
 			},
 			nil,
 			[]argov1alpha1.Application{},
@@ -117,22 +117,22 @@ func TestGenerateApplications(t *testing.T) {
 					Name:      "{{path.basename}}",
 					Namespace: "namespace",
 				},
-				Spec:       argov1alpha1.ApplicationSpec{
-					Source:               argov1alpha1.ApplicationSource{
+				Spec: argov1alpha1.ApplicationSpec{
+					Source: argov1alpha1.ApplicationSource{
 						RepoURL:        "RepoURL",
 						Path:           "{{path}}",
 						TargetRevision: "HEAD",
 					},
-					Destination:          argov1alpha1.ApplicationDestination{
+					Destination: argov1alpha1.ApplicationDestination{
 						Server:    "server",
 						Namespace: "destinationNamespace",
 					},
-					Project:              "project",
+					Project: "project",
 				},
 			},
 			[]argoprojiov1alpha1.GitDirectoryGeneratorItem{{"path"}},
 			&apiclient.AppList{
-				Apps:                 map[string]string{},
+				Apps: map[string]string{},
 			},
 			fmt.Errorf("error"),
 			[]argov1alpha1.Application{},
@@ -148,7 +148,7 @@ func TestGenerateApplications(t *testing.T) {
 		var gitGenerator = NewGitGenerator(mockRepoClient)
 		applicationSetInfo := argoprojiov1alpha1.ApplicationSet{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:                       "set",
+				Name: "set",
 			},
 			Spec: argoprojiov1alpha1.ApplicationSetSpec{
 				Generators: []argoprojiov1alpha1.ApplicationSetGenerator{{
@@ -157,12 +157,12 @@ func TestGenerateApplications(t *testing.T) {
 						Revision:    "Revision",
 						Directories: c.Directories,
 					},
-				},},
+				}},
 				Template: c.template,
 			},
 		}
 
-		got, err := gitGenerator.GenerateApplications(&applicationSetInfo.Spec.Generators[0], &applicationSetInfo )
+		got, err := gitGenerator.GenerateApplications(&applicationSetInfo.Spec.Generators[0], &applicationSetInfo)
 
 		if c.expectedError != nil {
 			assert.Error(t, c.expectedError, err)
@@ -171,8 +171,6 @@ func TestGenerateApplications(t *testing.T) {
 			assert.Equal(t, c.expected, got)
 		}
 
-
 	}
-
 
 }
