@@ -18,8 +18,11 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/kubernetes/pkg/apis/core"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -57,6 +60,11 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		if err != nil {
 			log.WithError(err).Error("error generating applications")
 		}
+
+		if err := r.createApplications(ctx, applicationSetInfo, desiredApplications); err != nil {
+			log.Info("Unable to create applications applicationSetInfo %v", err)
+			return ctrl.Result{}, err
+		}
 	}
 
 	return ctrl.Result{}, nil
@@ -66,4 +74,22 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&argoprojiov1alpha1.ApplicationSet{}).
 		Complete(r)
+}
+
+
+func (r *ApplicationSetReconciler) createApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet, appList []argov1alpha1.Application) error {
+
+	for _, app := range appList {
+		app.Namespace = applicationSetInfo.Namespace
+		if err := r.Client.Create(ctx, &app); err != nil {
+			log.Error(err, fmt.Sprintf("failed to create Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
+			continue
+		}
+
+		r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, "Created", "Created Application %q", app.Name)
+		log.Infof("created Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name)
+	}
+
+	return nil
+
 }
