@@ -48,7 +48,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
 	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
-		log.Info("Unable to fetch applicationSetInfo %v", err)
+		log.Infof("Unable to fetch applicationSetInfo %e", err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -62,7 +62,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		}
 
 		if err := r.createApplications(ctx, applicationSetInfo, desiredApplications); err != nil {
-			log.Info("Unable to create applications applicationSetInfo %v", err)
+			log.Infof("Unable to create applications applicationSetInfo %e", err)
 			return ctrl.Result{}, err
 		}
 	}
