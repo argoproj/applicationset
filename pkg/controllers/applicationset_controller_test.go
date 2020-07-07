@@ -23,27 +23,27 @@ func TestCreateApplications(t *testing.T) {
 	client := fake.NewFakeClientWithScheme(scheme)
 
 	r := ApplicationSetReconciler{
-		Client: client,
-		Scheme: scheme,
+		Client:   client,
+		Scheme:   scheme,
 		Recorder: record.NewFakeRecorder(1),
 	}
 
 	for _, c := range []struct {
-		appSet argoprojiov1alpha1.ApplicationSet
-		apps []argov1alpha1.Application
+		appSet   argoprojiov1alpha1.ApplicationSet
+		apps     []argov1alpha1.Application
 		expected []argov1alpha1.Application
 	}{
 		{
 			appSet: argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:                       "name",
-					Namespace:                  "namespace",
+					Name:      "name",
+					Namespace: "namespace",
 				},
 			},
 			apps: []argov1alpha1.Application{
 				{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:                       "app1",
+						Name: "app1",
 					},
 				},
 			},
@@ -61,7 +61,7 @@ func TestCreateApplications(t *testing.T) {
 				},
 			},
 		},
-	}{
+	} {
 		r.createApplications(context.TODO(), c.appSet, c.apps)
 
 		for _, e := range c.expected {
@@ -74,7 +74,5 @@ func TestCreateApplications(t *testing.T) {
 			assert.Equal(t, e, *got)
 		}
 	}
-
-
 
 }
