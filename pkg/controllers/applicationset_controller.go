@@ -20,9 +20,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/kubernetes/pkg/apis/core"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 )
 
 // ApplicationSetReconciler reconciles a ApplicationSet object
@@ -40,6 +43,7 @@ type ApplicationSetReconciler struct {
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 
 func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
@@ -52,19 +56,30 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	var generator generators.Generator
-	generator = generators.NewListGenerator()
+	listGenerator := generators.NewListGenerator()
+	clusterGenerator := generators.NewClusterGenerator(r.Client)
+
+	// desiredApplications is the main list of all expected Applications from all generators in this appset.
+	var desiredApplications []argov1alpha1.Application
 	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
-		desiredApplications, err := generator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		log.Infof("desiredApplications %+v", desiredApplications)
+		var apps []argov1alpha1.Application
+		var err error
+		if tmpGenerator.List != nil {
+			apps, err = listGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		} else if tmpGenerator.Clusters != nil {
+			apps, err = clusterGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		}
+		log.Infof("apps from generator: %+v", apps)
 		if err != nil {
 			log.WithError(err).Error("error generating applications")
 		}
+		desiredApplications = append(desiredApplications, apps...)
 
-		if err := r.createApplications(ctx, applicationSetInfo, desiredApplications); err != nil {
-			log.Infof("Unable to create applications applicationSetInfo %e", err)
-			return ctrl.Result{}, err
-		}
+	}
+
+	if err := r.createApplications(ctx, applicationSetInfo, desiredApplications); err != nil {
+		log.Infof("Unable to create applications applicationSetInfo %e", err)
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -73,6 +88,13 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&argoprojiov1alpha1.ApplicationSet{}).
+		Watches(
+			&source.Kind{Type: &corev1.Secret{}},
+			&clusterSecretEventHandler{
+				Client: mgr.GetClient(),
+				Log:    log.WithField("type", "createSecretEventHandler"),
+			}).
+		// TODO: also watch Applications and respond on changes if we own them.
 		Complete(r)
 }
 
@@ -92,3 +114,5 @@ func (r *ApplicationSetReconciler) createApplications(ctx context.Context, appli
 	return nil
 
 }
+
+var _ handler.EventHandler = &clusterSecretEventHandler{}
