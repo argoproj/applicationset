@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,6 +25,8 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = argoprojiov1alpha1.AddToScheme(scheme)
+
+	_ = argov1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

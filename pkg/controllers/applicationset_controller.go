@@ -18,9 +18,11 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/kubernetes/pkg/apis/core"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
@@ -50,7 +52,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
 	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
-		log.Info("Unable to fetch applicationSetInfo %v", err)
+		log.Infof("Unable to fetch applicationSetInfo %e", err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -58,7 +60,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	clusterGenerator := generators.NewClusterGenerator(r.Client)
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
-	var desiredApplications  []argov1alpha1.Application
+	var desiredApplications []argov1alpha1.Application
 	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
 		var apps []argov1alpha1.Application
 		var err error
@@ -72,6 +74,12 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			log.WithError(err).Error("error generating applications")
 		}
 		desiredApplications = append(desiredApplications, apps...)
+
+	}
+
+	if err := r.createApplications(ctx, applicationSetInfo, desiredApplications); err != nil {
+		log.Infof("Unable to create applications applicationSetInfo %e", err)
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -84,11 +92,27 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			&source.Kind{Type: &corev1.Secret{}},
 			&clusterSecretEventHandler{
 				Client: mgr.GetClient(),
-				Log: log.WithField("type", "createSecretEventHandler"),
+				Log:    log.WithField("type", "createSecretEventHandler"),
 			}).
 		// TODO: also watch Applications and respond on changes if we own them.
 		Complete(r)
 }
 
-var _ handler.EventHandler = &clusterSecretEventHandler{}
+func (r *ApplicationSetReconciler) createApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet, appList []argov1alpha1.Application) error {
 
+	for _, app := range appList {
+		app.Namespace = applicationSetInfo.Namespace
+		if err := r.Client.Create(ctx, &app); err != nil {
+			log.Error(err, fmt.Sprintf("failed to create Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
+			continue
+		}
+
+		r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, "Created", "Created Application %q", app.Name)
+		log.Infof("created Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name)
+	}
+
+	return nil
+
+}
+
+var _ handler.EventHandler = &clusterSecretEventHandler{}
