@@ -23,6 +23,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/kubernetes/pkg/apis/core"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
@@ -102,16 +103,29 @@ func (r *ApplicationSetReconciler) createApplications(ctx context.Context, appli
 
 	for _, app := range appList {
 		app.Namespace = applicationSetInfo.Namespace
-		if err := r.Client.Create(ctx, &app); err != nil {
-			log.Error(err, fmt.Sprintf("failed to create Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
+
+		found := app
+		action, err := ctrl.CreateOrUpdate(ctx, r.Client, &found, func() error {
+			found.Spec = app.Spec
+			return controllerutil.SetControllerReference(&applicationSetInfo, &found, r.Scheme)
+		})
+
+		if err != nil {
+			log.Error(err, fmt.Sprintf("failed to get Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
 			continue
 		}
 
 		r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, "Created", "Created Application %q", app.Name)
-		log.Infof("created Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name)
+		log.Infof("%s Application %s resource for applicationSet %s", action, app.Name, applicationSetInfo.Name)
 	}
 
 	return nil
+
+}
+
+func (r *ApplicationSetReconciler) getApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+
+	return nil, nil
 
 }
 
