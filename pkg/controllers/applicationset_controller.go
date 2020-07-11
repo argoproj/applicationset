@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/kubernetes/pkg/apis/core"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -78,7 +79,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	}
 
-	if err := r.createApplications(ctx, applicationSetInfo, desiredApplications); err != nil {
+	if err := r.applyApplicationsToCluster(ctx, applicationSetInfo, desiredApplications); err != nil {
 		log.Infof("Unable to create applications applicationSetInfo %e", err)
 		return ctrl.Result{}, err
 	}
@@ -87,8 +88,27 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 }
 
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(&argov1alpha1.Application{}, ".metadata.controller", func(rawObj runtime.Object) []string {
+		// grab the job object, extract the owner...
+		app := rawObj.(*argov1alpha1.Application)
+		owner := metav1.GetControllerOf(app)
+		if owner == nil {
+			return nil
+		}
+		// ...make sure it's a application set...
+		if owner.APIVersion != argoprojiov1alpha1.GroupVersion.String() || owner.Kind != "ApplicationSet" {
+			return nil
+		}
+
+		// ...and if so, return it
+		return []string{owner.Name}
+	}); err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&argoprojiov1alpha1.ApplicationSet{}).
+		Owns(&argov1alpha1.Application{}).
 		Watches(
 			&source.Kind{Type: &corev1.Secret{}},
 			&clusterSecretEventHandler{
@@ -99,9 +119,17 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ApplicationSetReconciler) createApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet, appList []argov1alpha1.Application) error {
+func (r *ApplicationSetReconciler) applyApplicationsToCluster(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet, appList []argov1alpha1.Application) error {
 
+	// Save current applications to be able to delete the ones that are not in appList
+	var current argov1alpha1.ApplicationList
+	_ = r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSetInfo.Name})
+
+	m := make(map[string]bool) // Will holds the app names in appList for the deletion process
+
+	//create or updates the application in appList
 	for _, app := range appList {
+		m[app.Name] = true
 		app.Namespace = applicationSetInfo.Namespace
 
 		found := app
@@ -111,21 +139,30 @@ func (r *ApplicationSetReconciler) createApplications(ctx context.Context, appli
 		})
 
 		if err != nil {
-			log.Error(err, fmt.Sprintf("failed to get Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
+			log.Error(err, fmt.Sprintf("failed to CreateOrUpdate Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
 			continue
 		}
 
-		r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, "Created", "Created Application %q", app.Name)
+		r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, fmt.Sprint(action), "%s Application %q", action, app.Name)
 		log.Infof("%s Application %s resource for applicationSet %s", action, app.Name, applicationSetInfo.Name)
 	}
 
+	// Delete apps that are not in m[string]bool
+	for _, app := range current.Items {
+		_, exists := m[app.Name]
+
+		if exists == false {
+			err := r.Client.Delete(ctx, &app)
+			if err != nil {
+				log.Error(err, fmt.Sprintf("failed to delete Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
+				continue
+			}
+			r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, "Deleted", "Deleted Application %q", app.Name)
+			log.Infof("Deleted Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name)
+		}
+	}
+
 	return nil
-
-}
-
-func (r *ApplicationSetReconciler) getApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
-
-	return nil, nil
 
 }
 
