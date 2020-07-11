@@ -119,6 +119,12 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// applyApplicationsToCluster will create / update / delete application resources in the cluster.
+// The function must be called after all generators had been called and generated applications
+// For new application it will call create
+// For application that need to update it will call update
+// For application that are current in the cluster but not in appList it will call delete
+// The function also adds owner reference to all applications, and uses it for delete them.
 func (r *ApplicationSetReconciler) applyApplicationsToCluster(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet, appList []argov1alpha1.Application) error {
 
 	// Save current applications to be able to delete the ones that are not in appList
@@ -163,12 +169,6 @@ func (r *ApplicationSetReconciler) applyApplicationsToCluster(ctx context.Contex
 	}
 
 	return nil
-
-}
-
-func (r *ApplicationSetReconciler) getApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
-
-	return nil, nil
 
 }
 
