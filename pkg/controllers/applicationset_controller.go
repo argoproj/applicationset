@@ -166,4 +166,10 @@ func (r *ApplicationSetReconciler) applyApplicationsToCluster(ctx context.Contex
 
 }
 
+func (r *ApplicationSetReconciler) getApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+
+	return nil, nil
+
+}
+
 var _ handler.EventHandler = &clusterSecretEventHandler{}
