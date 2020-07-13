@@ -79,10 +79,8 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	}
 
-	if err := r.applyApplicationsToCluster(ctx, applicationSetInfo, desiredApplications); err != nil {
-		log.Infof("Unable to create applications applicationSetInfo %e", err)
-		return ctrl.Result{}, err
-	}
+	r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
+	r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
 
 	return ctrl.Result{}, nil
 }
@@ -119,38 +117,44 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// applyApplicationsToCluster will create / update / delete application resources in the cluster.
-// The function must be called after all generators had been called and generated applications
+// createOrUpdateInCluster will create / update application resources in the cluster.
 // For new application it will call create
 // For application that need to update it will call update
-// For application that are current in the cluster but not in appList it will call delete
 // The function also adds owner reference to all applications, and uses it for delete them.
-func (r *ApplicationSetReconciler) applyApplicationsToCluster(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet, appList []argov1alpha1.Application) error {
-
-	// Save current applications to be able to delete the ones that are not in appList
-	var current argov1alpha1.ApplicationList
-	_ = r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSetInfo.Name})
-
-	m := make(map[string]bool) // Will holds the app names in appList for the deletion process
+func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) {
 
 	//create or updates the application in appList
-	for _, app := range appList {
-		m[app.Name] = true
-		app.Namespace = applicationSetInfo.Namespace
+	for _, app := range desiredApplications {
+		app.Namespace = applicationSet.Namespace
 
 		found := app
 		action, err := ctrl.CreateOrUpdate(ctx, r.Client, &found, func() error {
 			found.Spec = app.Spec
-			return controllerutil.SetControllerReference(&applicationSetInfo, &found, r.Scheme)
+			return controllerutil.SetControllerReference(&applicationSet, &found, r.Scheme)
 		})
 
 		if err != nil {
-			log.Error(err, fmt.Sprintf("failed to CreateOrUpdate Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
+			log.Error(err, fmt.Sprintf("failed to CreateOrUpdate Application %s resource for applicationSet %s", app.Name, applicationSet.Name))
 			continue
 		}
 
-		r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, fmt.Sprint(action), "%s Application %q", action, app.Name)
-		log.Infof("%s Application %s resource for applicationSet %s", action, app.Name, applicationSetInfo.Name)
+		r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, fmt.Sprint(action), "%s Application %q", action, app.Name)
+		log.Infof("%s Application %s resource for applicationSet %s", action, app.Name, applicationSet.Name)
+	}
+}
+
+// deleteInCluster will delete application that are current in the cluster but not in appList.
+// The function must be called after all generators had been called and generated applications
+func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) {
+
+	// Save current applications to be able to delete the ones that are not in appList
+	var current argov1alpha1.ApplicationList
+	_ = r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
+
+	m := make(map[string]bool) // Will holds the app names in appList for the deletion process
+
+	for _, app := range desiredApplications {
+		m[app.Name] = true
 	}
 
 	// Delete apps that are not in m[string]bool
@@ -160,16 +164,13 @@ func (r *ApplicationSetReconciler) applyApplicationsToCluster(ctx context.Contex
 		if exists == false {
 			err := r.Client.Delete(ctx, &app)
 			if err != nil {
-				log.Error(err, fmt.Sprintf("failed to delete Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
+				log.Error(err, fmt.Sprintf("failed to delete Application %s resource for applicationSet %s", app.Name, applicationSet.Name))
 				continue
 			}
-			r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, "Deleted", "Deleted Application %q", app.Name)
-			log.Infof("Deleted Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name)
+			r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, "Deleted", "Deleted Application %q", app.Name)
+			log.Infof("Deleted Application %s resource for applicationSet %s", app.Name, applicationSet.Name)
 		}
 	}
-
-	return nil
-
 }
 
 var _ handler.EventHandler = &clusterSecretEventHandler{}
