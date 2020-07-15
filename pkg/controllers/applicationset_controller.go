@@ -125,6 +125,7 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 
 	//create or updates the application in appList
 	for _, app := range desiredApplications {
+		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
 		app.Namespace = applicationSet.Namespace
 
 		found := app
@@ -134,12 +135,12 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 		})
 
 		if err != nil {
-			log.Error(err, fmt.Sprintf("failed to CreateOrUpdate Application %s resource for applicationSet %s", app.Name, applicationSet.Name))
+			appLog.WithError(err).Errorf("failed to %s Application", action)
 			continue
 		}
 
 		r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, fmt.Sprint(action), "%s Application %q", action, app.Name)
-		log.Infof("%s Application %s resource for applicationSet %s", action, app.Name, applicationSet.Name)
+		appLog.Logf(log.InfoLevel, "%s Application", action)
 	}
 }
 
@@ -159,16 +160,17 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 
 	// Delete apps that are not in m[string]bool
 	for _, app := range current.Items {
+		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
 		_, exists := m[app.Name]
 
 		if exists == false {
 			err := r.Client.Delete(ctx, &app)
 			if err != nil {
-				log.Error(err, fmt.Sprintf("failed to delete Application %s resource for applicationSet %s", app.Name, applicationSet.Name))
+				appLog.WithError(err).Error("failed to delete Application")
 				continue
 			}
 			r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, "Deleted", "Deleted Application %q", app.Name)
-			log.Infof("Deleted Application %s resource for applicationSet %s", app.Name, applicationSet.Name)
+			appLog.Log(log.InfoLevel, "Deleted application")
 		}
 	}
 }
