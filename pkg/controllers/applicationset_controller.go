@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/kubernetes/pkg/apis/core"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -78,17 +79,34 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	}
 
-	if err := r.createApplications(ctx, applicationSetInfo, desiredApplications); err != nil {
-		log.Infof("Unable to create applications applicationSetInfo %e", err)
-		return ctrl.Result{}, err
-	}
+	r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
+	r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
 
 	return ctrl.Result{}, nil
 }
 
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(&argov1alpha1.Application{}, ".metadata.controller", func(rawObj runtime.Object) []string {
+		// grab the job object, extract the owner...
+		app := rawObj.(*argov1alpha1.Application)
+		owner := metav1.GetControllerOf(app)
+		if owner == nil {
+			return nil
+		}
+		// ...make sure it's a application set...
+		if owner.APIVersion != argoprojiov1alpha1.GroupVersion.String() || owner.Kind != "ApplicationSet" {
+			return nil
+		}
+
+		// ...and if so, return it
+		return []string{owner.Name}
+	}); err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&argoprojiov1alpha1.ApplicationSet{}).
+		Owns(&argov1alpha1.Application{}).
 		Watches(
 			&source.Kind{Type: &corev1.Secret{}},
 			&clusterSecretEventHandler{
@@ -99,34 +117,62 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ApplicationSetReconciler) createApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet, appList []argov1alpha1.Application) error {
+// createOrUpdateInCluster will create / update application resources in the cluster.
+// For new application it will call create
+// For application that need to update it will call update
+// The function also adds owner reference to all applications, and uses it for delete them.
+func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) {
 
-	for _, app := range appList {
-		app.Namespace = applicationSetInfo.Namespace
+	//create or updates the application in appList
+	for _, app := range desiredApplications {
+		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
+		app.Namespace = applicationSet.Namespace
 
 		found := app
 		action, err := ctrl.CreateOrUpdate(ctx, r.Client, &found, func() error {
 			found.Spec = app.Spec
-			return controllerutil.SetControllerReference(&applicationSetInfo, &found, r.Scheme)
+			return controllerutil.SetControllerReference(&applicationSet, &found, r.Scheme)
 		})
 
 		if err != nil {
-			log.Error(err, fmt.Sprintf("failed to get Application %s resource for applicationSet %s", app.Name, applicationSetInfo.Name))
+			appLog.WithError(err).Errorf("failed to %s Application", action)
 			continue
 		}
 
-		r.Recorder.Eventf(&applicationSetInfo, core.EventTypeNormal, "Created", "Created Application %q", app.Name)
-		log.Infof("%s Application %s resource for applicationSet %s", action, app.Name, applicationSetInfo.Name)
+		r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, fmt.Sprint(action), "%s Application %q", action, app.Name)
+		appLog.Logf(log.InfoLevel, "%s Application", action)
 	}
-
-	return nil
-
 }
 
-func (r *ApplicationSetReconciler) getApplications(ctx context.Context, applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+// deleteInCluster will delete application that are current in the cluster but not in appList.
+// The function must be called after all generators had been called and generated applications
+func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) {
 
-	return nil, nil
+	// Save current applications to be able to delete the ones that are not in appList
+	var current argov1alpha1.ApplicationList
+	_ = r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
 
+	m := make(map[string]bool) // Will holds the app names in appList for the deletion process
+
+	for _, app := range desiredApplications {
+		m[app.Name] = true
+	}
+
+	// Delete apps that are not in m[string]bool
+	for _, app := range current.Items {
+		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
+		_, exists := m[app.Name]
+
+		if exists == false {
+			err := r.Client.Delete(ctx, &app)
+			if err != nil {
+				appLog.WithError(err).Error("failed to delete Application")
+				continue
+			}
+			r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, "Deleted", "Deleted Application %q", app.Name)
+			appLog.Log(log.InfoLevel, "Deleted application")
+		}
+	}
 }
 
 var _ handler.EventHandler = &clusterSecretEventHandler{}
