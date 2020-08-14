@@ -39,6 +39,7 @@ func (g *ListGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1
 	tmplApplication.Name = appSet.Spec.Template.Name
 	tmplApplication.Spec = appSet.Spec.Template.Spec
 
+	var resultingApplications []argov1alpha1.Application
 	params := make(map[string]string, 2)
 	for _, tmpItem := range listGenerator.Elements {
 		params[utils.ClusterListGeneratorKeyName] = tmpItem.Cluster
@@ -46,6 +47,7 @@ func (g *ListGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1
 		tmpApplication, err := utils.RenderTemplateParams(&tmplApplication, params)
 		log.Debugf("tmpApplication %++v", tmpApplication)
 		log.Debugf("error %v", err)
+		resultingApplications = append(resultingApplications, *tmpApplication)
 	}
-	return nil, nil
+	return resultingApplications, nil
 }

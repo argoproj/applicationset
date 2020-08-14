@@ -8,6 +8,7 @@ rules:
   - argoproj.io
   resources:
   - applicationsets
+  - applications
   verbs:
   - create
   - delete
@@ -37,6 +38,14 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - list
+  - watch
+  - get
 - apiGroups:
   - apps
   - extensions

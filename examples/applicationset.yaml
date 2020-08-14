@@ -13,6 +13,7 @@ spec:
     metadata:
       name: '{{name}}-guestbook'
     spec:
+      project: default
       source:
         repoURL: https://github.com/infra-team/cluster-deployments.git
         targetRevision: HEAD

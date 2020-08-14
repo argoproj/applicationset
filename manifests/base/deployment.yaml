@@ -18,7 +18,7 @@ spec:
       containers:
       - command:
         - applicationset-controller
-        image: registry.cn-hangzhou.aliyuncs.com/appcenter/argocd-aplicationset:v0.1.0
+        image: <todo local image for now> # example for kind with local registry: localhost:5000/applicationset:0.1.6
         imagePullPolicy: Always
         name: argocd-applicationset-controller
       serviceAccountName: default
