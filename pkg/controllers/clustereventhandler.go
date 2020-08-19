@@ -73,5 +73,3 @@ func (h *clusterSecretEventHandler) queueRelatedAppGenerators(q workqueue.RateLi
 		}
 	}
 }
-
-

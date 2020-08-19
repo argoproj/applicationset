@@ -9,8 +9,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	"github.com/argoproj-labs/applicationset/pkg/utils"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 )
 
 const (
@@ -56,9 +57,27 @@ func (g *ClusterGenerator) GenerateApplications(
 	}
 	log.Debug("clusters matching labels", "count", len(clusterSecretList.Items))
 
+	var tmplApplication argov1alpha1.Application
+	tmplApplication.Namespace = appSet.Spec.Template.Namespace
+	tmplApplication.Name = appSet.Spec.Template.Name
+	tmplApplication.Spec = appSet.Spec.Template.Spec
+
+	var resultingApplications []argov1alpha1.Application
+
 	for _, cluster := range clusterSecretList.Items {
+		params := make(map[string]string)
+		params["name"] = cluster.Name
+		params["server"] = string(cluster.Data["server"])
+		for key, value := range cluster.ObjectMeta.Labels {
+			params[fmt.Sprintf("metadata.labels.%s", key)] = value
+		}
 		log.WithField("cluster", cluster.Name).Info("matched cluster secret")
+		tmpApplication, err := utils.RenderTemplateParams(&tmplApplication, params)
+		if err != nil {
+			return nil, err
+		}
+		resultingApplications = append(resultingApplications, *tmpApplication)
 	}
 
-	return nil, nil
+	return resultingApplications, nil
 }
