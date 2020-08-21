@@ -74,7 +74,8 @@ func (g *ClusterGenerator) GenerateApplications(
 		log.WithField("cluster", cluster.Name).Info("matched cluster secret")
 		tmpApplication, err := utils.RenderTemplateParams(&tmplApplication, params)
 		if err != nil {
-			return nil, err
+			log.WithField("cluster", cluster.Name).Error("Error during rendering template params")
+			continue
 		}
 		resultingApplications = append(resultingApplications, *tmpApplication)
 	}
