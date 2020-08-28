@@ -5,12 +5,12 @@ DOCKER_PUSH?=true
 
 .PHONY: build
 build:
-	CGO_ENABLED=0 go build -ldflags="-w -s" -o ./dist/argocd-aplicationset .
+	CGO_ENABLED=0 go build -ldflags="-w -s" -o ./dist/argocd-applicationset .
 
 .PHONY: image
 image:
-	docker build -t $(IMAGE_PREFIX)/argocd-aplicationset:$(IMAGE_TAG) .
-	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE_PREFIX)/argocd-aplicationset:$(IMAGE_TAG) ; fi
+	docker build -t $(IMAGE_PREFIX)/argocd-applicationset:$(IMAGE_TAG) .
+	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE_PREFIX)/argocd-applicationset:$(IMAGE_TAG) ; fi
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests

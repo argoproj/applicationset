@@ -3,8 +3,8 @@ kind: Deployment
 metadata:
   labels:
     app.kubernetes.io/name: argocd-applicationset-controller
-    app.kubernetes.io/part-of: argocd
-    app.kubernetes.io/component: applicationset-controller
+    app.kubernetes.io/part-of: argocd-applicationset
+    app.kubernetes.io/component: controller
   name: argocd-applicationset-controller
 spec:
   selector:
@@ -16,9 +16,9 @@ spec:
         app.kubernetes.io/name: argocd-applicationset-controller
     spec:
       containers:
-      - command:
-        - applicationset-controller
-        image: registry.cn-hangzhou.aliyuncs.com/appcenter/argocd-aplicationset:v0.1.0
-        imagePullPolicy: Always
-        name: argocd-applicationset-controller
-      serviceAccountName: default
+        - command:
+            - applicationset-controller
+          image: registry.cn-hangzhou.aliyuncs.com/appcenter/argocd-applicationset:v0.1.0
+          imagePullPolicy: Always
+          name: argocd-applicationset-controller
+      serviceAccountName: argocd-applicationset-controller

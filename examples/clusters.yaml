@@ -10,13 +10,17 @@ metadata:
   name: guestbook
 spec:
   generators:
-  - clusters: {}
+  - clusters:
+      selector:
+        matchLabels:
+          argocd.argoproj.io/secret-type: cluster
   template:
     metadata:
       name: '{{name}}-guestbook'
       labels:
         environment: '{{metadata.labels.environment}}'
     spec:
+      project: ""
       source:
         repoURL: https://github.com/infra-team/cluster-deployments.git
         targetRevision: HEAD

@@ -36,6 +36,11 @@ func RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]stri
 		return nil, err
 	}
 
+	if replacedTmpl.ObjectMeta.Finalizers == nil {
+		replacedTmpl.ObjectMeta.Finalizers = []string{}
+	}
+	replacedTmpl.ObjectMeta.Finalizers = append(replacedTmpl.ObjectMeta.Finalizers, "resources-finalizer.argocd.argoproj.io")
+
 	return &replacedTmpl, nil
 }
 
@@ -64,5 +69,6 @@ func Replace(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allow
 	if unresolvedErr != nil {
 		return "", unresolvedErr
 	}
+
 	return replacedTmpl, nil
 }

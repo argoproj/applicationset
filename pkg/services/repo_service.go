@@ -5,8 +5,8 @@ import (
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
 	"github.com/argoproj/argo-cd/util/db"
 	"github.com/argoproj/argo-cd/util/settings"
-	"k8s.io/client-go/kubernetes"
 	log "github.com/sirupsen/logrus"
+	"k8s.io/client-go/kubernetes"
 )
 
 type argoCDService struct {

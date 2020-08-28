@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,6 +25,8 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = argoprojiov1alpha1.AddToScheme(scheme)
+
+	_ = argov1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -41,12 +44,12 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
+		Scheme:                 scheme,
+		MetricsBindAddress:     metricsAddr,
 		HealthProbeBindAddress: probeBindAddr,
-		Port:               9443,
-		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   "58ac56fa.",
+		Port:                   9443,
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "58ac56fa.",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -54,8 +57,8 @@ func main() {
 	}
 
 	if err = (&controllers.ApplicationSetReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("applicationset-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
