@@ -2,19 +2,22 @@ package services
 
 import (
 	"context"
+	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
+	"github.com/argoproj/argo-cd/util"
 	"github.com/argoproj/argo-cd/util/db"
 	"github.com/argoproj/argo-cd/util/settings"
-	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
 
-type argoCDService struct {
-	clientset        kubernetes.Interface
-	namespace        string
-	settingsMgr      *settings.SettingsManager
+type ArgocdRepository interface {
+	GetRepository(ctx context.Context, url string) (*v1alpha1.Repository, error)
+}
+
+type ArgoCDService struct {
+	ArgocdRepository ArgocdRepository
 	repoServerClient apiclient.RepoServerServiceClient
-	dispose          func()
+	closer          util.Closer
 }
 
 type Apps struct {
@@ -25,28 +28,22 @@ type Repos interface {
 	GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error)
 }
 
-func NewArgoCDService(clientset kubernetes.Interface, namespace string, repoServerAddress string) (*argoCDService, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) (*ArgoCDService, error) {
 	settingsMgr := settings.NewSettingsManager(ctx, clientset, namespace)
 	repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5)
 	closer, repoClient, err := repoClientset.NewRepoServerClient()
 	if err != nil {
-		cancel()
 		return nil, err
 	}
 
-	dispose := func() {
-		cancel()
-		if err := closer.Close(); err != nil {
-			log.Warnf("Failed to close repo server connection: %v", err)
-		}
-	}
-	return &argoCDService{settingsMgr: settingsMgr, namespace: namespace, repoServerClient: repoClient, dispose: dispose}, nil
+	argocdDB := db.NewDB(namespace, settingsMgr, clientset)
+
+	return &ArgoCDService{ArgocdRepository: argocdDB.(ArgocdRepository), repoServerClient: repoClient, closer: closer}, nil
 }
 
-func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error) {
-	argocdDB := db.NewDB(a.namespace, a.settingsMgr, a.clientset)
-	repo, err := argocdDB.GetRepository(ctx, repoURL)
+func (a *ArgoCDService) GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error) {
+	defer a.closer.Close()
+	repo, err := a.ArgocdRepository.GetRepository(ctx, repoURL)
 	if err != nil {
 		return nil, err
 	}

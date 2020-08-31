@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
+	"github.com/argoproj-labs/applicationset/pkg/generators/git"
+	"github.com/argoproj-labs/applicationset/pkg/services"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,9 +42,10 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Scheme         *runtime.Scheme
-	Recorder       record.EventRecorder
-	RepoServerAddr string
+	Scheme         	*runtime.Scheme
+	Recorder       	record.EventRecorder
+	RepoServerAddr 	string
+	ArgocdService	*services.ArgoCDService
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -61,7 +64,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	listGenerator := generators.NewListGenerator()
 	clusterGenerator := generators.NewClusterGenerator(r.Client)
-	//GitGenerator := generators.NewGitGenerator(apiclient.NewRepoServerClientset(r.RepoServerAddr, 5))
+	GitGenerator := git.NewGitGenerator(r.ArgocdService)
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
 	var desiredApplications []argov1alpha1.Application
@@ -73,9 +76,9 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			apps, err = listGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
 		} else if tmpGenerator.Clusters != nil {
 			apps, err = clusterGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		} //else if tmpGenerator.Git != nil {
-		//	apps, err = GitGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		//}
+		} else if tmpGenerator.Git != nil {
+			apps, err = GitGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		}
 		log.Infof("apps from generator: %+v", apps)
 		if err != nil {
 			log.WithError(err).Error("error generating applications")
