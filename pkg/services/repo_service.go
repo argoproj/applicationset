@@ -4,9 +4,11 @@ import (
 	"context"
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
-	"github.com/argoproj/argo-cd/util"
 	"github.com/argoproj/argo-cd/util/db"
 	"github.com/argoproj/argo-cd/util/settings"
+	"github.com/argoproj/gitops-engine/pkg/utils/io"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -15,9 +17,8 @@ type ArgocdRepository interface {
 }
 
 type ArgoCDService struct {
-	ArgocdRepository ArgocdRepository
-	repoServerClient apiclient.RepoServerServiceClient
-	closer          util.Closer
+	ArgocdRepository 	ArgocdRepository
+	repoClientset 		apiclient.Clientset
 }
 
 type Apps struct {
@@ -31,30 +32,34 @@ type Repos interface {
 func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) (*ArgoCDService, error) {
 	settingsMgr := settings.NewSettingsManager(ctx, clientset, namespace)
 	repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5)
-	closer, repoClient, err := repoClientset.NewRepoServerClient()
-	if err != nil {
-		return nil, err
-	}
 
 	argocdDB := db.NewDB(namespace, settingsMgr, clientset)
 
-	return &ArgoCDService{ArgocdRepository: argocdDB.(ArgocdRepository), repoServerClient: repoClient, closer: closer}, nil
+	return &ArgoCDService{ArgocdRepository: argocdDB.(ArgocdRepository), repoClientset: repoClientset}, nil
 }
 
 func (a *ArgoCDService) GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error) {
-	defer a.closer.Close()
 	repo, err := a.ArgocdRepository.GetRepository(ctx, repoURL)
+	if err != nil {
+
+		return nil, errors.Wrap(err, "Error in GetRepository")
+	}
+	log.Infof("repo - %#v", repo)
+
+	conn, repoClient, err := a.repoClientset.NewRepoServerClient()
+	defer io.Close(conn)
 	if err != nil {
 		return nil, err
 	}
 
-	apps, err := a.repoServerClient.ListApps(ctx, &apiclient.ListAppsRequest{
+	apps, err := repoClient.ListApps(ctx, &apiclient.ListAppsRequest{
 		Repo: repo,
 		Revision: revision,
 		//Path: GitGenerator.Directories,
 	})
+	log.Infof("apps - %#v", apps)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error in ListApps")
 	}
 
 	res := []string{}

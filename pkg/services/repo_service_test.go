@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
+	"github.com/argoproj/argo-cd/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
@@ -50,6 +51,16 @@ type closer struct {
 
 func (c closer) Close() error{
 	return nil
+}
+
+type repoClientsetMock struct {
+	mock.Mock
+}
+
+func (r repoClientsetMock) NewRepoServerClient() (util.Closer, apiclient.RepoServerServiceClient, error) {
+	args := r.Called()
+
+	return closer{}, args.Get(0).(apiclient.RepoServerServiceClient), args.Error(1)
 }
 
 
@@ -101,7 +112,7 @@ func TestGetApps(t *testing.T) {
 			},
 			nil,
 			[]string{},
-			errors.New("error"),
+			errors.New("Error in GetRepository: error"),
 		},
 		{
 			"handles ListApps error",
@@ -119,24 +130,28 @@ func TestGetApps(t *testing.T) {
 			},
 			errors.New("error"),
 			[]string{},
-			errors.New("error"),
+			errors.New("Error in ListApps: error"),
 		},
 	}{
 		cc := c
 		t.Run(cc.name, func(t *testing.T) {
 			argocdRepositoryMock := ArgocdRepositoryMock{}
 			repoServerClientMock := repoServerClientMock{}
+			repoClientsetMock := repoClientsetMock{}
 
 			argocdRepositoryMock.On("GetRepository", mock.Anything, cc.repoURL).Return(cc.repoRes, cc.repoErr)
+
 			repoServerClientMock.On("ListApps", mock.Anything, &apiclient.ListAppsRequest{
 				Repo: cc.repoRes,
 				Revision: cc.revision,
 				//Path: GitGenerator.Directories,
 			}).Return(cc.appRes, cc.appError)
+
+			repoClientsetMock.On("NewRepoServerClient").Return(repoServerClientMock, nil)
+
 			argocd := ArgoCDService{
 				ArgocdRepository: argocdRepositoryMock,
-				repoServerClient: repoServerClientMock,
-				closer: closer{},
+				repoClientset: repoClientsetMock,
 			}
 			got, err := argocd.GetApps(context.TODO(), cc.repoURL, cc.revision, cc.path)
 
