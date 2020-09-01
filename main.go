@@ -66,10 +66,10 @@ func main() {
 	k8s := kubernetes.NewForConfigOrDie(mgr.GetConfig())
 
 	if err = (&controllers.ApplicationSetReconciler{
-		Client:   mgr.GetClient(),
-		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor("applicationset-controller"),
-		AppsService: services.NewArgoCDService(context.Background(), k8s , namespace, argocdRepoServer),
+		Client:      mgr.GetClient(),
+		Scheme:      mgr.GetScheme(),
+		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
+		AppsService: services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
