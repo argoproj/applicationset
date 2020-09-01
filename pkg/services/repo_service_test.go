@@ -149,8 +149,8 @@ func TestGetApps(t *testing.T) {
 
 			repoClientsetMock.On("NewRepoServerClient").Return(repoServerClientMock, nil)
 
-			argocd := ArgoCDService{
-				ArgocdRepository: argocdRepositoryMock,
+			argocd := argoCDService{
+				repositoriesDB: argocdRepositoryMock,
 				repoClientset: repoClientsetMock,
 			}
 			got, err := argocd.GetApps(context.TODO(), cc.repoURL, cc.revision, cc.path)

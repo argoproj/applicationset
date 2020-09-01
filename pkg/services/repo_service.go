@@ -12,34 +12,30 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-type ArgocdRepository interface {
+type RepositoryDB interface {
 	GetRepository(ctx context.Context, url string) (*v1alpha1.Repository, error)
 }
 
-type ArgoCDService struct {
-	ArgocdRepository 	ArgocdRepository
+type argoCDService struct {
+	repositoriesDB 		RepositoryDB
 	repoClientset 		apiclient.Clientset
 }
 
-type Apps struct {
-	name	string
-}
-
-type Repos interface {
+type Apps interface {
 	GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error)
 }
 
-func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) (*ArgoCDService, error) {
+func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) Apps {
 	settingsMgr := settings.NewSettingsManager(ctx, clientset, namespace)
-	repoClientset := apiclient.NewRepoServerClientset(repoServerAddress, 5)
 
-	argocdDB := db.NewDB(namespace, settingsMgr, clientset)
-
-	return &ArgoCDService{ArgocdRepository: argocdDB.(ArgocdRepository), repoClientset: repoClientset}, nil
+	return &argoCDService{
+		repositoriesDB: db.NewDB(namespace, settingsMgr, clientset).(RepositoryDB),
+		repoClientset: apiclient.NewRepoServerClientset(repoServerAddress, 5),
+	}
 }
 
-func (a *ArgoCDService) GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error) {
-	repo, err := a.ArgocdRepository.GetRepository(ctx, repoURL)
+func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error) {
+	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
 
 		return nil, errors.Wrap(err, "Error in GetRepository")

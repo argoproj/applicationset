@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
-	"github.com/argoproj-labs/applicationset/pkg/generators/git"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -45,7 +44,7 @@ type ApplicationSetReconciler struct {
 	Scheme         	*runtime.Scheme
 	Recorder       	record.EventRecorder
 	RepoServerAddr 	string
-	ArgocdService	*services.ArgoCDService
+	AppsService		services.Apps
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -64,7 +63,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	listGenerator := generators.NewListGenerator()
 	clusterGenerator := generators.NewClusterGenerator(r.Client)
-	GitGenerator := git.NewGitGenerator(r.ArgocdService)
+	GitGenerator := generators.NewGitGenerator(r.AppsService)
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
 	var desiredApplications []argov1alpha1.Application

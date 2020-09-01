@@ -1,4 +1,4 @@
-package git
+package generators
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func (a argoCDServiceMock) GetApps(ctx context.Context, repoURL string, revision
 	return args.Get(0).([]string), args.Error(1)
 }
 
-func getRenderTemplate(name string) *argov1alpha1.Application {
+func getGitRenderTemplate(name string) *argov1alpha1.Application {
 	return &argov1alpha1.Application{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -55,7 +55,7 @@ func getRenderTemplate(name string) *argov1alpha1.Application {
 	}
 }
 
-func TestGenerateApplications(t *testing.T) {
+func TestGitGenerateApplications(t *testing.T) {
 	cases := []struct {
 		name		  string
 		template      argoprojiov1alpha1.ApplicationSetTemplate
@@ -92,8 +92,8 @@ func TestGenerateApplications(t *testing.T) {
 			},
 			nil,
 			[]argov1alpha1.Application{
-				*getRenderTemplate("app1"),
-				*getRenderTemplate("app2"),
+				*getGitRenderTemplate("app1"),
+				*getGitRenderTemplate("app2"),
 			},
 			nil,
 		},

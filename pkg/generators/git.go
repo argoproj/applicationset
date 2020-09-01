@@ -1,10 +1,9 @@
-package git
+package generators
 
 import (
 	"context"
 	"fmt"
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
@@ -12,13 +11,13 @@ import (
 	"path"
 )
 
-var _ generators.Generator = (*GitGenerator)(nil)
+var _ Generator = (*GitGenerator)(nil)
 
 type GitGenerator struct {
-	repos services.Repos
+	repos services.Apps
 }
 
-func NewGitGenerator(repos services.Repos) generators.Generator {
+func NewGitGenerator(repos services.Apps) Generator {
 	g := &GitGenerator{
 		repos: repos,
 	}
