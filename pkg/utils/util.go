@@ -25,7 +25,7 @@ func RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]stri
 	}
 
 	fstTmpl := fasttemplate.New(string(tmplBytes), "{{", "}}")
-	replacedTmplStr, err := Replace(fstTmpl, params, true)
+	replacedTmplStr, err := replace(fstTmpl, params, true)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]stri
 // allowUnresolved indicates whether or not it is acceptable to have unresolved variables
 // remaining in the substituted template. prefixFilter will apply the replacements only
 // to variables with the specified prefix
-func Replace(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allowUnresolved bool) (string, error) {
+func replace(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allowUnresolved bool) (string, error) {
 	var unresolvedErr error
 	replacedTmpl := fstTmpl.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		replacement, ok := replaceMap[tag]

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/argoproj-labs/applicationset/pkg/generators"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"os"
 
@@ -57,9 +58,12 @@ func main() {
 	}
 
 	if err = (&controllers.ApplicationSetReconciler{
-		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("applicationset-controller"),
+		Generators: []generators.Generator{
+			generators.NewListGenerator(),
+			generators.NewClusterGenerator(mgr.GetClient()),
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
