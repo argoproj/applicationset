@@ -22,7 +22,7 @@ type argoCDService struct {
 }
 
 type Apps interface {
-	GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error)
+	GetApps(ctx context.Context, repoURL string, revision string) ([]string, error)
 }
 
 func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) Apps {
@@ -34,7 +34,7 @@ func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, names
 	}
 }
 
-func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision string, path string) ([]string, error) {
+func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision string) ([]string, error) {
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
 
@@ -45,13 +45,12 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 	conn, repoClient, err := a.repoClientset.NewRepoServerClient()
 	defer io.Close(conn)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Error in creating repo service client")
 	}
 
 	apps, err := repoClient.ListApps(ctx, &apiclient.ListAppsRequest{
 		Repo: repo,
 		Revision: revision,
-		//Path: GitGenerator.Directories,
 	})
 	log.Infof("apps - %#v", apps)
 	if err != nil {
@@ -63,6 +62,8 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 	for name, _ := range apps.Apps {
 		res = append(res, name)
 	}
+
+	log.Infof("res - %#v", apps)
 
 	return res, nil
 }

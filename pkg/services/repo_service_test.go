@@ -70,7 +70,6 @@ func TestGetApps(t *testing.T) {
 		name			string
 		repoURL     	string
 		revision		string
-		path       		string
 		repoRes			*v1alpha1.Repository
 		repoErr			error
 		appRes			*apiclient.AppList
@@ -82,7 +81,6 @@ func TestGetApps(t *testing.T) {
 			"Happy Flow",
 			"repoURL",
 			"revision",
-			"path",
 			&v1alpha1.Repository{
 			},
 			nil,
@@ -100,7 +98,6 @@ func TestGetApps(t *testing.T) {
 			"handles GetRepository error",
 			"repoURL",
 			"revision",
-			"path",
 			&v1alpha1.Repository{
 			},
 			errors.New("error"),
@@ -118,7 +115,6 @@ func TestGetApps(t *testing.T) {
 			"handles ListApps error",
 			"repoURL",
 			"revision",
-			"path",
 			&v1alpha1.Repository{
 			},
 			nil,
@@ -144,7 +140,6 @@ func TestGetApps(t *testing.T) {
 			repoServerClientMock.On("ListApps", mock.Anything, &apiclient.ListAppsRequest{
 				Repo: cc.repoRes,
 				Revision: cc.revision,
-				//Path: GitGenerator.Directories,
 			}).Return(cc.appRes, cc.appError)
 
 			repoClientsetMock.On("NewRepoServerClient").Return(repoServerClientMock, nil)
@@ -153,7 +148,7 @@ func TestGetApps(t *testing.T) {
 				repositoriesDB: argocdRepositoryMock,
 				repoClientset: repoClientsetMock,
 			}
-			got, err := argocd.GetApps(context.TODO(), cc.repoURL, cc.revision, cc.path)
+			got, err := argocd.GetApps(context.TODO(), cc.repoURL, cc.revision)
 
 			if cc.expectedError != nil {
 				assert.EqualError(t, err, cc.expectedError.Error())

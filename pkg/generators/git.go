@@ -33,38 +33,49 @@ func (g *GitGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1.
 		return nil, fmt.Errorf("git variable empty")
 	}
 
-	res := []argov1alpha1.Application{}
-
-	for _, path := range appSetGenerator.Git.Directories {
-		apps, err := g.generateApplications(appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path.Path, appSet)
-		if err != nil {
-			log.WithError(err).WithField("path", path).Error("error while generating app from path")
-			continue
-		}
-
-		res = append(res, apps...)
-	}
-
-	return res, nil
-}
-
-func (g *GitGenerator) generateApplications(repoURL, revision, path string, appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
-	appsPath, err := g.repos.GetApps(context.TODO(), repoURL, revision, path)
+	allApps, err := g.repos.GetApps(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision)
 	if err != nil {
 		return nil, err
 	}
 
-	res := make([]argov1alpha1.Application, len(appsPath))
-	for i, a := range appsPath {
+	requestedApps := g.filter(appSetGenerator.Git.Directories, allApps)
+
+	res := g.generateApplications(requestedApps, appSet)
+
+	return res, nil
+}
+
+func (g *GitGenerator) filter(Directories []argoprojiov1alpha1.GitDirectoryGeneratorItem, allApps []string) []string {
+	res := []string{}
+	for _, requestedPath := range Directories {
+		for _, appPath := range allApps {
+			match, err := path.Match(requestedPath.Path, appPath)
+			if err != nil {
+				log.WithError(err).WithField("requestedPath", requestedPath).
+					WithField("appPath", appPath).Error("error while matching appPath to requestedPath")
+				continue
+			}
+			if match {
+				res = append(res, appPath)
+			}
+		}
+	}
+	return res
+}
+
+func (g *GitGenerator) generateApplications(requestedApps []string, appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application) {
+
+	res := make([]argov1alpha1.Application, len(requestedApps))
+	for i, a := range requestedApps {
 		app, err := g.generateApplication(appSet, a)
 		if err != nil {
-			log.WithError(err).WithField("path", path).Error("error while generating app from path")
+			log.WithError(err).WithField("app", a).Error("error while generating app")
 			continue
 		}
 		res[i] = *app
 	}
 
-	return res, nil
+	return res
 }
 
 
