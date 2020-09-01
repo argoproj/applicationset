@@ -16,8 +16,9 @@ import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type possiblyErroringFakeCtrlRuntimeClient struct {
@@ -27,7 +28,7 @@ type possiblyErroringFakeCtrlRuntimeClient struct {
 
 func (p *possiblyErroringFakeCtrlRuntimeClient) List(ctx context.Context, secretList runtime.Object, opts ...client.ListOption) error {
 	if p.shouldError {
-		return errors.New("Could not list Secrets.")
+		return errors.New("could not list Secrets")
 	}
 	return p.Client.List(ctx, secretList, opts...)
 }
@@ -39,6 +40,9 @@ func getRenderTemplate(appName, clusterName, server, environmentLabel string) *a
 			Namespace: "namespace",
 			Finalizers: []string{
 				"resources-finalizer.argocd.argoproj.io",
+			},
+			Labels: map[string]string{
+				"environment": environmentLabel,
 			},
 		},
 		Spec: argov1alpha1.ApplicationSpec{
@@ -93,7 +97,7 @@ func TestGenerateApplications(t *testing.T) {
 			},
 			Data: map[string][]byte{
 				"config": []byte(base64.StdEncoding.EncodeToString([]byte("foo"))),
-				"name":   []byte(base64.StdEncoding.EncodeToString([]byte("productuion-01"))),
+				"name":   []byte(base64.StdEncoding.EncodeToString([]byte("production-01"))),
 				"server": []byte("https://production-01.example.com"),
 			},
 			Type: corev1.SecretType("Opaque"),
@@ -102,6 +106,9 @@ func TestGenerateApplications(t *testing.T) {
 
 	applicationSetTemplate := argoprojiov1alpha1.ApplicationSetTemplate{
 		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{
+				"environment": "{{metadata.labels.environment}}",
+			},
 			Name:      "{{name}}-app",
 			Namespace: "namespace",
 		},
@@ -154,7 +161,7 @@ func TestGenerateApplications(t *testing.T) {
 			metav1.LabelSelector{},
 			nil,
 			true,
-			errors.New("Could not list Secrets."),
+			errors.New("could not list Secrets"),
 		},
 	}
 

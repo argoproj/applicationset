@@ -58,6 +58,7 @@ func (g *ClusterGenerator) GenerateApplications(
 	log.Debug("clusters matching labels", "count", len(clusterSecretList.Items))
 
 	var tmplApplication argov1alpha1.Application
+	tmplApplication.Labels = appSet.Spec.Template.Labels
 	tmplApplication.Namespace = appSet.Spec.Template.Namespace
 	tmplApplication.Name = appSet.Spec.Template.Name
 	tmplApplication.Spec = appSet.Spec.Template.Spec
