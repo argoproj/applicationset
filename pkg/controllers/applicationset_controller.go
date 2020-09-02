@@ -44,6 +44,7 @@ type ApplicationSetReconciler struct {
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 	Generators []generators.Generator
+	utils.Renderer
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -61,13 +62,27 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
-	var desiredApplications []argov1alpha1.Application
+	desiredApplications := r.extractApplications(applicationSetInfo)
 
+	r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
+	r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
+
+	return ctrl.Result{}, nil
+}
+
+func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) *argov1alpha1.Application{
 	var tmplApplication argov1alpha1.Application
-	tmplApplication.Namespace = applicationSetInfo.Spec.Template.Namespace
-	tmplApplication.Name = applicationSetInfo.Spec.Template.Name
-	tmplApplication.Spec = applicationSetInfo.Spec.Template.Spec
+	tmplApplication.Namespace = applicationSetTemplate.Namespace
+	tmplApplication.Name = applicationSetTemplate.Name
+	tmplApplication.Spec = applicationSetTemplate.Spec
 
+	return &tmplApplication
+}
+
+func (r *ApplicationSetReconciler) extractApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) []argov1alpha1.Application {
+	res := []argov1alpha1.Application{}
+
+	tmplApplication := getTempApplication(applicationSetInfo.Spec.Template)
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
 		for _, g := range r.Generators {
 			params, err := g.GenerateParams(&requestedGenerator)
@@ -77,27 +92,22 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 				continue
 			}
 
-			apps := make([]argov1alpha1.Application, len(params))
-			for i, p := range params {
-				app, err := utils.RenderTemplateParams(&tmplApplication, p)
+			for _, p := range params {
+				app, err := r.Renderer.RenderTemplateParams(tmplApplication, p)
 				if err != nil {
 					log.WithError(err).WithField("params", params).WithField("generator", g).
 						Error("error generating application from params")
 					continue
 				}
-				apps[i] = *app
+				res = append(res, *app)
 			}
 
-			log.WithField("generator", g).Infof("apps from generator: %+v", apps)
+			log.WithField("generator", g).Infof("generate %d applications", len(res))
+			log.WithField("generator", g).Debugf("apps from generator: %+v", res)
 
-			desiredApplications = append(desiredApplications, apps...)
 		}
 	}
-
-	r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
-	r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
-
-	return ctrl.Result{}, nil
+	return res
 }
 
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
