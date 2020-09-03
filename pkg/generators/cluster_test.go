@@ -69,6 +69,7 @@ func TestGenerateApplications(t *testing.T) {
 				Labels: map[string]string{
 					"argocd.argoproj.io/secret-type": "cluster",
 					"environment":                    "staging",
+					"org":                            "foo",
 				},
 			},
 			Data: map[string][]byte{
@@ -89,6 +90,7 @@ func TestGenerateApplications(t *testing.T) {
 				Labels: map[string]string{
 					"argocd.argoproj.io/secret-type": "cluster",
 					"environment":                    "production",
+					"org":                            "bar",
 				},
 			},
 			Data: map[string][]byte{
@@ -145,6 +147,50 @@ func TestGenerateApplications(t *testing.T) {
 			},
 			[]argov1alpha1.Application{
 				*getRenderTemplate("app", "production-01", "https://production-01.example.com", "production"),
+			},
+			false,
+			nil,
+		},
+		{
+			applicationSetTemplate,
+			metav1.LabelSelector{
+				MatchExpressions: []metav1.LabelSelectorRequirement{
+					{
+						Key:      "environment",
+						Operator: "In",
+						Values: []string{
+							"production",
+							"staging",
+						},
+					},
+				},
+			},
+			[]argov1alpha1.Application{
+				*getRenderTemplate("app", "staging-01", "https://staging-01.example.com", "staging"),
+				*getRenderTemplate("app", "production-01", "https://production-01.example.com", "production"),
+			},
+			false,
+			nil,
+		},
+		{
+			applicationSetTemplate,
+			metav1.LabelSelector{
+				MatchExpressions: []metav1.LabelSelectorRequirement{
+					{
+						Key:      "environment",
+						Operator: "In",
+						Values: []string{
+							"production",
+							"staging",
+						},
+					},
+				},
+				MatchLabels: map[string]string{
+					"org": "foo",
+				},
+			},
+			[]argov1alpha1.Application{
+				*getRenderTemplate("app", "staging-01", "https://staging-01.example.com", "staging"),
 			},
 			false,
 			nil,
