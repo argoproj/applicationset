@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
@@ -45,13 +46,14 @@ func (g *ClusterGenerator) GenerateParams(
 
 	// List all Clusters:
 	clusterSecretList := &corev1.SecretList{}
-	secretLabels := map[string]string{
-		ArgoCDSecretTypeLabel: ArgoCDSecretTypeCluster,
+
+	selector := metav1.AddLabelToSelector(&appSetGenerator.Clusters.Selector, ArgoCDSecretTypeLabel, ArgoCDSecretTypeCluster)
+	secretSelector, err := metav1.LabelSelectorAsSelector(selector)
+	if err != nil {
+		return nil, err
 	}
-	for k, v := range appSetGenerator.Clusters.Selector.MatchLabels {
-		secretLabels[k] = v
-	}
-	if err := g.Client.List(context.Background(), clusterSecretList, client.MatchingLabels(secretLabels)); err != nil {
+
+	if err := g.Client.List(context.Background(), clusterSecretList, client.MatchingLabelsSelector{secretSelector}); err != nil {
 		return nil, err
 	}
 	log.Debug("clusters matching labels", "count", len(clusterSecretList.Items))
