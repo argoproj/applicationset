@@ -20,12 +20,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
+	"github.com/argoproj-labs/applicationset/pkg/refresher"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/workqueue"
 	"k8s.io/kubernetes/pkg/apis/core"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -45,6 +48,7 @@ type ApplicationSetReconciler struct {
 	Recorder       	record.EventRecorder
 	RepoServerAddr 	string
 	AppsService		services.Apps
+	Refresher		refresher.Refresher
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -77,6 +81,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			apps, err = clusterGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
 		} else if tmpGenerator.Git != nil {
 			apps, err = GitGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+			Refresher.Add(req)
 		}
 		log.Infof("apps from generator: %+v", apps)
 		if err != nil {
@@ -94,7 +99,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	return ctrl.Result{}, nil
 }
 
-func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager, rateLimiter workqueue.RateLimiter) error {
 	if err := mgr.GetFieldIndexer().IndexField(&argov1alpha1.Application{}, ".metadata.controller", func(rawObj runtime.Object) []string {
 		// grab the job object, extract the owner...
 		app := rawObj.(*argov1alpha1.Application)
@@ -122,6 +127,7 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				Client: mgr.GetClient(),
 				Log:    log.WithField("type", "createSecretEventHandler"),
 			}).
+		WithOptions(controller.Options{RateLimiter: rateLimiter}).
 		// TODO: also watch Applications and respond on changes if we own them.
 		Complete(r)
 }

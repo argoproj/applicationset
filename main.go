@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/argoproj-labs/applicationset/pkg/refresher"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"k8s.io/client-go/util/workqueue"
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -65,12 +67,17 @@ func main() {
 
 	k8s := kubernetes.NewForConfigOrDie(mgr.GetConfig())
 
+	rateLimiter := workqueue.DefaultItemBasedRateLimiter()
+
+	refresher := refresher.Refresher{}
+
 	if err = (&controllers.ApplicationSetReconciler{
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
 		AppsService: services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer),
-	}).SetupWithManager(mgr); err != nil {
+		Refresher: refresher,
+	}).SetupWithManager(mgr, rateLimiter); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
 	}
@@ -81,4 +88,5 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+
 }
