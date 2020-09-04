@@ -21,4 +21,9 @@ spec:
           image: registry.cn-hangzhou.aliyuncs.com/appcenter/argocd-applicationset:v0.1.0
           imagePullPolicy: Always
           name: argocd-applicationset-controller
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
       serviceAccountName: argocd-applicationset-controller
