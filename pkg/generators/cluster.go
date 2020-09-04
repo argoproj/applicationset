@@ -66,7 +66,7 @@ func (g *ClusterGenerator) GenerateApplications(
 
 	for _, cluster := range clusterSecretList.Items {
 		params := make(map[string]string)
-		params["name"] = cluster.Name
+		params["name"] = string(cluster.Data["name"])
 		params["server"] = string(cluster.Data["server"])
 		for key, value := range cluster.ObjectMeta.Labels {
 			params[fmt.Sprintf("metadata.labels.%s", key)] = value
