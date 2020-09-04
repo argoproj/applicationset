@@ -57,6 +57,7 @@ func TestExtractApplications(t *testing.T) {
 		template			argoprojiov1alpha1.ApplicationSetTemplate
 		generateParamsError	error
 		rendererError		error
+		expectErr bool
 	}{
 		{
 			name: 		"Generate two applications",
@@ -73,8 +74,9 @@ func TestExtractApplications(t *testing.T) {
 			},
 		},
 		{
-			name: 		"Handles error for the generator",
+			name: 		"Handles error from the generator",
 			generateParamsError: errors.New("error"),
+			expectErr: true,
 		},
 		{
 			name: 		"Handles error from the render",
@@ -90,6 +92,7 @@ func TestExtractApplications(t *testing.T) {
 				},
 			},
 			rendererError: errors.New("error"),
+			expectErr: true,
 		},
 	}{
 		cc := c
@@ -137,7 +140,7 @@ func TestExtractApplications(t *testing.T) {
 				Renderer: &rendererMock,
 			}
 
-			got := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
+			got, err := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
 					Namespace: "namespace",
@@ -148,6 +151,11 @@ func TestExtractApplications(t *testing.T) {
 				},
 			},)
 
+			if cc.expectErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 			assert.Equal(t, expectedApps, got)
 			generatorMock.AssertNumberOfCalls(t, "GenerateParams", 1)
 

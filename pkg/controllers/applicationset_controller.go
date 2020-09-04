@@ -57,15 +57,26 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
 	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
-		log.Infof("Unable to fetch applicationSetInfo %e", err)
+		if client.IgnoreNotFound(err) != nil {
+			log.WithField("request", req).WithError(err).Infof("unable to get ApplicationSet")
+		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
-	desiredApplications := r.generateApplications(applicationSetInfo)
+	desiredApplications, err := r.generateApplications(applicationSetInfo)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
-	r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
-	r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
+	err = r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	err = r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -80,9 +91,10 @@ func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSet
 	return &tmplApplication
 }
 
-func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) []argov1alpha1.Application {
+func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	res := []argov1alpha1.Application{}
 
+	var firstError error
 	tmplApplication := getTempApplication(applicationSetInfo.Spec.Template)
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
 		for _, g := range r.Generators {
@@ -90,6 +102,9 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 			if err != nil {
 				log.WithError(err).WithField("generator", g).
 					Error("error generating params")
+				if firstError == nil {
+					firstError = err
+				}
 				continue
 			}
 
@@ -98,6 +113,9 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 				if err != nil {
 					log.WithError(err).WithField("params", params).WithField("generator", g).
 						Error("error generating application from params")
+					if firstError == nil {
+						firstError = err
+					}
 					continue
 				}
 				res = append(res, *app)
@@ -108,7 +126,7 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 
 		}
 	}
-	return res
+	return res, firstError
 }
 
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -147,8 +165,9 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // For new application it will call create
 // For application that need to update it will call update
 // The function also adds owner reference to all applications, and uses it for delete them.
-func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) {
+func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
 
+	var firstError error
 	//create or updates the application in appList
 	for _, app := range desiredApplications {
 		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
@@ -161,18 +180,22 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 		})
 
 		if err != nil {
-			appLog.WithError(err).Errorf("failed to %s Application", action)
+			appLog.WithError(err).WithField("action", action).Error("failed to create/update Application")
+			if firstError == nil {
+				firstError = err
+			}
 			continue
 		}
 
 		r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, fmt.Sprint(action), "%s Application %q", action, app.Name)
 		appLog.Logf(log.InfoLevel, "%s Application", action)
 	}
+	return firstError
 }
 
 // deleteInCluster will delete application that are current in the cluster but not in appList.
 // The function must be called after all generators had been called and generated applications
-func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) {
+func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
 
 	// Save current applications to be able to delete the ones that are not in appList
 	var current argov1alpha1.ApplicationList
@@ -185,6 +208,7 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 	}
 
 	// Delete apps that are not in m[string]bool
+	var firstError error
 	for _, app := range current.Items {
 		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
 		_, exists := m[app.Name]
@@ -193,12 +217,16 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 			err := r.Client.Delete(ctx, &app)
 			if err != nil {
 				appLog.WithError(err).Error("failed to delete Application")
+				if firstError != nil {
+					firstError = err
+				}
 				continue
 			}
 			r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, "Deleted", "Deleted Application %q", app.Name)
 			appLog.Log(log.InfoLevel, "Deleted application")
 		}
 	}
+	return firstError
 }
 
 var _ handler.EventHandler = &clusterSecretEventHandler{}
