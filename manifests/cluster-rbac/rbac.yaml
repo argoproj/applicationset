@@ -40,7 +40,6 @@ rules:
       - ''
     resources:
       - events
-      - pods
     verbs:
       - create
       - delete
