@@ -56,133 +56,85 @@ func getGitRenderTemplate(name, path string) *argov1alpha1.Application {
 }
 
 func TestGitGenerateApplications(t *testing.T) {
+
+	appSetTemplate := argoprojiov1alpha1.ApplicationSetTemplate{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "{{path.basename}}",
+			Namespace: "namespace",
+		},
+		Spec: argov1alpha1.ApplicationSpec{
+			Source: argov1alpha1.ApplicationSource{
+				RepoURL:        "RepoURL",
+				Path:           "{{path}}",
+				TargetRevision: "HEAD",
+			},
+			Destination: argov1alpha1.ApplicationDestination{
+				Server:    "server",
+				Namespace: "destinationNamespace",
+			},
+			Project: "project",
+		},
+	}
+
 	cases := []struct {
 		name		  string
 		template      argoprojiov1alpha1.ApplicationSetTemplate
-		Directories   []argoprojiov1alpha1.GitDirectoryGeneratorItem
+		directories   []argoprojiov1alpha1.GitDirectoryGeneratorItem
 		repoApps      []string
 		repoError     error
 		expected      []argov1alpha1.Application
 		expectedError error
 	}{
 		{
-			"happy flow",
-			argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "{{path.basename}}",
-					Namespace: "namespace",
-				},
-				Spec: argov1alpha1.ApplicationSpec{
-					Source: argov1alpha1.ApplicationSource{
-						RepoURL:        "RepoURL",
-						Path:           "{{path}}",
-						TargetRevision: "HEAD",
-					},
-					Destination: argov1alpha1.ApplicationDestination{
-						Server:    "server",
-						Namespace: "destinationNamespace",
-					},
-					Project: "project",
-				},
-			},
-			[]argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
-			[]string{
+			name: "happy flow - created apps",
+			template: appSetTemplate,
+			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
+			repoApps: []string{
 					"app1",
 					"app2",
 					"p1/app3",
 			},
-			nil,
-			[]argov1alpha1.Application{
+			repoError: nil,
+			expected: []argov1alpha1.Application{
 				*getGitRenderTemplate("app1", "app1"),
 				*getGitRenderTemplate("app2", "app2"),
 			},
-			nil,
+			expectedError: nil,
 		},
 		{
-			"It filters application according to the paths",
-			argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "{{path.basename}}",
-					Namespace: "namespace",
-				},
-				Spec: argov1alpha1.ApplicationSpec{
-					Source: argov1alpha1.ApplicationSource{
-						RepoURL:        "RepoURL",
-						Path:           "{{path}}",
-						TargetRevision: "HEAD",
-					},
-					Destination: argov1alpha1.ApplicationDestination{
-						Server:    "server",
-						Namespace: "destinationNamespace",
-					},
-					Project: "project",
-				},
-			},
-			[]argoprojiov1alpha1.GitDirectoryGeneratorItem{{"p1/*"}, {"p1/*/*"}},
-			[]string{
+			name: "It filters application according to the paths",
+			template: appSetTemplate,
+			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{"p1/*"}, {"p1/*/*"}},
+			repoApps: []string{
 				"app1",
 				"p1/app2",
 				"p1/p2/app3",
 				"p1/p2/p3/app4",
 			},
-			nil,
-			[]argov1alpha1.Application{
+			repoError: nil,
+			expected: []argov1alpha1.Application{
 				*getGitRenderTemplate("app2", "p1/app2"),
 				*getGitRenderTemplate("app3", "p1/p2/app3"),
 			},
-			nil,
+			expectedError: nil,
 		},
 		{
-			"handles empty response from repo server",
-			argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "{{path.basename}}",
-					Namespace: "namespace",
-				},
-				Spec: argov1alpha1.ApplicationSpec{
-					Source: argov1alpha1.ApplicationSource{
-						RepoURL:        "RepoURL",
-						Path:           "{{path}}",
-						TargetRevision: "HEAD",
-					},
-					Destination: argov1alpha1.ApplicationDestination{
-						Server:    "server",
-						Namespace: "destinationNamespace",
-					},
-					Project: "project",
-				},
-			},
-			[]argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
-			[]string{},
-			nil,
-			[]argov1alpha1.Application{},
-			nil,
+			name: "handles empty response from repo server",
+			template: appSetTemplate,
+			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
+			repoApps: []string{},
+			repoError: nil,
+			expected: []argov1alpha1.Application{},
+			expectedError:nil,
 		},
 		{
-			"handles error from repo server",
-			argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "{{path.basename}}",
-					Namespace: "namespace",
-				},
-				Spec: argov1alpha1.ApplicationSpec{
-					Source: argov1alpha1.ApplicationSource{
-						RepoURL:        "RepoURL",
-						Path:           "{{path}}",
-						TargetRevision: "HEAD",
-					},
-					Destination: argov1alpha1.ApplicationDestination{
-						Server:    "server",
-						Namespace: "destinationNamespace",
-					},
-					Project: "project",
-				},
-			},
-			[]argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
-			[]string{},
-			fmt.Errorf("error"),
-			[]argov1alpha1.Application{},
-			fmt.Errorf("error"),
+			name: "handles error from repo server",
+			template: appSetTemplate,
+			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
+			repoApps: []string{},
+			repoError: fmt.Errorf("error"),
+			expected: []argov1alpha1.Application{},
+			expectedError: fmt.Errorf("error"),
 		},
 	}
 
@@ -202,7 +154,7 @@ func TestGitGenerateApplications(t *testing.T) {
 						Git: &argoprojiov1alpha1.GitGenerator{
 							RepoURL:     "RepoURL",
 							Revision:    "Revision",
-							Directories: c.Directories,
+							Directories: c.directories,
 						},
 					}},
 					Template: c.template,

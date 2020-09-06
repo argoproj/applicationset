@@ -38,6 +38,13 @@ func (g *GitGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1.
 		return nil, err
 	}
 
+	log.WithFields(log.Fields{
+		"allAps": allApps,
+		"total": len(allApps),
+		"repoURL": appSetGenerator.Git.RepoURL,
+		"revision": appSetGenerator.Git.Revision,
+	}).Info("applications result from the repo service")
+
 	requestedApps := g.filter(appSetGenerator.Git.Directories, allApps)
 
 	res := g.generateApplications(requestedApps, appSet)
