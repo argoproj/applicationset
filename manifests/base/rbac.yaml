@@ -22,13 +22,6 @@ rules:
       - argoproj.io
     resources:
       - applications
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - argoproj.io
-    resources:
       - applicationsets
     verbs:
       - create
@@ -63,6 +56,7 @@ rules:
       - ''
     resources:
       - secrets
+      - configmaps
     verbs:
       - get
       - list

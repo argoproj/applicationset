@@ -12,6 +12,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// RepositoryDB Is a lean facade for ArgoDB,
+// Using a lean interface makes it more easy to test the functionality the git generator uses
 type RepositoryDB interface {
 	GetRepository(ctx context.Context, url string) (*v1alpha1.Repository, error)
 }
