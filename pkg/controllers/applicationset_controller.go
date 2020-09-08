@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
@@ -35,7 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 )
 
 // ApplicationSetReconciler reconciles a ApplicationSet object
