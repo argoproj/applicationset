@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
+	"github.com/argoproj-labs/applicationset/pkg/services"
+	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
@@ -34,14 +36,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 )
 
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Scheme         	*runtime.Scheme
+	Recorder       	record.EventRecorder
+	RepoServerAddr 	string
+	AppsService		services.Apps
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -60,9 +63,11 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	listGenerator := generators.NewListGenerator()
 	clusterGenerator := generators.NewClusterGenerator(r.Client)
+	GitGenerator := generators.NewGitGenerator(r.AppsService)
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
 	var desiredApplications []argov1alpha1.Application
+
 	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
 		var apps []argov1alpha1.Application
 		var err error
@@ -70,11 +75,15 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			apps, err = listGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
 		} else if tmpGenerator.Clusters != nil {
 			apps, err = clusterGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
+		} else if tmpGenerator.Git != nil {
+			apps, err = GitGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
 		}
 		log.Infof("apps from generator: %+v", apps)
 		if err != nil {
 			log.WithError(err).Error("error generating applications")
+			continue
 		}
+		
 		desiredApplications = append(desiredApplications, apps...)
 
 	}
