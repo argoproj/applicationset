@@ -8,6 +8,8 @@ require (
 	github.com/argoproj/gitops-engine v0.1.3
 	github.com/argoproj/pkg v0.0.0-20200424003221-9b858eff18a1 // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/google/go-cmp v0.3.0
+	github.com/google/martian v2.1.0+incompatible
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2

@@ -6,8 +6,10 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/refresher"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
-	"k8s.io/client-go/util/workqueue"
+	"github.com/google/martian/log"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -41,6 +43,8 @@ func main() {
 	var enableLeaderElection bool
 	var namespace string
 	var argocdRepoServer string
+	var duration int64
+	var debugLog bool
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&metricsAddr, "probe-addr", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
@@ -48,9 +52,16 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&namespace, "namespace", "argocd", "Argo CD repo namesapce")
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
+	flag.Int64Var(&duration, "git-refresh-duration", 60, "(seconds) The refrash duration for the git generator")
+	flag.BoolVar(&debugLog, "debug", false, "print debug logs")
+
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+
+	if debugLog {
+		log.SetLevel( log.Debug)
+	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
@@ -67,24 +78,24 @@ func main() {
 
 	k8s := kubernetes.NewForConfigOrDie(mgr.GetConfig())
 
-	rateLimiter := workqueue.DefaultItemBasedRateLimiter()
+	events := make(chan event.GenericEvent)
 
-	refresher := refresher.Refresher{}
+	stop := ctrl.SetupSignalHandler()
 
 	if err = (&controllers.ApplicationSetReconciler{
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
 		AppsService: services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer),
-		Refresher: refresher,
-	}).SetupWithManager(mgr, rateLimiter); err != nil {
+		Refresher: refresher.Start(time.Duration(duration) *time.Second, stop, events),
+	}).SetupWithManager(mgr, events); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(stop); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
