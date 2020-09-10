@@ -24,11 +24,11 @@ func NewGitGenerator(repos services.Apps) Generator {
 func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 
 	if appSetGenerator == nil {
-		return nil, EmptyAppSetGeneratorError{}
+		return nil, EmptyAppSetGeneratorError
 	}
 
 	if appSetGenerator.Git == nil {
-		return nil, EmptyAppSetGeneratorError{}
+		return nil, EmptyAppSetGeneratorError
 	}
 
 	allApps, err := g.repos.GetApps(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision)

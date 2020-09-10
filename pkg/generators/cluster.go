@@ -37,7 +37,7 @@ func (g *ClusterGenerator) GenerateParams(
 	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 
 	if appSetGenerator == nil {
-		return nil, EmptyAppSetGeneratorError{}
+		return nil, EmptyAppSetGeneratorError
 	}
 
 	if appSetGenerator.Clusters == nil {

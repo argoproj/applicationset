@@ -137,7 +137,7 @@ func TestExtractApplications(t *testing.T) {
 				Renderer: &rendererMock,
 			}
 
-			got := r.extractApplications(argoprojiov1alpha1.ApplicationSet{
+			got := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
 					Namespace: "namespace",

@@ -62,7 +62,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
-	desiredApplications := r.extractApplications(applicationSetInfo)
+	desiredApplications := r.generateApplications(applicationSetInfo)
 
 	r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
 	r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
@@ -79,7 +79,7 @@ func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSet
 	return &tmplApplication
 }
 
-func (r *ApplicationSetReconciler) extractApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) []argov1alpha1.Application {
+func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) []argov1alpha1.Application {
 	res := []argov1alpha1.Application{}
 
 	tmplApplication := getTempApplication(applicationSetInfo.Spec.Template)
@@ -102,7 +102,7 @@ func (r *ApplicationSetReconciler) extractApplications(applicationSetInfo argopr
 				res = append(res, *app)
 			}
 
-			log.WithField("generator", g).Infof("generate %d applications", len(res))
+			log.WithField("generator", g).Infof("generated %d applications", len(res))
 			log.WithField("generator", g).Debugf("apps from generator: %+v", res)
 
 		}
