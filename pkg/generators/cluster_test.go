@@ -12,8 +12,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type possiblyErroringFakeCtrlRuntimeClient struct {
@@ -23,12 +24,12 @@ type possiblyErroringFakeCtrlRuntimeClient struct {
 
 func (p *possiblyErroringFakeCtrlRuntimeClient) List(ctx context.Context, secretList runtime.Object, opts ...client.ListOption) error {
 	if p.shouldError {
-		return errors.New("Could not list Secrets.")
+		return errors.New("could not list Secrets")
 	}
 	return p.Client.List(ctx, secretList, opts...)
 }
 
-func TestGenerateApplications(t *testing.T) {
+func TestGenerateParams(t *testing.T) {
 	clusters := []runtime.Object{
 		&corev1.Secret{
 			TypeMeta: metav1.TypeMeta{
@@ -67,13 +68,12 @@ func TestGenerateApplications(t *testing.T) {
 			},
 			Data: map[string][]byte{
 				"config": []byte(base64.StdEncoding.EncodeToString([]byte("foo"))),
-				"name":   []byte(base64.StdEncoding.EncodeToString([]byte("productuion-01"))),
+				"name":   []byte(base64.StdEncoding.EncodeToString([]byte("production-01"))),
 				"server": []byte("https://production-01.example.com"),
 			},
 			Type: corev1.SecretType("Opaque"),
 		},
 	}
-
 	testCases := []struct {
 		selector      metav1.LabelSelector
 		expected      []map[string]string
@@ -83,8 +83,8 @@ func TestGenerateApplications(t *testing.T) {
 		{
 			metav1.LabelSelector{},
 			[]map[string]string{
-				{"name": "staging-01", "server": "https://staging-01.example.com", "metadata.labels.environment": "staging", "metadata.labels.org":"foo", "metadata.labels.argocd.argoproj.io/secret-type": "cluster"},
-				{"name": "production-01", "server": "https://production-01.example.com", "metadata.labels.environment": "production", "metadata.labels.org":"bar", "metadata.labels.argocd.argoproj.io/secret-type": "cluster"},
+				{"name": "c3RhZ2luZy0wMQ==", "server": "https://staging-01.example.com", "metadata.labels.environment": "staging", "metadata.labels.org":"foo", "metadata.labels.argocd.argoproj.io/secret-type": "cluster"},
+				{"name": "cHJvZHVjdGlvbi0wMQ==", "server": "https://production-01.example.com", "metadata.labels.environment": "production", "metadata.labels.org":"bar", "metadata.labels.argocd.argoproj.io/secret-type": "cluster"},
 			},
 			false,
 			nil,
@@ -96,7 +96,7 @@ func TestGenerateApplications(t *testing.T) {
 				},
 			},
 			[]map[string]string{
-				{"name": "production-01", "server": "https://production-01.example.com", "metadata.labels.environment": "production", "metadata.labels.org":"bar", "metadata.labels.argocd.argoproj.io/secret-type": "cluster"},
+				{"name": "cHJvZHVjdGlvbi0wMQ==", "server": "https://production-01.example.com", "metadata.labels.environment": "production", "metadata.labels.org":"bar", "metadata.labels.argocd.argoproj.io/secret-type": "cluster"},
 			},
 			false,
 			nil,
@@ -115,8 +115,8 @@ func TestGenerateApplications(t *testing.T) {
 				},
 			},
 			[]map[string]string{
-				{"name": "staging-01", "server": "https://staging-01.example.com", "metadata.labels.argocd.argoproj.io/secret-type":"cluster", "metadata.labels.environment": "staging", "metadata.labels.org":"foo"},
-				{"name": "production-01", "server": "https://production-01.example.com", "metadata.labels.argocd.argoproj.io/secret-type":"cluster", "metadata.labels.environment": "production", "metadata.labels.org":"bar"},
+				{"name": "c3RhZ2luZy0wMQ==", "server": "https://staging-01.example.com", "metadata.labels.argocd.argoproj.io/secret-type":"cluster", "metadata.labels.environment": "staging", "metadata.labels.org":"foo"},
+				{"name": "cHJvZHVjdGlvbi0wMQ==", "server": "https://production-01.example.com", "metadata.labels.argocd.argoproj.io/secret-type":"cluster", "metadata.labels.environment": "production", "metadata.labels.org":"bar"},
 			},
 			false,
 			nil,
@@ -138,7 +138,7 @@ func TestGenerateApplications(t *testing.T) {
 				},
 			},
 			[]map[string]string{
-				{"name": "staging-01", "server": "https://staging-01.example.com", "metadata.labels.environment": "staging", "metadata.labels.org":"foo", "metadata.labels.argocd.argoproj.io/secret-type":"cluster"},
+				{"name": "c3RhZ2luZy0wMQ==", "server": "https://staging-01.example.com", "metadata.labels.environment": "staging", "metadata.labels.org":"foo", "metadata.labels.argocd.argoproj.io/secret-type":"cluster"},
 			},
 			false,
 			nil,
@@ -147,7 +147,7 @@ func TestGenerateApplications(t *testing.T) {
 			metav1.LabelSelector{},
 			nil,
 			true,
-			errors.New("Could not list Secrets."),
+			errors.New("could not list Secrets"),
 		},
 	}
 

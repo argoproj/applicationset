@@ -72,6 +72,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) *argov1alpha1.Application{
 	var tmplApplication argov1alpha1.Application
+	tmplApplication.Labels = applicationSetTemplate.Labels
 	tmplApplication.Namespace = applicationSetTemplate.Namespace
 	tmplApplication.Name = applicationSetTemplate.Name
 	tmplApplication.Spec = applicationSetTemplate.Spec
