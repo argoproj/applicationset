@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
-	"github.com/argoproj-labs/applicationset/pkg/services"
+	"github.com/argoproj-labs/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,10 +41,10 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Scheme         	*runtime.Scheme
-	Recorder       	record.EventRecorder
-	RepoServerAddr 	string
-	AppsService		services.Apps
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
+	Generators []generators.Generator
+	utils.Renderer
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -61,37 +61,54 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	listGenerator := generators.NewListGenerator()
-	clusterGenerator := generators.NewClusterGenerator(r.Client)
-	GitGenerator := generators.NewGitGenerator(r.AppsService)
-
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
-	var desiredApplications []argov1alpha1.Application
-
-	for _, tmpGenerator := range applicationSetInfo.Spec.Generators {
-		var apps []argov1alpha1.Application
-		var err error
-		if tmpGenerator.List != nil {
-			apps, err = listGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		} else if tmpGenerator.Clusters != nil {
-			apps, err = clusterGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		} else if tmpGenerator.Git != nil {
-			apps, err = GitGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
-		}
-		log.Infof("apps from generator: %+v", apps)
-		if err != nil {
-			log.WithError(err).Error("error generating applications")
-			continue
-		}
-		
-		desiredApplications = append(desiredApplications, apps...)
-
-	}
+	desiredApplications := r.generateApplications(applicationSetInfo)
 
 	r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
 	r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
 
 	return ctrl.Result{}, nil
+}
+
+func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) *argov1alpha1.Application{
+	var tmplApplication argov1alpha1.Application
+	tmplApplication.Labels = applicationSetTemplate.Labels
+	tmplApplication.Namespace = applicationSetTemplate.Namespace
+	tmplApplication.Name = applicationSetTemplate.Name
+	tmplApplication.Spec = applicationSetTemplate.Spec
+
+	return &tmplApplication
+}
+
+func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) []argov1alpha1.Application {
+	res := []argov1alpha1.Application{}
+
+	tmplApplication := getTempApplication(applicationSetInfo.Spec.Template)
+	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
+		for _, g := range r.Generators {
+			params, err := g.GenerateParams(&requestedGenerator)
+			if err != nil {
+				log.WithError(err).WithField("generator", g).
+					Error("error generating params")
+				continue
+			}
+
+			for _, p := range params {
+				app, err := r.Renderer.RenderTemplateParams(tmplApplication, p)
+				if err != nil {
+					log.WithError(err).WithField("params", params).WithField("generator", g).
+						Error("error generating application from params")
+					continue
+				}
+				res = append(res, *app)
+			}
+
+			log.WithField("generator", g).Infof("generated %d applications", len(res))
+			log.WithField("generator", g).Debugf("apps from generator: %+v", res)
+
+		}
+	}
+	return res
 }
 
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {

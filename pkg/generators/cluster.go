@@ -11,8 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/utils"
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 )
 
 const (
@@ -27,6 +25,7 @@ type ClusterGenerator struct {
 	client.Client
 }
 
+
 func NewClusterGenerator(c client.Client) Generator {
 	g := &ClusterGenerator{
 		Client: c,
@@ -34,15 +33,15 @@ func NewClusterGenerator(c client.Client) Generator {
 	return g
 }
 
-func (g *ClusterGenerator) GenerateApplications(
-	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator,
-	appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+func (g *ClusterGenerator) GenerateParams(
+	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 
 	if appSetGenerator == nil {
-		return nil, fmt.Errorf("ApplicationSetGenerator is empty")
+		return nil, EmptyAppSetGeneratorError
 	}
-	if appSet == nil {
-		return nil, fmt.Errorf("ApplicationSet is empty")
+
+	if appSetGenerator.Clusters == nil {
+		return nil, nil
 	}
 
 	// List all Clusters:
@@ -59,29 +58,18 @@ func (g *ClusterGenerator) GenerateApplications(
 	}
 	log.Debug("clusters matching labels", "count", len(clusterSecretList.Items))
 
-	var tmplApplication argov1alpha1.Application
-	tmplApplication.Labels = appSet.Spec.Template.Labels
-	tmplApplication.Namespace = appSet.Spec.Template.Namespace
-	tmplApplication.Name = appSet.Spec.Template.Name
-	tmplApplication.Spec = appSet.Spec.Template.Spec
-
-	var resultingApplications []argov1alpha1.Application
-
-	for _, cluster := range clusterSecretList.Items {
-		params := make(map[string]string)
+	res := make([]map[string]string, len(clusterSecretList.Items))
+	for i, cluster := range clusterSecretList.Items {
+		params := make(map[string]string, len(cluster.ObjectMeta.Labels) + 2)
 		params["name"] = string(cluster.Data["name"])
 		params["server"] = string(cluster.Data["server"])
 		for key, value := range cluster.ObjectMeta.Labels {
 			params[fmt.Sprintf("metadata.labels.%s", key)] = value
 		}
 		log.WithField("cluster", cluster.Name).Info("matched cluster secret")
-		tmpApplication, err := utils.RenderTemplateParams(&tmplApplication, params)
-		if err != nil {
-			log.WithField("cluster", cluster.Name).Error("Error during rendering template params")
-			continue
-		}
-		resultingApplications = append(resultingApplications, *tmpApplication)
+
+		res[i] = params
 	}
 
-	return resultingApplications, nil
+	return res, nil
 }
