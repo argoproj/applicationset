@@ -83,7 +83,8 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			apps, err = GitGenerator.GenerateApplications(&tmpGenerator, &applicationSetInfo)
 			r.Refresher.Add(req)
 		}
-		log.Infof("apps from generator: %+v", apps)
+		log.Debugf("apps from generator: %+v", apps)
+		log.Infof("apps count from generator: %+v", len(apps))
 		if err != nil {
 			log.WithError(err).Error("error generating applications")
 			continue
