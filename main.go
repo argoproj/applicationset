@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/argoproj-labs/applicationset/pkg/refresher"
+	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/google/martian/log"
@@ -86,11 +86,16 @@ func main() {
 	stop := ctrl.SetupSignalHandler()
 
 	if err = (&controllers.ApplicationSetReconciler{
+		Generators: []generators.Generator{
+			generators.NewListGenerator(),
+			generators.NewClusterGenerator(mgr.GetClient()),
+			generators.NewGitGenerator(services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer)),
+		},
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
 		AppsService: services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer),
-		Refresher: refresher.Start(time.Duration(duration) *time.Second, stop, events),
+		GitRefreshDuration: time.Duration(duration) *time.Second,
 		UpdateSync: updateSync,
 	}).SetupWithManager(mgr, events); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")

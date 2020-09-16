@@ -10,7 +10,15 @@ import (
 	"strconv"
 )
 
-func RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]string) (*argov1alpha1.Application, error) {
+type Renderer interface {
+	RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]string) (*argov1alpha1.Application, error)
+}
+
+type Render struct {
+
+}
+
+func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]string) (*argov1alpha1.Application, error) {
 	if tmpl == nil {
 		return nil, fmt.Errorf("Application template is empty ")
 	}
@@ -25,7 +33,7 @@ func RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]stri
 	}
 
 	fstTmpl := fasttemplate.New(string(tmplBytes), "{{", "}}")
-	replacedTmplStr, err := Replace(fstTmpl, params, true)
+	replacedTmplStr, err := r.replace(fstTmpl, params, true)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +56,7 @@ func RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]stri
 // allowUnresolved indicates whether or not it is acceptable to have unresolved variables
 // remaining in the substituted template. prefixFilter will apply the replacements only
 // to variables with the specified prefix
-func Replace(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allowUnresolved bool) (string, error) {
+func (r *Render) replace(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allowUnresolved bool) (string, error) {
 	var unresolvedErr error
 	replacedTmpl := fstTmpl.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 		replacement, ok := replaceMap[tag]

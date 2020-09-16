@@ -1,6 +1,5 @@
 VERSION?=$(shell cat VERSION)
-IMAGE_TAG?=v$(VERSION)
-IMAGE_PREFIX?=argoprojlabs
+IMAGE?=argoprojlabs/argocd-applicationset:v$(VERSION)
 DOCKER_PUSH?=true
 
 .PHONY: build
@@ -9,8 +8,13 @@ build:
 
 .PHONY: image
 image:
-	docker build -t $(IMAGE_PREFIX)/argocd-applicationset:$(IMAGE_TAG) .
-	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE_PREFIX)/argocd-applicationset:$(IMAGE_TAG) ; fi
+	docker build -t $(IMAGE) .
+	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE) ; fi
+
+.PHONY: deploy
+deploy:
+	kustomize build manifests/cluster-install | kubectl apply -f -
+	kubectl patch deployment -n argocd argocd-applicationset-controller --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "$(IMAGE)"}]'
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests

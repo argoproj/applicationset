@@ -2,9 +2,12 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/argoproj-labs/applicationset/pkg/generators"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -16,7 +19,149 @@ import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 )
 
-func TestCreateOrUpdateApplications(t *testing.T) {
+type generatorMock struct {
+	mock.Mock
+}
+
+func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
+	args := g.Called(appSetGenerator)
+
+	return args.Get(0).([]map[string]string), args.Error(1)
+}
+
+type rendererMock struct {
+	mock.Mock
+}
+
+func (r *rendererMock) RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]string) (*argov1alpha1.Application, error) {
+	args := r.Called(tmpl, params)
+
+	if args.Error(1) != nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*argov1alpha1.Application), args.Error(1)
+
+}
+
+func TestExtractApplications(t *testing.T) {
+	scheme := runtime.NewScheme()
+	argoprojiov1alpha1.AddToScheme(scheme)
+	argov1alpha1.AddToScheme(scheme)
+
+	client := fake.NewFakeClientWithScheme(scheme)
+
+	for _, c := range []struct {
+		name				string
+		params				[]map[string]string
+		template			argoprojiov1alpha1.ApplicationSetTemplate
+		generateParamsError	error
+		rendererError		error
+	}{
+		{
+			name: 		"Generate two applications",
+			params: 	[]map[string]string{{"name": "app1"}, {"name": "app2"}},
+			template:	argoprojiov1alpha1.ApplicationSetTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:                       "name",
+					Namespace:                  "namespace",
+					Labels:                     map[string]string{ "label_name": "label_value"},
+				},
+				Spec:       argov1alpha1.ApplicationSpec{
+
+				},
+			},
+		},
+		{
+			name: 		"Handles error for the generator",
+			generateParamsError: errors.New("error"),
+		},
+		{
+			name: 		"Handles error from the render",
+			params: 	[]map[string]string{{"name": "app1"}, {"name": "app2"}},
+			template:	argoprojiov1alpha1.ApplicationSetTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:                       "name",
+					Namespace:                  "namespace",
+					Labels:                     map[string]string{ "label_name": "label_value"},
+				},
+				Spec:       argov1alpha1.ApplicationSpec{
+
+				},
+			},
+			rendererError: errors.New("error"),
+		},
+	}{
+		cc := c
+		app := argov1alpha1.Application{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:                       "test",
+			},
+		}
+
+		t.Run(cc.name, func(t *testing.T) {
+
+			generatorMock := generatorMock{}
+			generator := argoprojiov1alpha1.ApplicationSetGenerator{
+				List: &argoprojiov1alpha1.ListGenerator{},
+			}
+
+			generatorMock.On("GenerateParams", &generator).
+				Return(cc.params, cc.generateParamsError)
+
+			rendererMock := rendererMock{}
+
+			expectedApps := []argov1alpha1.Application{}
+
+			if cc.generateParamsError == nil {
+				for _, p := range cc.params {
+
+					if cc.rendererError != nil {
+						rendererMock.On("RenderTemplateParams", getTempApplication(cc.template), p).
+							Return(nil, cc.rendererError)
+					} else{
+						rendererMock.On("RenderTemplateParams", getTempApplication(cc.template), p).
+							Return(&app, nil)
+						expectedApps = append(expectedApps, app)
+					}
+				}
+			}
+
+			r := ApplicationSetReconciler{
+				Client:   client,
+				Scheme:   scheme,
+				Recorder: record.NewFakeRecorder(1),
+				Generators: []generators.Generator{
+					&generatorMock,
+				},
+				Renderer: &rendererMock,
+			}
+
+			got := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+				Spec: argoprojiov1alpha1.ApplicationSetSpec{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{generator},
+					Template: cc.template,
+				},
+			},)
+
+			assert.Equal(t, expectedApps, got)
+			generatorMock.AssertNumberOfCalls(t, "GenerateParams", 1)
+
+			if cc.generateParamsError == nil {
+				rendererMock.AssertNumberOfCalls(t, "RenderTemplateParams", len(cc.params))
+			}
+
+		})
+	}
+
+
+}
+
+func TestCreateOrUpdateInCluster(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	argoprojiov1alpha1.AddToScheme(scheme)
@@ -202,7 +347,6 @@ func TestCreateOrUpdateApplications(t *testing.T) {
 	}
 
 }
-
 
 func TestCreateApplications(t *testing.T) {
 
@@ -390,9 +534,7 @@ func TestCreateApplications(t *testing.T) {
 	}
 
 }
-
-
-func TestDeleteApplications(t *testing.T) {
+func TestDeleteInCluster(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	argoprojiov1alpha1.AddToScheme(scheme)

@@ -2,11 +2,8 @@ package generators
 
 import (
 	"context"
-	"fmt"
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/pkg/services"
-	"github.com/argoproj-labs/applicationset/pkg/utils"
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"path"
 )
@@ -14,7 +11,7 @@ import (
 var _ Generator = (*GitGenerator)(nil)
 
 type GitGenerator struct {
-	repos services.Apps
+	repos 		services.Apps
 }
 
 func NewGitGenerator(repos services.Apps) Generator {
@@ -24,13 +21,14 @@ func NewGitGenerator(repos services.Apps) Generator {
 	return g
 }
 
-func (g *GitGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
-	if appSetGenerator == nil || appSet == nil {
-		return nil, fmt.Errorf("ApplicationSet is empty")
+func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
+
+	if appSetGenerator == nil {
+		return nil, EmptyAppSetGeneratorError
 	}
 
 	if appSetGenerator.Git == nil {
-		return nil, fmt.Errorf("git variable empty")
+		return nil, EmptyAppSetGeneratorError
 	}
 
 	allApps, err := g.repos.GetApps(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision)
@@ -47,7 +45,7 @@ func (g *GitGenerator) GenerateApplications(appSetGenerator *argoprojiov1alpha1.
 
 	requestedApps := g.filter(appSetGenerator.Git.Directories, allApps)
 
-	res := g.generateApplications(requestedApps, appSet)
+	res := g.generateParams(requestedApps, appSetGenerator)
 
 	return res, nil
 }
@@ -70,33 +68,17 @@ func (g *GitGenerator) filter(Directories []argoprojiov1alpha1.GitDirectoryGener
 	return res
 }
 
-func (g *GitGenerator) generateApplications(requestedApps []string, appSet *argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application) {
+func (g *GitGenerator) generateParams(requestedApps []string, appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) []map[string]string {
 
-	res := make([]argov1alpha1.Application, len(requestedApps))
+	res := make([]map[string]string, len(requestedApps))
 	for i, a := range requestedApps {
-		app, err := g.generateApplication(appSet, a)
-		if err != nil {
-			log.WithError(err).WithField("app", a).Error("error while generating app")
-			continue
-		}
-		res[i] = *app
+
+		params := make(map[string]string, 2)
+		params["path"] = a
+		params["path.basename"] = path.Base(a)
+
+		res[i] = params
 	}
 
 	return res
-}
-
-
-func (g *GitGenerator) generateApplication(appSet *argoprojiov1alpha1.ApplicationSet, appPath string) (*argov1alpha1.Application, error) {
-	var tmplApplication argov1alpha1.Application
-	tmplApplication.Namespace = appSet.Spec.Template.Namespace
-	tmplApplication.Name = appSet.Spec.Template.Name
-	tmplApplication.Spec = appSet.Spec.Template.Spec
-
-	params := make(map[string]string, 2)
-	params["path"] = appPath
-	params["path.basename"] = path.Base(appPath)
-
-	tmpApplication, err := utils.RenderTemplateParams(&tmplApplication, params)
-
-	return tmpApplication, err
 }
