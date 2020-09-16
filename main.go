@@ -23,10 +23,6 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-const (
-	defaultNamespace = "argocd"
-)
-
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
@@ -50,12 +46,12 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
 	// Determine the namespace we're running in. Normally injected into the pod as an env
-	// var via the Kube downward API configured in the Deployment. We also default to "argocd"
-	// for developers running the binary locally who may not remember to set a NAMESPACE environment
-	// variable.
+	// var via the Kube downward API configured in the Deployment.
+	// Developers running the binary locally will need to remember to set the NAMESPACE environment variable.
 	ns := os.Getenv("NAMESPACE")
 	if len(ns) == 0 {
-		ns = defaultNamespace
+		setupLog.Info("Please set NAMESPACE environment variable to match where you are running the applicationset controller")
+		os.Exit(1)
 	}
 	setupLog.Info("using argocd namespace", "namespace", ns)
 
