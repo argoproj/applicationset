@@ -48,6 +48,7 @@ type ApplicationSetReconciler struct {
 	RepoServerAddr 	string
 	AppsService		services.Apps
 	Refresher		refresher.Refresher
+	UpdateSync		bool
 }
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
@@ -92,7 +93,12 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 
 	}
 
-	r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
+	if r.UpdateSync {
+		r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
+	} else {
+		r.createInCluster(ctx, applicationSetInfo, desiredApplications)
+	}
+
 	r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
 
 	return ctrl.Result{}, nil
@@ -161,13 +167,46 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 	}
 }
 
+// createInCluster will create application resources in the cluster.
+// For new application it will call create
+// The function also adds owner reference to all applications, and uses it for delete them.
+func (r *ApplicationSetReconciler) createInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) {
+
+	var createApps []argov1alpha1.Application
+	current := r.getCurrentApplications(ctx,applicationSet)
+
+	m := make(map[string]bool) // Will holds the app names that are current in the cluster
+
+	for _, app := range current {
+		m[app.Name] = true
+	}
+
+	// filter applications that are not in m[string]bool (new to the cluster)
+	for _, app := range desiredApplications {
+		_, exists := m[app.Name]
+
+		if !exists {
+			createApps = append(createApps, app)
+		}
+	}
+
+	r.createOrUpdateInCluster(ctx, applicationSet, createApps)
+}
+
+func (r *ApplicationSetReconciler) getCurrentApplications(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet) []argov1alpha1.Application{
+	var current argov1alpha1.ApplicationList
+	_ = r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
+
+	return current.Items
+}
+
+
 // deleteInCluster will delete application that are current in the cluster but not in appList.
 // The function must be called after all generators had been called and generated applications
 func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) {
 
 	// Save current applications to be able to delete the ones that are not in appList
-	var current argov1alpha1.ApplicationList
-	_ = r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
+	current := r.getCurrentApplications(ctx,applicationSet)
 
 	m := make(map[string]bool) // Will holds the app names in appList for the deletion process
 
@@ -176,7 +215,7 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 	}
 
 	// Delete apps that are not in m[string]bool
-	for _, app := range current.Items {
+	for _, app := range current {
 		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
 		_, exists := m[app.Name]
 

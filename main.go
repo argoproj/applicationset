@@ -45,6 +45,7 @@ func main() {
 	var argocdRepoServer string
 	var duration int64
 	var debugLog bool
+	var updateSync bool
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&metricsAddr, "probe-addr", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
@@ -54,6 +55,8 @@ func main() {
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
 	flag.Int64Var(&duration, "git-refresh-duration", 60, "(seconds) The refrash duration for the git generator")
 	flag.BoolVar(&debugLog, "debug", false, "print debug logs")
+	flag.BoolVar(&updateSync, "sync-update", true, "if false, then the controller will only create and delete application, and will not update existing applications.")
+
 
 	flag.Parse()
 
@@ -88,6 +91,7 @@ func main() {
 		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
 		AppsService: services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer),
 		Refresher: refresher.Start(time.Duration(duration) *time.Second, stop, events),
+		UpdateSync: updateSync,
 	}).SetupWithManager(mgr, events); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
