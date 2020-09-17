@@ -5,6 +5,7 @@ import (
 	"flag"
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/services"
+	"github.com/argoproj-labs/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
@@ -91,6 +92,7 @@ func main() {
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
+		Renderer: &utils.Render{},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
