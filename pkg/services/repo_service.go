@@ -42,8 +42,7 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 
 		return nil, errors.Wrap(err, "Error in GetRepository")
 	}
-	log.Infof("repo - %#v", repo)
-
+	
 	conn, repoClient, err := a.repoClientset.NewRepoServerClient()
 	defer io.Close(conn)
 	if err != nil {
