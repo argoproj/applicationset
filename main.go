@@ -6,6 +6,8 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+
 	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -51,9 +53,23 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
+	// Determine the namespace we're running in. Normally injected into the pod as an env
+	// var via the Kube downward API configured in the Deployment.
+	// Developers running the binary locally will need to remember to set the NAMESPACE environment variable.
+	ns := os.Getenv("NAMESPACE")
+	if len(ns) == 0 {
+		setupLog.Info("Please set NAMESPACE environment variable to match where you are running the applicationset controller")
+		os.Exit(1)
+	}
+	setupLog.Info("using argocd namespace", "namespace", ns)
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
+		// Our cache and thus watches and client queries are restricted to the namespace we're running in. This assumes
+		// the applicationset controller is in the same namespace as argocd, which should be the same namespace of
+		// all cluster Secrets and Applications we interact with.
+		NewCache: cache.MultiNamespacedCacheBuilder([]string{ns}),
 		HealthProbeBindAddress: probeBindAddr,
 		Port:                   9443,
 		LeaderElection:         enableLeaderElection,
