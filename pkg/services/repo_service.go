@@ -42,7 +42,6 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 
 		return nil, errors.Wrap(err, "Error in GetRepository")
 	}
-	log.Infof("repo - %#v", repo)
 
 	conn, repoClient, err := a.repoClientset.NewRepoServerClient()
 	defer io.Close(conn)
@@ -54,7 +53,7 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 		Repo: repo,
 		Revision: revision,
 	})
-	log.Infof("apps - %#v", apps)
+	log.Debugf("apps - %#v", apps)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error in ListApps")
 	}
@@ -64,8 +63,6 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 	for name, _ := range apps.Apps {
 		res = append(res, name)
 	}
-
-	log.Infof("res - %#v", apps)
 
 	return res, nil
 }

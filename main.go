@@ -7,6 +7,7 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	"os"
@@ -43,6 +44,7 @@ func main() {
 	var enableLeaderElection bool
 	var namespace string
 	var argocdRepoServer string
+	var debugLog bool
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&metricsAddr, "probe-addr", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
@@ -50,9 +52,14 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&namespace, "namespace", "argocd", "Argo CD repo namesapce")
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
+	flag.BoolVar(&debugLog, "debug", false, "print debug logs")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+
+	if debugLog {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	// Determine the namespace we're running in. Normally injected into the pod as an env
 	// var via the Kube downward API configured in the Deployment.
