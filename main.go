@@ -7,6 +7,7 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	"os"
@@ -44,6 +45,7 @@ func main() {
 	var namespace string
 	var argocdRepoServer string
 	var policy string
+	var debugLog bool
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&metricsAddr, "probe-addr", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
@@ -52,6 +54,7 @@ func main() {
 	flag.StringVar(&namespace, "namespace", "argocd", "Argo CD repo namesapce")
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
 	flag.StringVar(&policy, "policy", "sync", "Modify how application is sync between the generator and the cluster. Default is sync (create & update & delete), options: create-only, create-update (no deletion)")
+	flag.BoolVar(&debugLog, "debug", false, "print debug logs")
 	flag.Parse()
 
 
@@ -63,6 +66,10 @@ func main() {
 		setupLog.Info("Policy value can be: sync, create-only, create-update")
 		os.Exit(1)
 	}
+  
+  if debugLog {
+    log.SetLevel(log.DebugLevel)
+  }
 
 	// Determine the namespace we're running in. Normally injected into the pod as an env
 	// var via the Kube downward API configured in the Deployment.
@@ -102,7 +109,8 @@ func main() {
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
-		Policy: policyObj,
+		Renderer: &utils.Render{},
+    Policy: policyObj,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
