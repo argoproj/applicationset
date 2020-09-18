@@ -27,11 +27,11 @@ func (g *ListGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appli
 
 	res := make([]map[string]string, len(appSetGenerator.List.Elements))
 
-	params := make(map[string]string, 2)
-	for _, tmpItem := range appSetGenerator.List.Elements {
+	for i, tmpItem := range appSetGenerator.List.Elements {
+		params := make(map[string]string, 2)
 		params[utils.ClusterListGeneratorKeyName] = tmpItem.Cluster
 		params[utils.UrlGeneratorKeyName] = tmpItem.Url
-		res = append(res, params)
+		res[i] = params
 	}
 
 	return res, nil
