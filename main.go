@@ -44,6 +44,7 @@ func main() {
 	var enableLeaderElection bool
 	var namespace string
 	var argocdRepoServer string
+	var policy string
 	var debugLog bool
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&metricsAddr, "probe-addr", ":8081", "The address the probe endpoint binds to.")
@@ -52,14 +53,23 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&namespace, "namespace", "argocd", "Argo CD repo namesapce")
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
+	flag.StringVar(&policy, "policy", "sync", "Modify how application is sync between the generator and the cluster. Default is sync (create & update & delete), options: create-only, create-update (no deletion)")
 	flag.BoolVar(&debugLog, "debug", false, "print debug logs")
 	flag.Parse()
 
+
+
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
-	if debugLog {
-		log.SetLevel(log.DebugLevel)
+	policyObj, exists := utils.Policies[policy]
+	if !exists {
+		setupLog.Info("Policy value can be: sync, create-only, create-update")
+		os.Exit(1)
 	}
+  
+  if debugLog {
+    log.SetLevel(log.DebugLevel)
+  }
 
 	// Determine the namespace we're running in. Normally injected into the pod as an env
 	// var via the Kube downward API configured in the Deployment.
@@ -100,6 +110,7 @@ func main() {
 		Scheme:      mgr.GetScheme(),
 		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
 		Renderer: &utils.Render{},
+    Policy: policyObj,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)

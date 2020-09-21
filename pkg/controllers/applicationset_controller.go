@@ -44,6 +44,7 @@ type ApplicationSetReconciler struct {
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 	Generators []generators.Generator
+	utils.Policy
 	utils.Renderer
 }
 
@@ -69,13 +70,23 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, err
 	}
 
-	err = r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
-	if err != nil {
-		return ctrl.Result{}, err
+	if r.Policy.Update() {
+		err = r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	} else {
+		err = r.createInCluster(ctx, applicationSetInfo, desiredApplications)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
-	err = r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
-	if err != nil {
-		return ctrl.Result{}, err
+
+	if r.Policy.Delete() {
+		err = r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	return ctrl.Result{}, nil
@@ -180,7 +191,7 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 		})
 
 		if err != nil {
-			appLog.WithError(err).WithField("action", action).Error("failed to create/update Application")
+			appLog.WithError(err).WithField("action", action).Errorf("failed to %s Application", action)
 			if firstError == nil {
 				firstError = err
 			}
@@ -193,13 +204,55 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 	return firstError
 }
 
+
+// createInCluster will filter from the desiredApplications only the application that needs to be created
+// Then it will call createOrUpdateInCluster to do the actual create
+func (r *ApplicationSetReconciler) createInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
+
+	var createApps []argov1alpha1.Application
+	current, err := r.getCurrentApplications(ctx,applicationSet)
+	if err != nil {
+		return err
+	}
+
+	m := make(map[string]bool) // Will holds the app names that are current in the cluster
+
+	for _, app := range current {
+		m[app.Name] = true
+	}
+
+	// filter applications that are not in m[string]bool (new to the cluster)
+	for _, app := range desiredApplications {
+		_, exists := m[app.Name]
+
+		if !exists {
+			createApps = append(createApps, app)
+		}
+	}
+
+	return r.createOrUpdateInCluster(ctx, applicationSet, createApps)
+}
+
+func (r *ApplicationSetReconciler) getCurrentApplications(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error){
+	var current argov1alpha1.ApplicationList
+	err := r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return current.Items, nil
+}
+
 // deleteInCluster will delete application that are current in the cluster but not in appList.
 // The function must be called after all generators had been called and generated applications
 func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
 
 	// Save current applications to be able to delete the ones that are not in appList
-	var current argov1alpha1.ApplicationList
-	_ = r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
+	current,err := r.getCurrentApplications(ctx,applicationSet)
+	if err != nil {
+		return err
+	}
 
 	m := make(map[string]bool) // Will holds the app names in appList for the deletion process
 
@@ -209,7 +262,7 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 
 	// Delete apps that are not in m[string]bool
 	var firstError error
-	for _, app := range current.Items {
+	for _, app := range current {
 		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
 		_, exists := m[app.Name]
 
