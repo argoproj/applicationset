@@ -141,7 +141,7 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 }
 
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(&argov1alpha1.Application{}, ".metadata.controller", func(rawObj runtime.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &argov1alpha1.Application{}, ".metadata.controller", func(rawObj runtime.Object) []string {
 		// grab the job object, extract the owner...
 		app := rawObj.(*argov1alpha1.Application)
 		owner := metav1.GetControllerOf(app)
@@ -185,7 +185,7 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 		app.Namespace = applicationSet.Namespace
 
 		found := app
-		action, err := ctrl.CreateOrUpdate(ctx, r.Client, &found, func() error {
+		action, err := utils.CreateOrUpdate(ctx, r.Client, &found, func() error {
 			found.Spec = app.Spec
 			return controllerutil.SetControllerReference(&applicationSet, &found, r.Scheme)
 		})

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
-	"github.com/argoproj/argo-cd/util"
+	"github.com/argoproj/gitops-engine/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,8 +16,8 @@ type clientSet struct {
 	RepoServerServiceClient apiclient.RepoServerServiceClient
 }
 
-func (c *clientSet) NewRepoServerClient() (util.Closer, apiclient.RepoServerServiceClient, error) {
-	return util.NewCloser(func() error { return nil }), c.RepoServerServiceClient, nil
+func (c *clientSet) NewRepoServerClient() (io.Closer, apiclient.RepoServerServiceClient, error) {
+	return io.NewCloser(func() error { return nil }), c.RepoServerServiceClient, nil
 }
 
 type argoCDServiceMock struct {
