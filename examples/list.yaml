@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: guestbook
+  name: guestbook2
 spec:
   generators:
   - list:
@@ -12,10 +12,10 @@ spec:
       - cluster: engineering-prod
         url: https://2.4.6.8
       - cluster: finance-preprod
-        url: https://9.8.7.6
+        url: https://9.8.7.10
   template:
     metadata:
-      name: '{{cluster}}-guestbook'
+      name: '{{cluster}}-guestbook2'
     spec:
       project: ""
       source:

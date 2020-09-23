@@ -3,6 +3,7 @@ package generators
 import (
 	"context"
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -31,6 +32,10 @@ func NewClusterGenerator(c client.Client) Generator {
 		Client: c,
 	}
 	return g
+}
+
+func (g * ClusterGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+	return NoRequeueAfter
 }
 
 func (g *ClusterGenerator) GenerateParams(

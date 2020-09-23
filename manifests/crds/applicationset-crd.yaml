@@ -118,6 +118,9 @@ spec:
                         type: string
                       revision:
                         type: string
+                      requeueAfterSeconds:
+                        format: int64
+                        type: integer
                     required:
                     - repoURL
                     - revision

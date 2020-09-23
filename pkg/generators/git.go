@@ -6,6 +6,7 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	log "github.com/sirupsen/logrus"
 	"path"
+	"time"
 )
 
 var _ Generator = (*GitGenerator)(nil)
@@ -19,6 +20,10 @@ func NewGitGenerator(repos services.Apps) Generator {
 		repos: repos,
 	}
 	return g
+}
+
+func (g * GitGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+	return time.Duration(appSetGenerator.Git.RequeueAfterSeconds) * time.Second
 }
 
 func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {

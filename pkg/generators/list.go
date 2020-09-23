@@ -3,6 +3,7 @@ package generators
 import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
+	"time"
 )
 
 var _ Generator = (*ListGenerator)(nil)
@@ -14,6 +15,10 @@ type ListGenerator struct {
 func NewListGenerator() Generator {
 	g := &ListGenerator{}
 	return g
+}
+
+func (g * ListGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+	return NoRequeueAfter
 }
 
 func (g *ListGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
