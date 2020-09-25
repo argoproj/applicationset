@@ -13,7 +13,7 @@ image:
 
 .PHONY: deploy
 deploy:
-	kustomize build manifests/cluster-install | kubectl apply -f -
+	kustomize build manifests/namespace-install | kubectl apply -f -
 	kubectl patch deployment -n argocd argocd-applicationset-controller --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "$(IMAGE)"}]'
 
 # Generate manifests e.g. CRD, RBAC etc.
