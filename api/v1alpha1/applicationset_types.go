@@ -23,18 +23,11 @@ type ApplicationSetSpec struct {
 	SyncPolicy *ApplicationSetSyncPolicy `json:"syncPolicy,omitempty"`
 }
 
-// ApplicationSetSyncPolicy will provide a syncPolicy similar to Applications
+// ApplicationSetSyncPolicy configures how generated Applications will relate to their
+// ApplicationSet.
 type ApplicationSetSyncPolicy struct {
-	// Automated will keep an application synced to the target revision
-	Automated *SyncPolicyAutomated `json:"automated,omitempty"`
-}
-
-// SyncPolicyAutomated
-type SyncPolicyAutomated struct {
-	// Prune will prune resources automatically as part of automated sync (default: false)
-	Prune bool `json:"prune,omitempty"`
-	// Initial will perform an initial sync for any newly created Applications which do not have automated sync turned on.
-	Initial bool `json:"initial,omitempty"`
+	// SkipPrune will disable the default behavior which will delete Applications that are no longer being generated for the ApplicationSet which created them, or the ApplicationSet itself is deleted. If SkipPrune is set to true, these Applications will be orphaned but continue to exist.
+	SkipPrune bool `json:"skipPrune,omitempty"`
 }
 
 // ApplicationSetTemplate represents argocd ApplicationSpec
@@ -70,10 +63,10 @@ type ClusterGenerator struct {
 }
 
 type GitGenerator struct {
-	RepoURL     		string                      `json:"repoURL"`
-	Directories 		[]GitDirectoryGeneratorItem `json:"directories,omitempty"`
-	Revision    		string                      `json:"revision"`
-	RequeueAfterSeconds	int64						`json:"requeueAfterSeconds,omitempty"`
+	RepoURL             string                      `json:"repoURL"`
+	Directories         []GitDirectoryGeneratorItem `json:"directories,omitempty"`
+	Revision            string                      `json:"revision"`
+	RequeueAfterSeconds int64                       `json:"requeueAfterSeconds,omitempty"`
 }
 
 type GitDirectoryGeneratorItem struct {
