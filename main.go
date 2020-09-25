@@ -46,6 +46,7 @@ func main() {
 	var argocdRepoServer string
 	var policy string
 	var debugLog bool
+	var dryRun bool
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&metricsAddr, "probe-addr", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
@@ -55,6 +56,7 @@ func main() {
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
 	flag.StringVar(&policy, "policy", "sync", "Modify how application is sync between the generator and the cluster. Default is sync (create & update & delete), options: create-only, create-update (no deletion)")
 	flag.BoolVar(&debugLog, "debug", false, "print debug logs")
+	flag.BoolVar(&dryRun, "dry-run", false, "Enable dry run mode")
 	flag.Parse()
 
 
@@ -92,6 +94,7 @@ func main() {
 		Port:                   9443,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "58ac56fa.",
+		DryRunClient: dryRun,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

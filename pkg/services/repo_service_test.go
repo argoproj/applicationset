@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
-	"github.com/argoproj/argo-cd/util"
+	"github.com/argoproj/gitops-engine/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
@@ -57,7 +57,7 @@ type repoClientsetMock struct {
 	mock.Mock
 }
 
-func (r repoClientsetMock) NewRepoServerClient() (util.Closer, apiclient.RepoServerServiceClient, error) {
+func (r repoClientsetMock) NewRepoServerClient() (io.Closer, apiclient.RepoServerServiceClient, error) {
 	args := r.Called()
 
 	return closer{}, args.Get(0).(apiclient.RepoServerServiceClient), args.Error(1)
