@@ -104,10 +104,10 @@ func main() {
 	k8s := kubernetes.NewForConfigOrDie(mgr.GetConfig())
 
 	if err = (&controllers.ApplicationSetReconciler{
-		Generators: []generators.Generator{
-			generators.NewListGenerator(),
-			generators.NewClusterGenerator(mgr.GetClient()),
-			generators.NewGitGenerator(services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer)),
+		Generators: map[string]generators.Generator{
+			"List": generators.NewListGenerator(),
+			"Clusters": generators.NewClusterGenerator(mgr.GetClient()),
+			"Git": generators.NewGitGenerator(services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer)),
 		},
 		Client:      mgr.GetClient(),
 		Scheme:      mgr.GetScheme(),
