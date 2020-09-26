@@ -21,6 +21,10 @@ func (g *ListGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Appl
 	return NoRequeueAfter
 }
 
+func (g *ListGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+	return &appSetGenerator.List.Template
+}
+
 func (g *ListGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 	if appSetGenerator == nil {
 		return nil, EmptyAppSetGeneratorError

@@ -26,6 +26,10 @@ func NewGitGenerator(repos services.Repos) Generator {
 	return g
 }
 
+func (g *GitGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+	return &appSetGenerator.Git.Template
+}
+
 func (g *GitGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 	return time.Duration(appSetGenerator.Git.RequeueAfterSeconds) * time.Second
 }

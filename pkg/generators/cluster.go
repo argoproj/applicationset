@@ -37,6 +37,10 @@ func (g *ClusterGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.A
 	return NoRequeueAfter
 }
 
+func (g *ClusterGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+	return &appSetGenerator.Clusters.Template
+}
+
 func (g *ClusterGenerator) GenerateParams(
 	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 

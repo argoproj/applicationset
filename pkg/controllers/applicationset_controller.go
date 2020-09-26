@@ -43,6 +43,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+
+	"github.com/imdario/mergo"
 )
 
 // ApplicationSetReconciler reconciles a ApplicationSet object
@@ -266,11 +268,18 @@ func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSet
 	return &tmplApplication
 }
 
+func mergeGeneratorTemplate(g generators.Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator,  applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) argoprojiov1alpha1.ApplicationSetTemplate{
+	dest := g.GetTemplate(requestedGenerator)
+	_ = mergo.Merge(dest, applicationSetTemplate)
+
+	return *dest
+}
+
+
 func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	res := []argov1alpha1.Application{}
 
 	var firstError error
-	tmplApplication := getTempApplication(applicationSetInfo.Spec.Template)
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
 		generators := r.GetRelevantGenerators(&requestedGenerator)
 		for _, g := range generators {
@@ -283,6 +292,8 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 				}
 				continue
 			}
+
+			tmplApplication := getTempApplication(mergeGeneratorTemplate(g, &requestedGenerator, applicationSetInfo.Spec.Template))
 
 			for _, p := range params {
 				app, err := r.Renderer.RenderTemplateParams(tmplApplication, p)

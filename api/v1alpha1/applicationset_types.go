@@ -61,6 +61,7 @@ type ApplicationSetGenerator struct {
 // ListGenerator include items info
 type ListGenerator struct {
 	Elements []ListGeneratorElement `json:"elements"`
+	Template ApplicationSetTemplate `json:"template,omitempty"`
 }
 
 // ListGeneratorElement include cluster and url info
@@ -74,15 +75,16 @@ type ClusterGenerator struct {
 	// Selector defines a label selector to match against all clusters registered with ArgoCD.
 	// Clusters today are stored as Kubernetes Secrets, thus the Secret labels will be used
 	// for matching the selector.
-	Selector metav1.LabelSelector `json:"selector,omitempty"`
+	Selector metav1.LabelSelector	`json:"selector,omitempty"`
+	Template ApplicationSetTemplate	`json:"template,omitempty"`
 }
 
 type GitGenerator struct {
-	RepoURL             string                      `json:"repoURL"`
-	Directories         []GitDirectoryGeneratorItem `json:"directories,omitempty"`
-	Files               []GitFileGeneratorItem      `json:"files,omitempty"`
-	Revision            string                      `json:"revision"`
-	RequeueAfterSeconds int64                       `json:"requeueAfterSeconds,omitempty"`
+	RepoURL     		string                      `json:"repoURL"`
+	Directories 		[]GitDirectoryGeneratorItem `json:"directories,omitempty"`
+	Revision    		string                      `json:"revision"`
+	RequeueAfterSeconds	int64						`json:"requeueAfterSeconds,omitempty"`
+	Template			ApplicationSetTemplate    	`json:"template,omitempty"`
 }
 
 type GitDirectoryGeneratorItem struct {

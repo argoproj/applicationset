@@ -28,6 +28,12 @@ type generatorMock struct {
 	mock.Mock
 }
 
+func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+	args := g.Called(appSetGenerator)
+
+	return args.Get(0).(*argoprojiov1alpha1.ApplicationSetTemplate)
+}
+
 func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 	args := g.Called(appSetGenerator)
 
@@ -122,6 +128,9 @@ func TestExtractApplications(t *testing.T) {
 			generatorMock.On("GenerateParams", &generator).
 				Return(cc.params, cc.generateParamsError)
 
+			generatorMock.On("GetTemplate", &generator).
+				Return(&argoprojiov1alpha1.ApplicationSetTemplate{})
+
 			rendererMock := rendererMock{}
 
 			expectedApps := []argov1alpha1.Application{}
@@ -175,6 +184,116 @@ func TestExtractApplications(t *testing.T) {
 
 		})
 	}
+
+}
+
+func TestMergeTemplateApplications(t *testing.T) {
+	scheme := runtime.NewScheme()
+	argoprojiov1alpha1.AddToScheme(scheme)
+	argov1alpha1.AddToScheme(scheme)
+
+	client := fake.NewFakeClientWithScheme(scheme)
+
+	for _, c := range []struct {
+		name				string
+		params				[]map[string]string
+		template			argoprojiov1alpha1.ApplicationSetTemplate
+		overrideTemplate	argoprojiov1alpha1.ApplicationSetTemplate
+		expectedMerged		argoprojiov1alpha1.ApplicationSetTemplate
+		expectedApps		[]argov1alpha1.Application
+	}{
+		{
+			name: 		"Generate app",
+			params: 	[]map[string]string{{"name": "app1"}},
+			template:	argoprojiov1alpha1.ApplicationSetTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:                       "name",
+					Namespace:                  "namespace",
+					Labels:                     map[string]string{ "label_name": "label_value"},
+				},
+				Spec:       argov1alpha1.ApplicationSpec{
+
+				},
+			},
+			overrideTemplate:	argoprojiov1alpha1.ApplicationSetTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:                       "test",
+					Labels:                     map[string]string{"foo": "bar"},
+				},
+				Spec:       argov1alpha1.ApplicationSpec{
+
+				},
+			},
+			expectedMerged: argoprojiov1alpha1.ApplicationSetTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:                       "test",
+					Namespace:                  "namespace",
+					Labels:                     map[string]string{"label_name": "label_value", "foo": "bar"},
+				},
+				Spec:       argov1alpha1.ApplicationSpec{
+
+				},
+			},
+			expectedApps:	[]argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:                       "test",
+						Namespace:                  "test",
+						Labels:                     map[string]string{"foo": "bar"},
+					},
+					Spec:       argov1alpha1.ApplicationSpec{
+
+					},
+				},
+			},
+		},
+	}{
+		cc := c
+
+		t.Run(cc.name, func(t *testing.T) {
+
+			generatorMock := generatorMock{}
+			generator := argoprojiov1alpha1.ApplicationSetGenerator{
+				List: &argoprojiov1alpha1.ListGenerator{},
+			}
+
+			generatorMock.On("GenerateParams", &generator).
+				Return(cc.params, nil)
+
+			generatorMock.On("GetTemplate", &generator).
+				Return(&cc.overrideTemplate)
+
+			rendererMock := rendererMock{}
+
+			rendererMock.On("RenderTemplateParams", getTempApplication(cc.expectedMerged), cc.params[0]).
+				Return(&cc.expectedApps[0], nil)
+
+			r := ApplicationSetReconciler{
+				Client:   client,
+				Scheme:   scheme,
+				Recorder: record.NewFakeRecorder(1),
+				Generators: map[string]generators.Generator{
+					"List": &generatorMock,
+				},
+				Renderer: &rendererMock,
+			}
+
+			got, _ := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+				Spec: argoprojiov1alpha1.ApplicationSetSpec{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{generator},
+					Template: cc.template,
+				},
+			},
+			)
+
+			assert.Equal(t, cc.expectedApps, got)
+		})
+	}
+
 
 }
 

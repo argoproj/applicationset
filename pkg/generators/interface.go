@@ -18,6 +18,8 @@ type Generator interface {
 	// In case there is more then one generator the time will be the minimum of the times.
 	// In case NoRequeueAfter is empty, it will be ignored
 	GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration
+
+	GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate
 }
 
 var EmptyAppSetGeneratorError = errors.New("ApplicationSet is empty")
