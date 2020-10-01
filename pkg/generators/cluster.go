@@ -68,6 +68,9 @@ func (g *ClusterGenerator) GenerateParams(
 		params := make(map[string]string, len(cluster.ObjectMeta.Labels) + 2)
 		params["name"] = string(cluster.Data["name"])
 		params["server"] = string(cluster.Data["server"])
+		for key, value := range cluster.ObjectMeta.Annotations {
+			params[fmt.Sprintf("metadata.annotations.%s", key)] = value
+		}
 		for key, value := range cluster.ObjectMeta.Labels {
 			params[fmt.Sprintf("metadata.labels.%s", key)] = value
 		}
