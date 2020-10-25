@@ -2,11 +2,13 @@ package generators
 
 import (
 	"context"
+	"encoding/json"
 	"path"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/pkg/services"
+	"github.com/jeremywohl/flatten"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -37,6 +39,23 @@ func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Applic
 		return nil, EmptyAppSetGeneratorError
 	}
 
+	var err error
+	var res []map[string]string
+	if appSetGenerator.Git.Directories != nil {
+		res, err = g.generateParamsForGitDirectories(appSetGenerator)
+	} else if appSetGenerator.Git.Files != nil {
+		res, err = g.generateParamsForGitFiles(appSetGenerator)
+	} else {
+		return nil, EmptyAppSetGeneratorError
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (g *GitGenerator) generateParamsForGitDirectories(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 	allApps, err := g.repos.GetApps(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision)
 	if err != nil {
 		return nil, err
@@ -49,14 +68,52 @@ func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Applic
 		"revision": appSetGenerator.Git.Revision,
 	}).Info("applications result from the repo service")
 
-	requestedApps := g.filter(appSetGenerator.Git.Directories, allApps)
+	requestedApps := g.filterApps(appSetGenerator.Git.Directories, allApps)
 
-	res := g.generateParams(requestedApps, appSetGenerator)
+	res := g.generateParamsFromApps(requestedApps, appSetGenerator)
 
 	return res, nil
 }
 
-func (g *GitGenerator) filter(Directories []argoprojiov1alpha1.GitDirectoryGeneratorItem, allApps []string) []string {
+func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
+	allPaths := []string{}
+	for _, requestedPath := range appSetGenerator.Git.Files {
+		paths, err := g.repos.GetPaths(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, requestedPath.Path)
+		if err != nil {
+			return nil, err
+		}
+		allPaths = append(allPaths, paths...)
+	}
+
+	res := []map[string]string{}
+
+	for _, path := range allPaths {
+		content, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path)
+		if err != nil {
+			return nil, err
+		}
+
+		config := make(map[string]interface{})
+		err = json.Unmarshal(content, &config)
+		if err != nil {
+			return nil, err
+		}
+
+		flat, err := flatten.Flatten(config, "", flatten.DotStyle)
+		if err != nil {
+			return nil, err
+		}
+		params := make(map[string]string)
+		for k, v := range flat {
+			params[k] = v.(string)
+		}
+
+		res = append(res, params)
+	}
+	return res, nil
+}
+
+func (g *GitGenerator) filterApps(Directories []argoprojiov1alpha1.GitDirectoryGeneratorItem, allApps []string) []string {
 	res := []string{}
 	for _, requestedPath := range Directories {
 		for _, appPath := range allApps {
@@ -74,7 +131,7 @@ func (g *GitGenerator) filter(Directories []argoprojiov1alpha1.GitDirectoryGener
 	return res
 }
 
-func (g *GitGenerator) generateParams(requestedApps []string, _ *argoprojiov1alpha1.ApplicationSetGenerator) []map[string]string {
+func (g *GitGenerator) generateParamsFromApps(requestedApps []string, _ *argoprojiov1alpha1.ApplicationSetGenerator) []map[string]string {
 	// TODO: At some point, the appicationSetGenerator param should be used
 
 	res := make([]map[string]string, len(requestedApps))
