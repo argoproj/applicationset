@@ -19,6 +19,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"time"
+
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
@@ -26,11 +29,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/kubernetes/pkg/apis/core"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,8 +44,8 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Scheme     *runtime.Scheme
+	Recorder   record.EventRecorder
 	Generators map[string]generators.Generator
 	utils.Policy
 	utils.Renderer
@@ -99,7 +100,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}, nil
 }
 
-func (r *ApplicationSetReconciler) GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator) []generators.Generator{
+func (r *ApplicationSetReconciler) GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator) []generators.Generator {
 	var res []generators.Generator
 
 	v := reflect.Indirect(reflect.ValueOf(requestedGenerator))
@@ -109,7 +110,7 @@ func (r *ApplicationSetReconciler) GetRelevantGenerators(requestedGenerator *arg
 			continue
 		}
 
-		if !reflect.ValueOf(field.Interface()).IsNil()  {
+		if !reflect.ValueOf(field.Interface()).IsNil() {
 			res = append(res, r.Generators[v.Type().Field(i).Name])
 		}
 	}
@@ -117,7 +118,7 @@ func (r *ApplicationSetReconciler) GetRelevantGenerators(requestedGenerator *arg
 	return res
 }
 
-func (r *ApplicationSetReconciler) getMinRequeueAfter(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) time.Duration{
+func (r *ApplicationSetReconciler) getMinRequeueAfter(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) time.Duration {
 	var res time.Duration
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
 
@@ -137,8 +138,9 @@ func (r *ApplicationSetReconciler) getMinRequeueAfter(applicationSetInfo *argopr
 	return res
 }
 
-func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) *argov1alpha1.Application{
+func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) *argov1alpha1.Application {
 	var tmplApplication argov1alpha1.Application
+	tmplApplication.Annotations = applicationSetTemplate.Annotations
 	tmplApplication.Labels = applicationSetTemplate.Labels
 	tmplApplication.Namespace = applicationSetTemplate.Namespace
 	tmplApplication.Name = applicationSetTemplate.Name
@@ -250,13 +252,12 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 	return firstError
 }
 
-
 // createInCluster will filter from the desiredApplications only the application that needs to be created
 // Then it will call createOrUpdateInCluster to do the actual create
 func (r *ApplicationSetReconciler) createInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
 
 	var createApps []argov1alpha1.Application
-	current, err := r.getCurrentApplications(ctx,applicationSet)
+	current, err := r.getCurrentApplications(ctx, applicationSet)
 	if err != nil {
 		return err
 	}
@@ -279,7 +280,7 @@ func (r *ApplicationSetReconciler) createInCluster(ctx context.Context, applicat
 	return r.createOrUpdateInCluster(ctx, applicationSet, createApps)
 }
 
-func (r *ApplicationSetReconciler) getCurrentApplications(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error){
+func (r *ApplicationSetReconciler) getCurrentApplications(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	var current argov1alpha1.ApplicationList
 	err := r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
 
@@ -295,7 +296,7 @@ func (r *ApplicationSetReconciler) getCurrentApplications(ctx context.Context, a
 func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
 
 	// Save current applications to be able to delete the ones that are not in appList
-	current,err := r.getCurrentApplications(ctx,applicationSet)
+	current, err := r.getCurrentApplications(ctx, applicationSet)
 	if err != nil {
 		return err
 	}

@@ -26,7 +26,6 @@ type ClusterGenerator struct {
 	client.Client
 }
 
-
 func NewClusterGenerator(c client.Client) Generator {
 	g := &ClusterGenerator{
 		Client: c,
@@ -34,7 +33,7 @@ func NewClusterGenerator(c client.Client) Generator {
 	return g
 }
 
-func (g * ClusterGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (g *ClusterGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 	return NoRequeueAfter
 }
 
@@ -65,9 +64,12 @@ func (g *ClusterGenerator) GenerateParams(
 
 	res := make([]map[string]string, len(clusterSecretList.Items))
 	for i, cluster := range clusterSecretList.Items {
-		params := make(map[string]string, len(cluster.ObjectMeta.Labels) + 2)
+		params := make(map[string]string, len(cluster.ObjectMeta.Annotations)+len(cluster.ObjectMeta.Labels)+2)
 		params["name"] = string(cluster.Data["name"])
 		params["server"] = string(cluster.Data["server"])
+		for key, value := range cluster.ObjectMeta.Annotations {
+			params[fmt.Sprintf("metadata.annotations.%s", key)] = value
+		}
 		for key, value := range cluster.ObjectMeta.Labels {
 			params[fmt.Sprintf("metadata.labels.%s", key)] = value
 		}
