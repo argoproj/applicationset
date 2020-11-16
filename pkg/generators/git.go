@@ -15,10 +15,10 @@ import (
 var _ Generator = (*GitGenerator)(nil)
 
 type GitGenerator struct {
-	repos services.Apps
+	repos services.Repos
 }
 
-func NewGitGenerator(repos services.Apps) Generator {
+func NewGitGenerator(repos services.Repos) Generator {
 	g := &GitGenerator{
 		repos: repos,
 	}

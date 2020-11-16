@@ -27,13 +27,13 @@ type argoCDService struct {
 	repoClientset  apiclient.Clientset
 }
 
-type Apps interface {
+type Repos interface {
 	GetApps(ctx context.Context, repoURL string, revision string) ([]string, error)
 	GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error)
 	GetFileContent(ctx context.Context, repoURL string, revision string, path string) ([]byte, error)
 }
 
-func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) Apps {
+func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) Repos {
 	settingsMgr := settings.NewSettingsManager(ctx, clientset, namespace)
 
 	return &argoCDService{
