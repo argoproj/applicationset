@@ -73,46 +73,24 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 	return res, nil
 }
 
-func (a *argoCDService) checkoutRepo(gitClient git.Client, revision string) error {
-	err := gitClient.Init()
-	if err != nil {
-		return errors.Wrap(err, "Error during initiliazing repo")
-	}
-
-	err = gitClient.Fetch()
-	if err != nil {
-		return errors.Wrap(err, "Error during fetching repo")
-	}
-
-	commitSHA, err := gitClient.LsRemote(revision)
-	if err != nil {
-		return errors.Wrap(err, "Error during fetching commitSHA")
-	}
-	err = gitClient.Checkout(commitSHA)
-	if err != nil {
-		return errors.Wrap(err, "Error during repo checkout")
-	}
-	return nil
-}
-
 func (a *argoCDService) GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error) {
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error in GetRepository")
 	}
 
-	gitClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled())
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled())
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.checkoutRepo(gitClient, revision)
+	err = checkoutRepo(gitRepoClient, revision)
 	if err != nil {
 		return nil, err
 	}
 
-	paths, err := gitClient.LsFiles(pattern)
+	paths, err := gitRepoClient.LsFiles(pattern)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error during listing files of local repo")
 	}
@@ -123,25 +101,46 @@ func (a *argoCDService) GetPaths(ctx context.Context, repoURL string, revision s
 func (a *argoCDService) GetFileContent(ctx context.Context, repoURL string, revision string, path string) ([]byte, error) {
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
-
 		return nil, errors.Wrap(err, "Error in GetRepository")
 	}
 
-	gitClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled())
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled())
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.checkoutRepo(gitClient, revision)
+	err = checkoutRepo(gitRepoClient, revision)
 	if err != nil {
 		return nil, err
 	}
 
-	bytes, err := ioutil.ReadFile(filepath.Join(gitClient.Root(), path))
+	bytes, err := ioutil.ReadFile(filepath.Join(gitRepoClient.Root(), path))
 	if err != nil {
 		return nil, err
 	}
 
 	return bytes, nil
+}
+
+func checkoutRepo(gitRepoClient git.Client, revision string) error {
+	err := gitRepoClient.Init()
+	if err != nil {
+		return errors.Wrap(err, "Error during initiliazing repo")
+	}
+
+	err = gitRepoClient.Fetch()
+	if err != nil {
+		return errors.Wrap(err, "Error during fetching repo")
+	}
+
+	commitSHA, err := gitRepoClient.LsRemote(revision)
+	if err != nil {
+		return errors.Wrap(err, "Error during fetching commitSHA")
+	}
+	err = gitRepoClient.Checkout(commitSHA)
+	if err != nil {
+		return errors.Wrap(err, "Error during repo checkout")
+	}
+	return nil
 }
