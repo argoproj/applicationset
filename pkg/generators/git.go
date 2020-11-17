@@ -88,29 +88,38 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 	res := []map[string]string{}
 
 	for _, path := range allPaths {
-		content, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path)
+		params, err := g.generateParamsFromGitFile(appSetGenerator, path)
 		if err != nil {
 			return nil, err
-		}
-
-		config := make(map[string]interface{})
-		err = json.Unmarshal(content, &config)
-		if err != nil {
-			return nil, err
-		}
-
-		flat, err := flatten.Flatten(config, "", flatten.DotStyle)
-		if err != nil {
-			return nil, err
-		}
-		params := make(map[string]string)
-		for k, v := range flat {
-			params[k] = v.(string)
 		}
 
 		res = append(res, params)
 	}
 	return res, nil
+}
+
+func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, path string) (map[string]string, error) {
+	content, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path)
+	if err != nil {
+		return nil, err
+	}
+
+	config := make(map[string]interface{})
+	err = json.Unmarshal(content, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	flat, err := flatten.Flatten(config, "", flatten.DotStyle)
+	if err != nil {
+		return nil, err
+	}
+	params := make(map[string]string)
+	for k, v := range flat {
+		params[k] = v.(string)
+	}
+
+	return params, nil
 }
 
 func (g *GitGenerator) filterApps(Directories []argoprojiov1alpha1.GitDirectoryGeneratorItem, allApps []string) []string {
