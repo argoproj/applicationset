@@ -8,8 +8,8 @@ type Policy interface {
 
 // Policies is a registry of available policies.
 var Policies = map[string]Policy{
-	"sync":        &SyncPolicy{},
-	"create-only": &CreateOnlyPolicy{},
+	"sync":          &SyncPolicy{},
+	"create-only":   &CreateOnlyPolicy{},
 	"create-update": &CreateUpdatePolicy{},
 }
 
@@ -42,4 +42,3 @@ func (p *CreateOnlyPolicy) Update() bool {
 func (p *CreateOnlyPolicy) Delete() bool {
 	return false
 }
-

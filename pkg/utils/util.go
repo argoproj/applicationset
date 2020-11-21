@@ -15,7 +15,6 @@ type Renderer interface {
 }
 
 type Render struct {
-
 }
 
 func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]string) (*argov1alpha1.Application, error) {

@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-
-
 // Generator defines the interface implemented by all ApplicationSet generators.
 type Generator interface {
 	// GenerateParams interprets the ApplicationSet and generates all relevant parameters for the application template.

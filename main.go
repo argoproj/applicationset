@@ -59,8 +59,6 @@ func main() {
 	flag.BoolVar(&dryRun, "dry-run", false, "Enable dry run mode")
 	flag.Parse()
 
-
-
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
 	policyObj, exists := utils.Policies[policy]
@@ -68,10 +66,10 @@ func main() {
 		setupLog.Info("Policy value can be: sync, create-only, create-update")
 		os.Exit(1)
 	}
-  
-  if debugLog {
-    log.SetLevel(log.DebugLevel)
-  }
+
+	if debugLog {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	// Determine the namespace we're running in. Normally injected into the pod as an env
 	// var via the Kube downward API configured in the Deployment.
@@ -84,17 +82,17 @@ func main() {
 	setupLog.Info("using argocd namespace", "namespace", ns)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
+		Scheme:             scheme,
+		MetricsBindAddress: metricsAddr,
 		// Our cache and thus watches and client queries are restricted to the namespace we're running in. This assumes
 		// the applicationset controller is in the same namespace as argocd, which should be the same namespace of
 		// all cluster Secrets and Applications we interact with.
-		NewCache: cache.MultiNamespacedCacheBuilder([]string{ns}),
+		NewCache:               cache.MultiNamespacedCacheBuilder([]string{ns}),
 		HealthProbeBindAddress: probeBindAddr,
 		Port:                   9443,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "58ac56fa.",
-		DryRunClient: dryRun,
+		DryRunClient:           dryRun,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -105,15 +103,15 @@ func main() {
 
 	if err = (&controllers.ApplicationSetReconciler{
 		Generators: map[string]generators.Generator{
-			"List": generators.NewListGenerator(),
+			"List":     generators.NewListGenerator(),
 			"Clusters": generators.NewClusterGenerator(mgr.GetClient()),
-			"Git": generators.NewGitGenerator(services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer)),
+			"Git":      generators.NewGitGenerator(services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer)),
 		},
-		Client:      mgr.GetClient(),
-		Scheme:      mgr.GetScheme(),
-		Recorder:    mgr.GetEventRecorderFor("applicationset-controller"),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("applicationset-controller"),
 		Renderer: &utils.Render{},
-    Policy: policyObj,
+		Policy:   policyObj,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)

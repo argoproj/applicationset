@@ -9,7 +9,6 @@ import (
 var _ Generator = (*ListGenerator)(nil)
 
 type ListGenerator struct {
-
 }
 
 func NewListGenerator() Generator {
@@ -17,7 +16,7 @@ func NewListGenerator() Generator {
 	return g
 }
 
-func (g * ListGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (g *ListGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 	return NoRequeueAfter
 }
 
