@@ -74,7 +74,8 @@ func (g *GitGenerator) filter(Directories []argoprojiov1alpha1.GitDirectoryGener
 	return res
 }
 
-func (g *GitGenerator) generateParams(requestedApps []string, appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) []map[string]string {
+func (g *GitGenerator) generateParams(requestedApps []string, _ *argoprojiov1alpha1.ApplicationSetGenerator) []map[string]string {
+	// TODO: At some point, the appicationSetGenerator param should be used
 
 	res := make([]map[string]string, len(requestedApps))
 	for i, a := range requestedApps {

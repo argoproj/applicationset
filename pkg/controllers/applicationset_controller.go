@@ -280,7 +280,8 @@ func (r *ApplicationSetReconciler) createInCluster(ctx context.Context, applicat
 	return r.createOrUpdateInCluster(ctx, applicationSet, createApps)
 }
 
-func (r *ApplicationSetReconciler) getCurrentApplications(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+func (r *ApplicationSetReconciler) getCurrentApplications(_ context.Context, applicationSet argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
+	// TODO: Should this use the context param?
 	var current argov1alpha1.ApplicationList
 	err := r.Client.List(context.Background(), &current, client.MatchingFields{".metadata.controller": applicationSet.Name})
 
@@ -313,7 +314,7 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
 		_, exists := m[app.Name]
 
-		if exists == false {
+		if !exists {
 			err := r.Client.Delete(ctx, &app)
 			if err != nil {
 				appLog.WithError(err).Error("failed to delete Application")

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
 	"github.com/argoproj/argo-cd/util/db"
@@ -60,7 +61,7 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 
 	res := []string{}
 
-	for name, _ := range apps.Apps {
+	for name := range apps.Apps {
 		res = append(res, name)
 	}
 

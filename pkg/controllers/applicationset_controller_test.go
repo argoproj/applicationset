@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/stretchr/testify/assert"
@@ -14,8 +17,6 @@ import (
 	crtclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"testing"
-	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 )
@@ -53,8 +54,11 @@ func (r *rendererMock) RenderTemplateParams(tmpl *argov1alpha1.Application, para
 
 func TestExtractApplications(t *testing.T) {
 	scheme := runtime.NewScheme()
-	argoprojiov1alpha1.AddToScheme(scheme)
-	argov1alpha1.AddToScheme(scheme)
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
 
 	client := fake.NewFakeClientWithScheme(scheme)
 
@@ -174,8 +178,11 @@ func TestExtractApplications(t *testing.T) {
 func TestCreateOrUpdateInCluster(t *testing.T) {
 
 	scheme := runtime.NewScheme()
-	argoprojiov1alpha1.AddToScheme(scheme)
-	argov1alpha1.AddToScheme(scheme)
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
 
 	for _, c := range []struct {
 		appSet     argoprojiov1alpha1.ApplicationSet
@@ -329,7 +336,8 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 	} {
 		initObjs := []runtime.Object{&c.appSet}
 		for _, a := range c.existsApps {
-			controllerutil.SetControllerReference(&c.appSet, &a, scheme)
+			err = controllerutil.SetControllerReference(&c.appSet, &a, scheme)
+			assert.Nil(t, err)
 			initObjs = append(initObjs, &a)
 		}
 
@@ -341,7 +349,8 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 			Recorder: record.NewFakeRecorder(len(initObjs) + len(c.expected)),
 		}
 
-		r.createOrUpdateInCluster(context.TODO(), c.appSet, c.apps)
+		err = r.createOrUpdateInCluster(context.TODO(), c.appSet, c.apps)
+		assert.Nil(t, err)
 
 		for _, obj := range c.expected {
 			got := &argov1alpha1.Application{}
@@ -350,7 +359,8 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 				Name:      obj.Name,
 			}, got)
 
-			controllerutil.SetControllerReference(&c.appSet, &obj, r.Scheme)
+			err = controllerutil.SetControllerReference(&c.appSet, &obj, r.Scheme)
+			assert.Nil(t, err)
 
 			assert.Equal(t, obj, *got)
 		}
@@ -361,8 +371,11 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 func TestCreateApplications(t *testing.T) {
 
 	scheme := runtime.NewScheme()
-	argoprojiov1alpha1.AddToScheme(scheme)
-	argov1alpha1.AddToScheme(scheme)
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
 
 	for _, c := range []struct {
 		appSet     argoprojiov1alpha1.ApplicationSet
@@ -516,7 +529,8 @@ func TestCreateApplications(t *testing.T) {
 	} {
 		initObjs := []runtime.Object{&c.appSet}
 		for _, a := range c.existsApps {
-			controllerutil.SetControllerReference(&c.appSet, &a, scheme)
+			err = controllerutil.SetControllerReference(&c.appSet, &a, scheme)
+			assert.Nil(t, err)
 			initObjs = append(initObjs, &a)
 		}
 
@@ -528,7 +542,8 @@ func TestCreateApplications(t *testing.T) {
 			Recorder: record.NewFakeRecorder(len(initObjs) + len(c.expected)),
 		}
 
-		r.createInCluster(context.TODO(), c.appSet, c.apps)
+		err = r.createInCluster(context.TODO(), c.appSet, c.apps)
+		assert.Nil(t, err)
 
 		for _, obj := range c.expected {
 			got := &argov1alpha1.Application{}
@@ -537,7 +552,8 @@ func TestCreateApplications(t *testing.T) {
 				Name:      obj.Name,
 			}, got)
 
-			controllerutil.SetControllerReference(&c.appSet, &obj, r.Scheme)
+			err = controllerutil.SetControllerReference(&c.appSet, &obj, r.Scheme)
+			assert.Nil(t, err)
 
 			assert.Equal(t, obj, *got)
 		}
@@ -548,8 +564,10 @@ func TestCreateApplications(t *testing.T) {
 func TestDeleteInCluster(t *testing.T) {
 
 	scheme := runtime.NewScheme()
-	argoprojiov1alpha1.AddToScheme(scheme)
-	argov1alpha1.AddToScheme(scheme)
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
 
 	for _, c := range []struct {
 		appSet      argoprojiov1alpha1.ApplicationSet
@@ -649,7 +667,8 @@ func TestDeleteInCluster(t *testing.T) {
 		initObjs := []runtime.Object{&c.appSet}
 		for _, a := range c.existsApps {
 			temp := a
-			controllerutil.SetControllerReference(&c.appSet, &temp, scheme)
+			err = controllerutil.SetControllerReference(&c.appSet, &temp, scheme)
+			assert.Nil(t, err)
 			initObjs = append(initObjs, &temp)
 		}
 
@@ -661,7 +680,8 @@ func TestDeleteInCluster(t *testing.T) {
 			Recorder: record.NewFakeRecorder(len(initObjs) + len(c.expected)),
 		}
 
-		r.deleteInCluster(context.TODO(), c.appSet, c.apps)
+		err = r.deleteInCluster(context.TODO(), c.appSet, c.apps)
+		assert.Nil(t, err)
 
 		for _, obj := range c.expected {
 			got := &argov1alpha1.Application{}
@@ -670,7 +690,8 @@ func TestDeleteInCluster(t *testing.T) {
 				Name:      obj.Name,
 			}, got)
 
-			controllerutil.SetControllerReference(&c.appSet, &obj, r.Scheme)
+			err = controllerutil.SetControllerReference(&c.appSet, &obj, r.Scheme)
+			assert.Nil(t, err)
 
 			assert.Equal(t, obj, *got)
 		}
@@ -689,8 +710,10 @@ func TestDeleteInCluster(t *testing.T) {
 
 func TestGetMinRequeueAfter(t *testing.T) {
 	scheme := runtime.NewScheme()
-	argoprojiov1alpha1.AddToScheme(scheme)
-	argov1alpha1.AddToScheme(scheme)
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
 
 	client := fake.NewFakeClientWithScheme(scheme)
 

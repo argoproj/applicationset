@@ -1,0 +1,14 @@
+run:
+  timeout: 2m
+  skip-files:
+  skip-dirs:
+linters:
+  enable:
+    - vet
+    - deadcode
+    - goimports
+    - varcheck
+    - structcheck
+    - ineffassign
+    - unconvert
+    - unparam
