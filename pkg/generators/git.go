@@ -2,11 +2,12 @@ package generators
 
 import (
 	"context"
+	"path"
+	"time"
+
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	log "github.com/sirupsen/logrus"
-	"path"
-	"time"
 )
 
 var _ Generator = (*GitGenerator)(nil)
@@ -22,7 +23,7 @@ func NewGitGenerator(repos services.Apps) Generator {
 	return g
 }
 
-func (g * GitGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (g *GitGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 	return time.Duration(appSetGenerator.Git.RequeueAfterSeconds) * time.Second
 }
 
@@ -42,9 +43,9 @@ func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Applic
 	}
 
 	log.WithFields(log.Fields{
-		"allAps": allApps,
-		"total": len(allApps),
-		"repoURL": appSetGenerator.Git.RepoURL,
+		"allAps":   allApps,
+		"total":    len(allApps),
+		"repoURL":  appSetGenerator.Git.RepoURL,
 		"revision": appSetGenerator.Git.Revision,
 	}).Info("applications result from the repo service")
 

@@ -61,7 +61,7 @@ func CreateOrUpdate(ctx context.Context, c client.Client, obj runtime.Object, f 
 		func(a, b fields.Selector) bool {
 			return a.String() == b.String()
 		},
-		func (a,b argov1alpha1.ApplicationDestination) bool {
+		func(a, b argov1alpha1.ApplicationDestination) bool {
 			return a.Namespace == b.Namespace && a.Name == b.Name && a.Server == b.Server
 		},
 	)

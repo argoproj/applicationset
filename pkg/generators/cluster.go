@@ -62,6 +62,7 @@ func (g *ClusterGenerator) GenerateParams(
 	}
 	log.Debug("clusters matching labels", "count", len(clusterSecretList.Items))
 
+	// For each matching cluster secret
 	res := make([]map[string]string, len(clusterSecretList.Items))
 	for i, cluster := range clusterSecretList.Items {
 		params := make(map[string]string, len(cluster.ObjectMeta.Annotations)+len(cluster.ObjectMeta.Labels)+2)

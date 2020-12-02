@@ -19,8 +19,8 @@ type RepositoryDB interface {
 }
 
 type argoCDService struct {
-	repositoriesDB 		RepositoryDB
-	repoClientset 		apiclient.Clientset
+	repositoriesDB RepositoryDB
+	repoClientset  apiclient.Clientset
 }
 
 type Apps interface {
@@ -32,7 +32,7 @@ func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, names
 
 	return &argoCDService{
 		repositoriesDB: db.NewDB(namespace, settingsMgr, clientset).(RepositoryDB),
-		repoClientset: apiclient.NewRepoServerClientset(repoServerAddress, 5),
+		repoClientset:  apiclient.NewRepoServerClientset(repoServerAddress, 5),
 	}
 }
 
@@ -50,7 +50,7 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 	}
 
 	apps, err := repoClient.ListApps(ctx, &apiclient.ListAppsRequest{
-		Repo: repo,
+		Repo:     repo,
 		Revision: revision,
 	})
 	log.Debugf("apps - %#v", apps)
