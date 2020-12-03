@@ -71,21 +71,7 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	// Log a warning if there are unrecognized generators
-	hasInvalidGenerators, invalidGenerators := invalidateGenerators(&applicationSetInfo)
-	if len(invalidGenerators) > 0 {
-		gnames := make([]string, 0, len(invalidGenerators))
-		for n := range invalidGenerators {
-			gnames = append(gnames, n)
-		}
-		sort.Strings(gnames)
-		aname := applicationSetInfo.ObjectMeta.Name
-		msg := "ApplicationSet %s contains unrecognized generators: %s"
-		log.Warnf(msg, aname, strings.Join(gnames, ", "))
-	} else if hasInvalidGenerators {
-		name := applicationSetInfo.ObjectMeta.Name
-		msg := "ApplicationSet %s contains unrecognized generators"
-		log.Warnf(msg, name)
-	}
+	checkInvalidGenerators(&applicationSetInfo)
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
 	desiredApplications, err := r.generateApplications(applicationSetInfo)
@@ -120,9 +106,28 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}, nil
 }
 
+// Log a warning if there are unrecognized generators
+func checkInvalidGenerators(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) {
+	hasInvalidGenerators, invalidGenerators := invalidGenerators(applicationSetInfo)
+	if len(invalidGenerators) > 0 {
+		gnames := []string{}
+		for n := range invalidGenerators {
+			gnames = append(gnames, n)
+		}
+		sort.Strings(gnames)
+		aname := applicationSetInfo.ObjectMeta.Name
+		msg := "ApplicationSet %s contains unrecognized generators: %s"
+		log.Warnf(msg, aname, strings.Join(gnames, ", "))
+	} else if hasInvalidGenerators {
+		name := applicationSetInfo.ObjectMeta.Name
+		msg := "ApplicationSet %s contains unrecognized generators"
+		log.Warnf(msg, name)
+	}
+}
+
 // Return true if there are unknown generators specified in the application set.  If we can discover the names
 // of these generators, return the names as the keys in a map
-func invalidateGenerators(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) (bool, map[string]bool) {
+func invalidGenerators(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) (bool, map[string]bool) {
 	names := make(map[string]bool)
 	hasInvalidGenerators := false
 	for index, generator := range applicationSetInfo.Spec.Generators {
@@ -158,26 +163,29 @@ func addInvalidGeneratorNames(names map[string]bool, applicationSetInfo *argopro
 
 	spec, ok := values["spec"].(map[string]interface{})
 	if !ok {
-		log.Warnf("coundn't get spec from kubectl.kubernetes.io/last-applied-configuration annotation")
+		log.Warn("coundn't get spec from kubectl.kubernetes.io/last-applied-configuration annotation")
 		return
 	}
 
 	generators, ok := spec["generators"].([]interface{})
 	if !ok {
-		log.Warnf("coundn't get generators from kubectl.kubernetes.io/last-applied-configuration annotation")
+		log.Warn("coundn't get generators from kubectl.kubernetes.io/last-applied-configuration annotation")
+		return
+	}
+
+	if index >= len(generators) {
+		log.Warnf("index %d out of range %d for generator in kubectl.kubernetes.io/last-applied-configuration", index, len(generators))
 		return
 	}
 
 	generator, ok := generators[index].(map[string]interface{})
 	if !ok {
-		log.Warnf("coundn't get generator from kubectl.kubernetes.io/last-applied-configuration annotation")
+		log.Warn("coundn't get generator from kubectl.kubernetes.io/last-applied-configuration annotation")
 		return
 	}
 
-	var name string
 	for key := range generator {
-		name = key
-		names[name] = true
+		names[key] = true
 		break
 	}
 }
