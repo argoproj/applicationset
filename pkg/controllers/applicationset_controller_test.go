@@ -738,8 +738,10 @@ func TestGetMinRequeueAfter(t *testing.T) {
 func TestInvalidGenerators(t *testing.T) {
 
 	scheme := runtime.NewScheme()
-	argoprojiov1alpha1.AddToScheme(scheme)
-	argov1alpha1.AddToScheme(scheme)
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
 
 	for _, c := range []struct {
 		testName        string
@@ -1010,8 +1012,10 @@ func TestInvalidGenerators(t *testing.T) {
 func TestCheckInvalidGenerators(t *testing.T) {
 
 	scheme := runtime.NewScheme()
-	argoprojiov1alpha1.AddToScheme(scheme)
-	argov1alpha1.AddToScheme(scheme)
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
 
 	for _, c := range []struct {
 		testName    string
