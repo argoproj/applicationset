@@ -1109,3 +1109,63 @@ func TestCheckInvalidGenerators(t *testing.T) {
 		hook.Reset()
 	}
 }
+
+func TestValidateDesiredApplicationsDuplicateApplicationNames(t *testing.T) {
+
+	scheme := runtime.NewScheme()
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	for _, c := range []struct {
+		testName    string
+		desiredApps []argov1alpha1.Application
+		isError     bool
+	}{
+		{
+			testName: "has no duplicates",
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app2",
+					},
+				},
+			},
+			isError: false,
+		},
+		{
+			testName: "has duplicates",
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app2",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+				},
+			},
+			isError: true,
+		},
+	} {
+		err := validateDesiredApplications(c.desiredApps)
+		if c.isError {
+			assert.Error(t, err, c.testName)
+		} else {
+			assert.NoError(t, err, c.testName)
+		}
+	}
+}

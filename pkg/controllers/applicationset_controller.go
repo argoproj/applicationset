@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -77,6 +78,10 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	desiredApplications, err := r.generateApplications(applicationSetInfo)
 	if err != nil {
 		return ctrl.Result{}, err
+	}
+	err = validateDesiredApplications(desiredApplications)
+	if err != nil {
+		return ctrl.Result{}, fmt.Errorf("Reconciling ApplicationSet %s: %w", applicationSetInfo.Name, err)
 	}
 
 	if r.Policy.Update() {
@@ -188,6 +193,17 @@ func addInvalidGeneratorNames(names map[string]bool, applicationSetInfo *argopro
 		names[key] = true
 		break
 	}
+}
+
+func validateDesiredApplications(desiredApplications []argov1alpha1.Application) error {
+	for i1, app1 := range desiredApplications {
+		for i2, app2 := range desiredApplications {
+			if i1 != i2 && app1.Name == app2.Name {
+				return errors.New("application set contains applications with duplicate names")
+			}
+		}
+	}
+	return nil
 }
 
 func (r *ApplicationSetReconciler) GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator) []generators.Generator {
