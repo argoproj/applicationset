@@ -1110,7 +1110,7 @@ func TestCheckInvalidGenerators(t *testing.T) {
 	}
 }
 
-func TestValidateDesiredApplicationsDuplicateApplicationNames(t *testing.T) {
+func TestHasDuplicateNames(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	err := argoprojiov1alpha1.AddToScheme(scheme)
@@ -1119,9 +1119,10 @@ func TestValidateDesiredApplicationsDuplicateApplicationNames(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, c := range []struct {
-		testName    string
-		desiredApps []argov1alpha1.Application
-		isError     bool
+		testName      string
+		desiredApps   []argov1alpha1.Application
+		hasDuplicates bool
+		duplicateName string
 	}{
 		{
 			testName: "has no duplicates",
@@ -1137,7 +1138,8 @@ func TestValidateDesiredApplicationsDuplicateApplicationNames(t *testing.T) {
 					},
 				},
 			},
-			isError: false,
+			hasDuplicates: false,
+			duplicateName: "",
 		},
 		{
 			testName: "has duplicates",
@@ -1158,14 +1160,12 @@ func TestValidateDesiredApplicationsDuplicateApplicationNames(t *testing.T) {
 					},
 				},
 			},
-			isError: true,
+			hasDuplicates: true,
+			duplicateName: "app1",
 		},
 	} {
-		err := validateDesiredApplications(c.desiredApps)
-		if c.isError {
-			assert.Error(t, err, c.testName)
-		} else {
-			assert.NoError(t, err, c.testName)
-		}
+		hasDuplicates, name := hasDuplicateNames(c.desiredApps)
+		assert.Equal(t, c.hasDuplicates, hasDuplicates)
+		assert.Equal(t, c.duplicateName, name)
 	}
 }
