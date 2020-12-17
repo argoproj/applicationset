@@ -206,12 +206,12 @@ func addInvalidGeneratorNames(names map[string]bool, applicationSetInfo *argopro
 }
 
 func hasDuplicateNames(applications []argov1alpha1.Application) (bool, string) {
-	for i1, app1 := range applications {
-		for i2, app2 := range applications {
-			if i1 != i2 && app1.Name == app2.Name {
-				return true, app1.Name
-			}
+	nameSet := map[string]struct{}{}
+	for _, app := range applications {
+		if _, present := nameSet[app.Name]; present {
+			return true, app.Name
 		}
+		nameSet[app.Name] = struct{}{}
 	}
 	return false, ""
 }
