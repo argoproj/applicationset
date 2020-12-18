@@ -1109,3 +1109,63 @@ func TestCheckInvalidGenerators(t *testing.T) {
 		hook.Reset()
 	}
 }
+
+func TestHasDuplicateNames(t *testing.T) {
+
+	scheme := runtime.NewScheme()
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	for _, c := range []struct {
+		testName      string
+		desiredApps   []argov1alpha1.Application
+		hasDuplicates bool
+		duplicateName string
+	}{
+		{
+			testName: "has no duplicates",
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app2",
+					},
+				},
+			},
+			hasDuplicates: false,
+			duplicateName: "",
+		},
+		{
+			testName: "has duplicates",
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app2",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+				},
+			},
+			hasDuplicates: true,
+			duplicateName: "app1",
+		},
+	} {
+		hasDuplicates, name := hasDuplicateNames(c.desiredApps)
+		assert.Equal(t, c.hasDuplicates, hasDuplicates)
+		assert.Equal(t, c.duplicateName, name)
+	}
+}

@@ -78,6 +78,21 @@ func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+	if hasDuplicates, name := hasDuplicateNames(desiredApplications); hasDuplicates {
+		// The reconciler presumes that any errors that are returned are a signal
+		// that the resource should attempt to be reconciled again (causing
+		// Reconcile to be called again, which will return the same error, ad
+		// infinitum until we are exponentially backed off).
+		//
+		// In this case, since we know that what the user provided is incorrect
+		// (we successfully generated and templated their ApplicationSet, but the
+		// result of that was bad), no matter how many times we try to do so it
+		// will fail. So just log it and return that the resource was
+		// successfully reconciled (which is true... it was reconciled to an
+		// error condition).
+		log.Errorf("ApplicationSet %s contains applications with duplicate name: %s", applicationSetInfo.Name, name)
+		return ctrl.Result{}, nil
+	}
 
 	if r.Policy.Update() {
 		err = r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
@@ -188,6 +203,17 @@ func addInvalidGeneratorNames(names map[string]bool, applicationSetInfo *argopro
 		names[key] = true
 		break
 	}
+}
+
+func hasDuplicateNames(applications []argov1alpha1.Application) (bool, string) {
+	nameSet := map[string]struct{}{}
+	for _, app := range applications {
+		if _, present := nameSet[app.Name]; present {
+			return true, app.Name
+		}
+		nameSet[app.Name] = struct{}{}
+	}
+	return false, ""
 }
 
 func (r *ApplicationSetReconciler) GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator) []generators.Generator {
