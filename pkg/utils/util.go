@@ -3,11 +3,12 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"strconv"
+
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasttemplate"
-	"io"
-	"strconv"
 )
 
 type Renderer interface {

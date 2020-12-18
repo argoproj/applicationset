@@ -3,29 +3,28 @@ package generators
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj/argo-cd/reposerver/apiclient"
-	"github.com/argoproj/gitops-engine/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
-type clientSet struct {
-	RepoServerServiceClient apiclient.RepoServerServiceClient
-}
+// type clientSet struct {
+// 	RepoServerServiceClient apiclient.RepoServerServiceClient
+// }
 
-func (c *clientSet) NewRepoServerClient() (io.Closer, apiclient.RepoServerServiceClient, error) {
-	return io.NewCloser(func() error { return nil }), c.RepoServerServiceClient, nil
-}
+// func (c *clientSet) NewRepoServerClient() (io.Closer, apiclient.RepoServerServiceClient, error) {
+// 	return io.NewCloser(func() error { return nil }), c.RepoServerServiceClient, nil
+// }
 
 type argoCDServiceMock struct {
-	mock.Mock
+	mock *mock.Mock
 }
 
 func (a argoCDServiceMock) GetApps(ctx context.Context, repoURL string, revision string) ([]string, error) {
-	args := a.Called(ctx, repoURL, revision)
+	args := a.mock.Called(ctx, repoURL, revision)
 
 	return args.Get(0).([]string), args.Error(1)
 }
@@ -42,7 +41,7 @@ func TestGitGenerateParams(t *testing.T) {
 	}{
 		{
 			name:        "happy flow - created apps",
-			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
+			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 			repoApps: []string{
 				"app1",
 				"app2",
@@ -57,7 +56,7 @@ func TestGitGenerateParams(t *testing.T) {
 		},
 		{
 			name:        "It filters application according to the paths",
-			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{"p1/*"}, {"p1/*/*"}},
+			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "p1/*"}, {Path: "p1/*/*"}},
 			repoApps: []string{
 				"app1",
 				"p1/app2",
@@ -73,7 +72,7 @@ func TestGitGenerateParams(t *testing.T) {
 		},
 		{
 			name:          "handles empty response from repo server",
-			directories:   []argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
+			directories:   []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 			repoApps:      []string{},
 			repoError:     nil,
 			expected:      []map[string]string{},
@@ -81,7 +80,7 @@ func TestGitGenerateParams(t *testing.T) {
 		},
 		{
 			name:          "handles error from repo server",
-			directories:   []argoprojiov1alpha1.GitDirectoryGeneratorItem{{"*"}},
+			directories:   []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 			repoApps:      []string{},
 			repoError:     fmt.Errorf("error"),
 			expected:      []map[string]string{},
@@ -92,8 +91,8 @@ func TestGitGenerateParams(t *testing.T) {
 	for _, c := range cases {
 		cc := c
 		t.Run(cc.name, func(t *testing.T) {
-			argoCDServiceMock := argoCDServiceMock{}
-			argoCDServiceMock.On("GetApps", mock.Anything, mock.Anything, mock.Anything).Return(c.repoApps, c.repoError)
+			argoCDServiceMock := argoCDServiceMock{mock: &mock.Mock{}}
+			argoCDServiceMock.mock.On("GetApps", mock.Anything, mock.Anything, mock.Anything).Return(c.repoApps, c.repoError)
 
 			var gitGenerator = NewGitGenerator(argoCDServiceMock)
 			applicationSetInfo := argoprojiov1alpha1.ApplicationSet{
@@ -120,7 +119,7 @@ func TestGitGenerateParams(t *testing.T) {
 				assert.Equal(t, c.expected, got)
 			}
 
-			argoCDServiceMock.AssertExpectations(t)
+			argoCDServiceMock.mock.AssertExpectations(t)
 		})
 	}
 

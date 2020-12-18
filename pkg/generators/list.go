@@ -1,9 +1,10 @@
 package generators
 
 import (
+	"time"
+
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
-	"time"
 )
 
 var _ Generator = (*ListGenerator)(nil)

@@ -6,6 +6,10 @@ DOCKER_PUSH?=true
 build:
 	CGO_ENABLED=0 go build -ldflags="-w -s" -o ./dist/argocd-applicationset .
 
+.PHONY: test
+test:
+	go test -race -count=1 `go list ./...`
+
 .PHONY: image
 image:
 	docker build -t $(IMAGE) .
@@ -21,6 +25,11 @@ deploy:
 manifests:
 	controller-gen paths=./api/... crd:trivialVersions=true output:dir=./manifests/crds/
 	controller-gen object paths=./api/...
+
+lint:
+	golangci-lint --version
+	GOMAXPROCS=2 golangci-lint run --fix --verbose --timeout 300s
+
 
 # Run go fmt against code
 fmt:

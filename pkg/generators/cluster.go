@@ -57,7 +57,7 @@ func (g *ClusterGenerator) GenerateParams(
 		return nil, err
 	}
 
-	if err := g.Client.List(context.Background(), clusterSecretList, client.MatchingLabelsSelector{secretSelector}); err != nil {
+	if err := g.Client.List(context.Background(), clusterSecretList, client.MatchingLabelsSelector{Selector: secretSelector}); err != nil {
 		return nil, err
 	}
 	log.Debug("clusters matching labels", "count", len(clusterSecretList.Items))
