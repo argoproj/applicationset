@@ -76,18 +76,20 @@ func (g *GitGenerator) generateParamsForGitDirectories(appSetGenerator *argoproj
 }
 
 func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
-	allPaths := []string{}
+	allPaths := make(map[string]bool)
 	for _, requestedPath := range appSetGenerator.Git.Files {
 		paths, err := g.repos.GetPaths(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, requestedPath.Path)
 		if err != nil {
 			return nil, err
 		}
-		allPaths = append(allPaths, paths...)
+		for _, path := range paths {
+			allPaths[path] = true
+		}
 	}
 
 	res := []map[string]string{}
 
-	for _, path := range allPaths {
+	for path, _ := range allPaths {
 		params, err := g.generateParamsFromGitFile(appSetGenerator, path)
 		if err != nil {
 			return nil, err
