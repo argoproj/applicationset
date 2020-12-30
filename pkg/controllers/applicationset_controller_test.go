@@ -195,59 +195,51 @@ func TestMergeTemplateApplications(t *testing.T) {
 	client := fake.NewFakeClientWithScheme(scheme)
 
 	for _, c := range []struct {
-		name				string
-		params				[]map[string]string
-		template			argoprojiov1alpha1.ApplicationSetTemplate
-		overrideTemplate	argoprojiov1alpha1.ApplicationSetTemplate
-		expectedMerged		argoprojiov1alpha1.ApplicationSetTemplate
-		expectedApps		[]argov1alpha1.Application
+		name             string
+		params           []map[string]string
+		template         argoprojiov1alpha1.ApplicationSetTemplate
+		overrideTemplate argoprojiov1alpha1.ApplicationSetTemplate
+		expectedMerged   argoprojiov1alpha1.ApplicationSetTemplate
+		expectedApps     []argov1alpha1.Application
 	}{
 		{
-			name: 		"Generate app",
-			params: 	[]map[string]string{{"name": "app1"}},
-			template:	argoprojiov1alpha1.ApplicationSetTemplate{
+			name:   "Generate app",
+			params: []map[string]string{{"name": "app1"}},
+			template: argoprojiov1alpha1.ApplicationSetTemplate{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:                       "name",
-					Namespace:                  "namespace",
-					Labels:                     map[string]string{ "label_name": "label_value"},
+					Name:      "name",
+					Namespace: "namespace",
+					Labels:    map[string]string{"label_name": "label_value"},
 				},
-				Spec:       argov1alpha1.ApplicationSpec{
-
-				},
+				Spec: argov1alpha1.ApplicationSpec{},
 			},
-			overrideTemplate:	argoprojiov1alpha1.ApplicationSetTemplate{
+			overrideTemplate: argoprojiov1alpha1.ApplicationSetTemplate{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:                       "test",
-					Labels:                     map[string]string{"foo": "bar"},
+					Name:   "test",
+					Labels: map[string]string{"foo": "bar"},
 				},
-				Spec:       argov1alpha1.ApplicationSpec{
-
-				},
+				Spec: argov1alpha1.ApplicationSpec{},
 			},
 			expectedMerged: argoprojiov1alpha1.ApplicationSetTemplate{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:                       "test",
-					Namespace:                  "namespace",
-					Labels:                     map[string]string{"label_name": "label_value", "foo": "bar"},
+					Name:      "test",
+					Namespace: "namespace",
+					Labels:    map[string]string{"label_name": "label_value", "foo": "bar"},
 				},
-				Spec:       argov1alpha1.ApplicationSpec{
-
-				},
+				Spec: argov1alpha1.ApplicationSpec{},
 			},
-			expectedApps:	[]argov1alpha1.Application{
+			expectedApps: []argov1alpha1.Application{
 				{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:                       "test",
-						Namespace:                  "test",
-						Labels:                     map[string]string{"foo": "bar"},
+						Name:      "test",
+						Namespace: "test",
+						Labels:    map[string]string{"foo": "bar"},
 					},
-					Spec:       argov1alpha1.ApplicationSpec{
-
-					},
+					Spec: argov1alpha1.ApplicationSpec{},
 				},
 			},
 		},
-	}{
+	} {
 		cc := c
 
 		t.Run(cc.name, func(t *testing.T) {
@@ -285,7 +277,7 @@ func TestMergeTemplateApplications(t *testing.T) {
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{generator},
-					Template: cc.template,
+					Template:   cc.template,
 				},
 			},
 			)
@@ -293,7 +285,6 @@ func TestMergeTemplateApplications(t *testing.T) {
 			assert.Equal(t, cc.expectedApps, got)
 		})
 	}
-
 
 }
 
