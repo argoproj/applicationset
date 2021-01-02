@@ -8,33 +8,41 @@ metadata:
   name: guestbook
 spec:
   generators:
-  - git:
-      repoURL: https://github.com/infra-team/cluster-deployments.git
-      files:
-      - path: "**/kustomization.yaml"
+  - list:
+      elements:
+        - cluster: engineering-dev
+          url: https://1.2.3.4
       template:
+        metadata: {}
         spec:
+          project: "project"
           source:
-            path: '{{path.dirname}}'
+            repoURL: https://github.com/infra-team/cluster-deployments.git
+            path: '{{cluster}}-override'
+          destination: {}
 
-  - git:
-      repoURL: https://github.com/infra-team/cluster-deployments.git
-      files:
-      - path: "**/Chart.yaml"
+  - list:
+      elements:
+        - cluster: engineering-prod
+          url: https://1.2.3.4
       template:
+        metadata: {}
         spec:
+          project: "project2"
           source:
-            path: '{{path.dirname}}'
-            helm:
-              valueFiles:
-              - values-prod.yaml
+            repoURL: https://github.com/infra-team/cluster-deployments.git
+            path: '{{cluster}}-override2'
+          destination: {}
+
   template:
     metadata:
-      name: '{{cluster.name}}-guestbook'
+      name: '{{cluster}}-guestbook'
     spec:
+      project: "project"
       source:
         repoURL: https://github.com/infra-team/cluster-deployments.git
-        
+        targetRevision: HEAD
+        path: guestbook/{{cluster}}
       destination:
-        server: http://kubernetes.default.svc
-        namespace: '{{path.basename}}'
+        server: '{{url}}'
+        namespace: guestbook
