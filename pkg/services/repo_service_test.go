@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"sort"
 	"testing"
 
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
@@ -150,6 +151,9 @@ func TestGetApps(t *testing.T) {
 			if cc.expectedError != nil {
 				assert.EqualError(t, err, cc.expectedError.Error())
 			} else {
+				sort.Strings(got)
+				sort.Strings(cc.expected)
+
 				assert.Equal(t, got, cc.expected)
 				assert.NoError(t, err)
 			}
