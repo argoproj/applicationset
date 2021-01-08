@@ -2,10 +2,13 @@ package services
 
 import (
 	"context"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
 	"github.com/argoproj/argo-cd/util/db"
+	"github.com/argoproj/argo-cd/util/git"
 	"github.com/argoproj/argo-cd/util/settings"
 	"github.com/argoproj/gitops-engine/pkg/utils/io"
 	"github.com/pkg/errors"
@@ -24,11 +27,13 @@ type argoCDService struct {
 	repoClientset  apiclient.Clientset
 }
 
-type Apps interface {
+type Repos interface {
 	GetApps(ctx context.Context, repoURL string, revision string) ([]string, error)
+	GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error)
+	GetFileContent(ctx context.Context, repoURL string, revision string, path string) ([]byte, error)
 }
 
-func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) Apps {
+func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) Repos {
 	settingsMgr := settings.NewSettingsManager(ctx, clientset, namespace)
 
 	return &argoCDService{
@@ -66,4 +71,76 @@ func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision st
 	}
 
 	return res, nil
+}
+
+func (a *argoCDService) GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error) {
+	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error in GetRepository")
+	}
+
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled())
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkoutRepo(gitRepoClient, revision)
+	if err != nil {
+		return nil, err
+	}
+
+	paths, err := gitRepoClient.LsFiles(pattern)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error during listing files of local repo")
+	}
+
+	return paths, nil
+}
+
+func (a *argoCDService) GetFileContent(ctx context.Context, repoURL string, revision string, path string) ([]byte, error) {
+	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error in GetRepository")
+	}
+
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled())
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkoutRepo(gitRepoClient, revision)
+	if err != nil {
+		return nil, err
+	}
+
+	bytes, err := ioutil.ReadFile(filepath.Join(gitRepoClient.Root(), path))
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+func checkoutRepo(gitRepoClient git.Client, revision string) error {
+	err := gitRepoClient.Init()
+	if err != nil {
+		return errors.Wrap(err, "Error during initiliazing repo")
+	}
+
+	err = gitRepoClient.Fetch()
+	if err != nil {
+		return errors.Wrap(err, "Error during fetching repo")
+	}
+
+	commitSHA, err := gitRepoClient.LsRemote(revision)
+	if err != nil {
+		return errors.Wrap(err, "Error during fetching commitSHA")
+	}
+	err = gitRepoClient.Checkout(commitSHA)
+	if err != nil {
+		return errors.Wrap(err, "Error during repo checkout")
+	}
+	return nil
 }
