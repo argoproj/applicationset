@@ -8,7 +8,7 @@ import (
 
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
-	"github.com/argoproj/gitops-engine/pkg/utils/io"
+	"github.com/argoproj/argo-cd/util/io"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
@@ -36,6 +36,11 @@ func (r repoServerClientMock) ListApps(ctx context.Context, in *apiclient.ListAp
 	args := r.mock.Called(ctx, in)
 
 	return args.Get(0).(*apiclient.AppList), args.Error(1)
+}
+func (r repoServerClientMock) ListRefs(ctx context.Context, in *apiclient.ListRefsRequest, opts ...grpc.CallOption) (*apiclient.Refs, error) {
+	args := r.mock.Called(ctx, in)
+
+	return args.Get(0).(*apiclient.Refs), args.Error(1)
 }
 func (r repoServerClientMock) GetAppDetails(ctx context.Context, in *apiclient.RepoServerAppDetailsQuery, opts ...grpc.CallOption) (*apiclient.RepoAppDetailsResponse, error) {
 	return nil, nil

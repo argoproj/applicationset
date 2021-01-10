@@ -11,17 +11,25 @@ import (
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 // override "sigs.k8s.io/controller-runtime" CreateOrUpdate function to add equity function for argov1alpha1.ApplicationDestination
 // argov1alpha1.ApplicationDestination has a private variable, so the default implementation fails to compare it
-func CreateOrUpdate(ctx context.Context, c client.Client, obj runtime.Object, f controllerutil.MutateFn) (controllerutil.OperationResult, error) {
-	key, err := client.ObjectKeyFromObject(obj)
-	if err != nil {
-		return controllerutil.OperationResultNone, err
+func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f controllerutil.MutateFn) (controllerutil.OperationResult, error) {
+	key := client.ObjectKeyFromObject(obj)
+	if err := c.Get(ctx, key, obj); err != nil {
+		if !errors.IsNotFound(err) {
+			return controllerutil.OperationResultNone, err
+		}
+		if err := mutate(f, key, obj); err != nil {
+			return controllerutil.OperationResultNone, err
+		}
+		if err := c.Create(ctx, obj); err != nil {
+			return controllerutil.OperationResultNone, err
+		}
+		return controllerutil.OperationResultCreated, nil
 	}
 
 	if err := c.Get(ctx, key, obj); err != nil {
@@ -78,11 +86,11 @@ func CreateOrUpdate(ctx context.Context, c client.Client, obj runtime.Object, f 
 }
 
 // mutate wraps a MutateFn and applies validation to its result
-func mutate(f controllerutil.MutateFn, key client.ObjectKey, obj runtime.Object) error {
+func mutate(f controllerutil.MutateFn, key client.ObjectKey, obj client.Object) error {
 	if err := f(); err != nil {
 		return err
 	}
-	if newKey, err := client.ObjectKeyFromObject(obj); err != nil || key != newKey {
+	if newKey := client.ObjectKeyFromObject(obj); key != newKey {
 		return fmt.Errorf("MutateFn cannot mutate object name and/or object namespace")
 	}
 	return nil

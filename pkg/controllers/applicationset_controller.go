@@ -58,8 +58,7 @@ type ApplicationSetReconciler struct {
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 
-func (r *ApplicationSetReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.WithField("applicationset", req.NamespacedName)
 
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
@@ -305,7 +304,7 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 }
 
 func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &argov1alpha1.Application{}, ".metadata.controller", func(rawObj runtime.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &argov1alpha1.Application{}, ".metadata.controller", func(rawObj client.Object) []string {
 		// grab the job object, extract the owner...
 		app := rawObj.(*argov1alpha1.Application)
 		owner := metav1.GetControllerOf(app)

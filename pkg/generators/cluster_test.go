@@ -24,7 +24,7 @@ type possiblyErroringFakeCtrlRuntimeClient struct {
 	shouldError bool
 }
 
-func (p *possiblyErroringFakeCtrlRuntimeClient) List(ctx context.Context, secretList runtime.Object, opts ...client.ListOption) error {
+func (p *possiblyErroringFakeCtrlRuntimeClient) List(ctx context.Context, secretList client.ObjectList, opts ...client.ListOption) error {
 	if p.shouldError {
 		return errors.New("could not list Secrets")
 	}

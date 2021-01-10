@@ -2,10 +2,8 @@ package controllers
 
 import (
 	"context"
-
 	log "github.com/sirupsen/logrus"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/workqueue"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,30 +23,30 @@ type clusterSecretEventHandler struct {
 }
 
 func (h *clusterSecretEventHandler) Create(e event.CreateEvent, q workqueue.RateLimitingInterface) {
-	h.queueRelatedAppGenerators(q, e.Meta)
+	h.queueRelatedAppGenerators(q, e.Object)
 }
 
 func (h *clusterSecretEventHandler) Update(e event.UpdateEvent, q workqueue.RateLimitingInterface) {
-	h.queueRelatedAppGenerators(q, e.MetaNew)
+	h.queueRelatedAppGenerators(q, e.ObjectNew)
 }
 
 func (h *clusterSecretEventHandler) Delete(e event.DeleteEvent, q workqueue.RateLimitingInterface) {
-	h.queueRelatedAppGenerators(q, e.Meta)
+	h.queueRelatedAppGenerators(q, e.Object)
 }
 
 func (h *clusterSecretEventHandler) Generic(e event.GenericEvent, q workqueue.RateLimitingInterface) {
-	h.queueRelatedAppGenerators(q, e.Meta)
+	h.queueRelatedAppGenerators(q, e.Object)
 }
 
-func (h *clusterSecretEventHandler) queueRelatedAppGenerators(q workqueue.RateLimitingInterface, meta metav1.Object) {
+func (h *clusterSecretEventHandler) queueRelatedAppGenerators(q workqueue.RateLimitingInterface, object client.Object) {
 	// Check for label, lookup all ApplicationSets that might match the cluster, queue them all
-	if meta.GetLabels()[generators.ArgoCDSecretTypeLabel] != generators.ArgoCDSecretTypeCluster {
+	if object.GetLabels()[generators.ArgoCDSecretTypeLabel] != generators.ArgoCDSecretTypeCluster {
 		return
 	}
 
 	h.Log.WithFields(log.Fields{
-		"namespace": meta.GetNamespace(),
-		"name":      meta.GetName(),
+		"namespace": object.GetNamespace(),
+		"name":      object.GetName(),
 	}).Info("processing event for cluster secret")
 
 	appSetList := &argoprojiov1alpha1.ApplicationSetList{}
