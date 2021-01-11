@@ -69,7 +69,7 @@ The ApplicationSet controller should now be running in the `argocd` namespace.
 
 ### Running the ApplicationSet Controller as a standalone process from the CLI
 
-When developing a Kubernetes controller, it is often easier to run the controller process from your local CLI, rather than requiring a container rebuild and push for new code changes.
+When iteratively developing a Kubernetes controller, it is often easier to run the controller process from your local CLI, rather than requiring a container rebuild and push for new code changes.
 
 1. First, setup a local Argo CD development environment:
   - Clone the Argo CD source, and setup an Argo CD dev environment:
@@ -84,11 +84,11 @@ When developing a Kubernetes controller, it is often easier to run the controlle
     - With: `-p 4000:4000 -p 8081:8081 \`
     - This exposes port 8081 (the repo-server listen port), which is required for ApplicationSet Git generator functionality.
 
-3. Ensure that Argo CD is running
+3. Start Argo CD and wait for startup completion:
 - Ensure your active namespace is set to `argocd` (for example, `kubectl config view --minify | grep namespace:`).
 - Run `make start` under the Argo CD dev environment.
 - Wait for the Argo CD processes to start within the container.
-- This process should remaining running, alongside the local ApplicationSet controller, during the following steps.
+- These processes should remaining running, alongside the local ApplicationSet controller, during the following steps.
 - Verify that:
     - You have exposed port 8081 in the Makefile (as described in prerequisites). `docker ps` should show port 8081 as mapped to an accessible IP.
 
@@ -103,9 +103,8 @@ make build
 NAMESPACE=argocd ./dist/argocd-applicationset --metrics-addr=":18081" --probe-addr=":18082"
 ```
 
-On success, you should see (amongst other text):
+On success, you should see the following(amongst other text):
 ```
 INFO	controller-runtime.controller	Starting Controller	{"controller": "applicationset"}
 INFO	controller-runtime.controller	Starting workers	{"controller": "applicationset", "worker count": 1}
 ```
-
