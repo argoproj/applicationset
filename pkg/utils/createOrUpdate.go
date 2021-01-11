@@ -32,19 +32,6 @@ func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f c
 		return controllerutil.OperationResultCreated, nil
 	}
 
-	if err := c.Get(ctx, key, obj); err != nil {
-		if !errors.IsNotFound(err) {
-			return controllerutil.OperationResultNone, err
-		}
-		if err := mutate(f, key, obj); err != nil {
-			return controllerutil.OperationResultNone, err
-		}
-		if err := c.Create(ctx, obj); err != nil {
-			return controllerutil.OperationResultNone, err
-		}
-		return controllerutil.OperationResultCreated, nil
-	}
-
 	existing := obj.DeepCopyObject()
 	if err := mutate(f, key, obj); err != nil {
 		return controllerutil.OperationResultNone, err
