@@ -8,7 +8,6 @@ import (
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestSimpleListGenerator(t *testing.T) {
@@ -39,12 +38,12 @@ func TestSimpleListGenerator(t *testing.T) {
 
 	Given(t).
 		// Create a ListGenerator-based ApplicationSet
-		When().Create(v1alpha1.ApplicationSet{ObjectMeta: v1.ObjectMeta{
+		When().Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
 		Name: "simple-list-generator",
 	},
 		Spec: v1alpha1.ApplicationSetSpec{
 			Template: v1alpha1.ApplicationSetTemplate{
-				ObjectMeta: v1.ObjectMeta{Name: "{{cluster}}-guestbook"},
+				ObjectMeta: metav1.ObjectMeta{Name: "{{cluster}}-guestbook"},
 				Spec: argov1alpha1.ApplicationSpec{
 					Project: "default",
 					Source: argov1alpha1.ApplicationSource{
@@ -117,12 +116,12 @@ func TestSimpleClusterGenerator(t *testing.T) {
 		// Create a ClusterGenerator-based ApplicationSet
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
-		Create(v1alpha1.ApplicationSet{ObjectMeta: v1.ObjectMeta{
+		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
 			Name: "simple-cluster-generator",
 		},
 			Spec: v1alpha1.ApplicationSetSpec{
 				Template: v1alpha1.ApplicationSetTemplate{
-					ObjectMeta: v1.ObjectMeta{Name: "{{name}}-guestbook"},
+					ObjectMeta: metav1.ObjectMeta{Name: "{{name}}-guestbook"},
 					Spec: argov1alpha1.ApplicationSpec{
 						Project: "default",
 						Source: argov1alpha1.ApplicationSource{
@@ -140,7 +139,7 @@ func TestSimpleClusterGenerator(t *testing.T) {
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						Clusters: &v1alpha1.ClusterGenerator{
-							Selector: v1.LabelSelector{
+							Selector: metav1.LabelSelector{
 								MatchLabels: map[string]string{
 									"argocd.argoproj.io/secret-type": "cluster",
 								},
@@ -204,12 +203,12 @@ func TestSimpleGitGenerator(t *testing.T) {
 	Given(t).
 		When().
 		// Create a GitGenerator-based ApplicationSet
-		Create(v1alpha1.ApplicationSet{ObjectMeta: v1.ObjectMeta{
+		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
 			Name: "simple-git-generator",
 		},
 			Spec: v1alpha1.ApplicationSetSpec{
 				Template: v1alpha1.ApplicationSetTemplate{
-					ObjectMeta: v1.ObjectMeta{Name: "{{path.basename}}"},
+					ObjectMeta: metav1.ObjectMeta{Name: "{{path.basename}}"},
 					Spec: argov1alpha1.ApplicationSpec{
 						Project: "default",
 						Source: argov1alpha1.ApplicationSource{
