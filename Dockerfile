@@ -1,5 +1,5 @@
 # Build the binary
-FROM golang:1.14.1 as builder
+FROM golang:1.14.12 as builder
 
 WORKDIR /workspace
 
