@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// override "sigs.k8s.io/controller-runtime" CreateOrUpdate function to add equity function for argov1alpha1.ApplicationDestination
+// CreateOrUpdate overrides "sigs.k8s.io/controller-runtime" function to add equality for argov1alpha1.ApplicationDestination
 // argov1alpha1.ApplicationDestination has a private variable, so the default implementation fails to compare it
 func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f controllerutil.MutateFn) (controllerutil.OperationResult, error) {
 	key := client.ObjectKeyFromObject(obj)

@@ -89,7 +89,7 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 
 	res := []map[string]string{}
 
-	for path, _ := range allPaths {
+	for path := range allPaths {
 		params, err := g.generateParamsFromGitFile(appSetGenerator, path)
 		if err != nil {
 			return nil, err
