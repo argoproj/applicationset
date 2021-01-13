@@ -75,6 +75,7 @@ type ClusterGenerator struct {
 	// Clusters today are stored as Kubernetes Secrets, thus the Secret labels will be used
 	// for matching the selector.
 	Selector metav1.LabelSelector `json:"selector,omitempty"`
+	Values   map[string]string    `json:"values,omitempty"`
 }
 
 type GitGenerator struct {

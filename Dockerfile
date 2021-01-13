@@ -20,8 +20,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags="-w -
 
 FROM debian:10-slim
 RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y git-all && \
-    rm -r /var/lib/apt/lists /var/cache/apt/archives
+  apt-get install -y git-all && \
+  rm -r /var/lib/apt/lists /var/cache/apt/archives
 
 WORKDIR /
 COPY --from=builder /workspace/applicationset-controller /usr/local/bin/
