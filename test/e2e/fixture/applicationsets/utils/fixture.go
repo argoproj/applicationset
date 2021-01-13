@@ -24,7 +24,6 @@ import (
 )
 
 const (
-	adminPassword   = "password"
 	ArgoCDNamespace = "argocd-e2e"
 	TmpDir          = "/tmp/applicationset-e2e"
 	TestingLabel    = "e2e.argoproj.io"
@@ -32,14 +31,10 @@ const (
 
 var (
 	id               string
-	name             string
 	KubeClientset    kubernetes.Interface
 	DynamicClientset dynamic.Interface
 	AppClientset     appclientset.Interface
 	AppSetClientset  dynamic.ResourceInterface
-
-	token     string
-	plainText bool
 )
 
 func EnsureCleanState(t *testing.T) {

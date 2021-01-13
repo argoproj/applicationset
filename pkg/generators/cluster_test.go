@@ -7,7 +7,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -32,7 +31,7 @@ func (p *possiblyErroringFakeCtrlRuntimeClient) List(ctx context.Context, secret
 }
 
 func TestGenerateParams(t *testing.T) {
-	clusters := []runtime.Object{
+	clusters := []client.Object{
 		&corev1.Secret{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Secret",
@@ -160,7 +159,7 @@ func TestGenerateParams(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		fakeClient := fake.NewFakeClientWithScheme(scheme.Scheme, clusters...)
+		fakeClient := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(clusters...).Build()
 		cl := &possiblyErroringFakeCtrlRuntimeClient{
 			fakeClient,
 			testCase.clientError,

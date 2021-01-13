@@ -16,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	crtclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -62,7 +63,7 @@ func TestExtractApplications(t *testing.T) {
 	err = argov1alpha1.AddToScheme(scheme)
 	assert.Nil(t, err)
 
-	client := fake.NewFakeClientWithScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).Build()
 
 	for _, c := range []struct {
 		name                string
@@ -236,7 +237,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 				},
 			},
 			existsApps: []argov1alpha1.Application{
-				argov1alpha1.Application{
+				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Application",
 						APIVersion: "argoproj.io/v1alpha1",
@@ -293,7 +294,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 				},
 			},
 			existsApps: []argov1alpha1.Application{
-				argov1alpha1.Application{
+				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Application",
 						APIVersion: "argoproj.io/v1alpha1",
@@ -336,14 +337,14 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 			},
 		},
 	} {
-		initObjs := []runtime.Object{&c.appSet}
+		initObjs := []client.Object{&c.appSet}
 		for _, a := range c.existsApps {
 			err = controllerutil.SetControllerReference(&c.appSet, &a, scheme)
 			assert.Nil(t, err)
 			initObjs = append(initObjs, &a)
 		}
 
-		client := fake.NewFakeClientWithScheme(scheme, initObjs...)
+		client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
 
 		r := ApplicationSetReconciler{
 			Client:   client,
@@ -429,7 +430,7 @@ func TestCreateApplications(t *testing.T) {
 				},
 			},
 			existsApps: []argov1alpha1.Application{
-				argov1alpha1.Application{
+				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Application",
 						APIVersion: "argoproj.io/v1alpha1",
@@ -486,7 +487,7 @@ func TestCreateApplications(t *testing.T) {
 				},
 			},
 			existsApps: []argov1alpha1.Application{
-				argov1alpha1.Application{
+				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Application",
 						APIVersion: "argoproj.io/v1alpha1",
@@ -529,14 +530,14 @@ func TestCreateApplications(t *testing.T) {
 			},
 		},
 	} {
-		initObjs := []runtime.Object{&c.appSet}
+		initObjs := []client.Object{&c.appSet}
 		for _, a := range c.existsApps {
 			err = controllerutil.SetControllerReference(&c.appSet, &a, scheme)
 			assert.Nil(t, err)
 			initObjs = append(initObjs, &a)
 		}
 
-		client := fake.NewFakeClientWithScheme(scheme, initObjs...)
+		client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
 
 		r := ApplicationSetReconciler{
 			Client:   client,
@@ -666,7 +667,7 @@ func TestDeleteInCluster(t *testing.T) {
 			},
 		},
 	} {
-		initObjs := []runtime.Object{&c.appSet}
+		initObjs := []client.Object{&c.appSet}
 		for _, a := range c.existsApps {
 			temp := a
 			err = controllerutil.SetControllerReference(&c.appSet, &temp, scheme)
@@ -674,7 +675,7 @@ func TestDeleteInCluster(t *testing.T) {
 			initObjs = append(initObjs, &temp)
 		}
 
-		client := fake.NewFakeClientWithScheme(scheme, initObjs...)
+		client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
 
 		r := ApplicationSetReconciler{
 			Client:   client,
@@ -717,7 +718,7 @@ func TestGetMinRequeueAfter(t *testing.T) {
 	err = argov1alpha1.AddToScheme(scheme)
 	assert.Nil(t, err)
 
-	client := fake.NewFakeClientWithScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).Build()
 
 	generator := argoprojiov1alpha1.ApplicationSetGenerator{
 		List:     &argoprojiov1alpha1.ListGenerator{},

@@ -151,7 +151,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 	}{
 		{
 			name:  "happy flow: create params from git files",
-			files: []argoprojiov1alpha1.GitFileGeneratorItem{{"**/config.json"}},
+			files: []argoprojiov1alpha1.GitFileGeneratorItem{{Path: "**/config.json"}},
 			repoPaths: []string{
 				"cluster-config/production/config.json",
 				"cluster-config/staging/config.json",
@@ -200,7 +200,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 		},
 		{
 			name:                   "handles error during getting repo paths",
-			files:                  []argoprojiov1alpha1.GitFileGeneratorItem{{"**/config.json"}},
+			files:                  []argoprojiov1alpha1.GitFileGeneratorItem{{Path: "**/config.json"}},
 			repoPaths:              []string{},
 			repoFileContents:       map[string][]byte{},
 			repoPathsError:         fmt.Errorf("paths error"),
@@ -210,7 +210,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 		},
 		{
 			name:  "handles error during getting repo file contents",
-			files: []argoprojiov1alpha1.GitFileGeneratorItem{{"**/config.json"}},
+			files: []argoprojiov1alpha1.GitFileGeneratorItem{{Path: "**/config.json"}},
 			repoPaths: []string{
 				"cluster-config/production/config.json",
 				"cluster-config/staging/config.json",
