@@ -13,7 +13,7 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 .PHONY: build
-build: generate fmt vet
+build: manifests fmt vet
 	CGO_ENABLED=0 go build -ldflags="-w -s" -o ./dist/argocd-applicationset .
 
 .PHONY: test
@@ -32,7 +32,7 @@ deploy: manifests
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
-manifests: controller-gen
+manifests: generate
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=./manifests/crds/
 
 .PHONY: lint
