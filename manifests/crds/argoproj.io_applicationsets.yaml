@@ -102,6 +102,15 @@ spec:
                           - path
                           type: object
                         type: array
+                      files:
+                        items:
+                          properties:
+                            path:
+                              type: string
+                          required:
+                          - path
+                          type: object
+                        type: array
                       repoURL:
                         type: string
                       requeueAfterSeconds:
@@ -118,7 +127,8 @@ spec:
                     properties:
                       elements:
                         items:
-                          description: ListGeneratorItem include cluster and url info
+                          description: ListGeneratorElement include cluster and url
+                            info
                           properties:
                             cluster:
                               type: string
@@ -235,6 +245,8 @@ spec:
                         directory:
                           description: Directory holds path/directory specific options
                           properties:
+                            exclude:
+                              type: string
                             jsonnet:
                               description: ApplicationSourceJsonnet holds jsonnet
                                 specific options
@@ -334,6 +346,10 @@ spec:
                               description: Values is Helm values, typically defined
                                 as a block
                               type: string
+                            version:
+                              description: Version is the Helm version to use for
+                                templating with
+                              type: string
                           type: object
                         ksonnet:
                           description: Ksonnet holds ksonnet specific options
@@ -364,6 +380,12 @@ spec:
                         kustomize:
                           description: Kustomize holds kustomize specific options
                           properties:
+                            commonAnnotations:
+                              additionalProperties:
+                                type: string
+                              description: CommonAnnotations adds additional kustomize
+                                commonAnnotations
+                              type: object
                             commonLabels:
                               additionalProperties:
                                 type: string
@@ -430,6 +452,10 @@ spec:
                           description: Automated will keep an application synced to
                             the target revision
                           properties:
+                            allowEmpty:
+                              description: 'AllowEmpty allows apps have zero live
+                                resources (default: false)'
+                              type: boolean
                             prune:
                               description: 'Prune will prune resources automatically
                                 as part of automated sync (default: false)'
@@ -484,6 +510,9 @@ spec:
           required:
           - generators
           - template
+          type: object
+        status:
+          description: ApplicationSetStatus defines the observed state of ApplicationSet
           type: object
       required:
       - metadata
