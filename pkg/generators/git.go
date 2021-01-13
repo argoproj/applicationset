@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"path"
+	"sort"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
@@ -76,20 +77,30 @@ func (g *GitGenerator) generateParamsForGitDirectories(appSetGenerator *argoproj
 }
 
 func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
-	allPaths := make(map[string]bool)
+
+	// Get all paths that match the requested path string, removing duplicates
+	allPathsMap := make(map[string]bool)
 	for _, requestedPath := range appSetGenerator.Git.Files {
 		paths, err := g.repos.GetPaths(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, requestedPath.Path)
 		if err != nil {
 			return nil, err
 		}
 		for _, path := range paths {
-			allPaths[path] = true
+			allPathsMap[path] = true
 		}
 	}
 
-	res := []map[string]string{}
+	// Extract the unduplicated map into a list, and sort by path to ensure a deterministic
+	// processing order in the subsequent step
+	allPaths := []string{}
+	for path := range allPathsMap {
+		allPaths = append(allPaths, path)
+	}
+	sort.Strings(allPaths)
 
-	for path := range allPaths {
+	// Generate params from each path, and return
+	res := []map[string]string{}
+	for _, path := range allPaths {
 		params, err := g.generateParamsFromGitFile(appSetGenerator, path)
 		if err != nil {
 			return nil, err
