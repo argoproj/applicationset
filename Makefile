@@ -8,7 +8,7 @@ build:
 
 .PHONY: test
 test:
-	go test -race -count=1 -coverprofile=coverage.out `go list ./...`
+	go test -race -count=1 -coverprofile=coverage.out `go list ./... | grep -v 'test/e2e'`
 
 .PHONY: image
 image:
@@ -32,9 +32,21 @@ lint:
 
 
 # Run go fmt against code
+.PHONY: fmt
 fmt:
 	go fmt ./...
 
 # Run go vet against code
+.PHONY: vet
 vet:
 	go vet ./...
+
+# Start the standalone controller for the purpose of running e2e tests
+.PHONY: start-e2e
+start-e2e:
+	NAMESPACE=argocd-e2e "dist/argocd-applicationset" --metrics-addr=:12345 --probe-addr=:12346 --argocd-repo-server=localhost:8081 --namespace=argocd-e2e
+
+# Begin the tests, targetting the standalone controller (started by make start-e2e) and the e2e argo-cd (started by make start-e2e)
+.PHONY: test-e2e
+test-e2e:
+	NAMESPACE=argocd-e2e go test -race -count=1 -v -timeout 120s ./test/e2e/applicationset
