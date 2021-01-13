@@ -176,7 +176,7 @@ func TestGenerateParams(t *testing.T) {
 			assert.Error(t, testCase.expectedError, err)
 		} else {
 			assert.NoError(t, err)
-			assert.Equal(t, testCase.expected, got)
+			assert.ElementsMatch(t, testCase.expected, got)
 		}
 
 	}

@@ -271,7 +271,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 				assert.EqualError(t, err, c.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, c.expected, got)
+				assert.ElementsMatch(t, c.expected, got)
 			}
 
 			argoCDServiceMock.mock.AssertExpectations(t)
