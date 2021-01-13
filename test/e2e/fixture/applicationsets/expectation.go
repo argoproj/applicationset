@@ -133,11 +133,3 @@ func filterFields(input argov1alpha1.Application) argov1alpha1.Application {
 func appsAreEqual(one argov1alpha1.Application, two argov1alpha1.Application) bool {
 	return reflect.DeepEqual(filterFields(one), filterFields(two))
 }
-
-func simple(success bool, message string) (state, string) {
-	if success {
-		return succeeded, message
-	}
-
-	return pending, message
-}
