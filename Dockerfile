@@ -16,7 +16,7 @@ COPY api/ api/
 COPY pkg/ pkg/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags="-w -s" -a -o applicationset-controller main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -a -o applicationset-controller main.go
 
 FROM debian:10-slim
 RUN apt-get update && apt-get upgrade -y && \
