@@ -7,7 +7,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -159,7 +158,7 @@ func TestGenerateParams(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		fakeClient := fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(clusters...).Build()
+		fakeClient := fake.NewClientBuilder().WithObjects(clusters...).Build()
 		cl := &possiblyErroringFakeCtrlRuntimeClient{
 			fakeClient,
 			testCase.clientError,
@@ -177,7 +176,7 @@ func TestGenerateParams(t *testing.T) {
 			assert.Error(t, testCase.expectedError, err)
 		} else {
 			assert.NoError(t, err)
-			assert.Equal(t, testCase.expected, got)
+			assert.ElementsMatch(t, testCase.expected, got)
 		}
 
 	}

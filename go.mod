@@ -6,6 +6,7 @@ require (
 	github.com/argoproj/argo-cd v1.8.1
 	github.com/argoproj/gitops-engine v0.2.1
 	github.com/argoproj/pkg v0.2.0
+	github.com/go-logr/logr v0.3.0
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.6.0

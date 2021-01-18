@@ -28,6 +28,7 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
@@ -47,6 +48,7 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
+	Log        logr.Logger
 	Scheme     *runtime.Scheme
 	Recorder   record.EventRecorder
 	Generators map[string]generators.Generator
@@ -56,9 +58,9 @@ type ApplicationSetReconciler struct {
 
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 
 func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	_ = r.Log.WithValues("applicationset", req.NamespacedName)
 	_ = log.WithField("applicationset", req.NamespacedName)
 
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
