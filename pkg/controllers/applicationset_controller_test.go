@@ -189,10 +189,10 @@ func TestExtractApplications(t *testing.T) {
 
 func TestMergeTemplateApplications(t *testing.T) {
 	scheme := runtime.NewScheme()
-	argoprojiov1alpha1.AddToScheme(scheme)
-	argov1alpha1.AddToScheme(scheme)
+	_ = argoprojiov1alpha1.AddToScheme(scheme)
+	_ = argov1alpha1.AddToScheme(scheme)
 
-	client := fake.NewFakeClientWithScheme(scheme)
+	client := fake.NewClientBuilder().WithScheme(scheme).Build()
 
 	for _, c := range []struct {
 		name             string
