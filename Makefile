@@ -26,6 +26,7 @@ manifests:
 	controller-gen paths=./api/... crd:trivialVersions=true output:dir=./manifests/crds/
 	controller-gen object paths=./api/...
 
+.PHONY: lint
 lint:
 	golangci-lint --version
 	GOMAXPROCS=2 golangci-lint run --fix --verbose --timeout 300s
