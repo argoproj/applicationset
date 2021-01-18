@@ -268,13 +268,16 @@ func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSet
 	return &tmplApplication
 }
 
-func mergeGeneratorTemplate(g generators.Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) argoprojiov1alpha1.ApplicationSetTemplate {
-	dest := g.GetTemplate(requestedGenerator)
-	_ = mergo.Merge(dest, applicationSetTemplate)
+func mergeGeneratorTemplate(g generators.Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) (argoprojiov1alpha1.ApplicationSetTemplate, error) {
 
-	return *dest
+	// Make a copy of the value from `GetTemplate()` before merge, rather than copying directly into
+	// the provided parameter (which will touch the original resource object returned by client-go)
+	dest := g.GetTemplate(requestedGenerator).DeepCopy()
+
+	err := mergo.Merge(dest, applicationSetTemplate)
+
+	return *dest, err
 }
-
 func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	res := []argov1alpha1.Application{}
 
@@ -282,6 +285,18 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
 		generators := r.GetRelevantGenerators(&requestedGenerator)
 		for _, g := range generators {
+
+			// we call mergeGeneratorTemplate first because GenerateParams might be more costly so we want to fail fast if there is an error
+			mergedTemplate, err := mergeGeneratorTemplate(g, &requestedGenerator, applicationSetInfo.Spec.Template)
+			if err != nil {
+				log.WithError(err).WithField("generator", g).
+					Error("error generating params")
+				if firstError == nil {
+					firstError = err
+				}
+				continue
+			}
+
 			params, err := g.GenerateParams(&requestedGenerator)
 			if err != nil {
 				log.WithError(err).WithField("generator", g).
@@ -292,7 +307,7 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 				continue
 			}
 
-			tmplApplication := getTempApplication(mergeGeneratorTemplate(g, &requestedGenerator, applicationSetInfo.Spec.Template))
+			tmplApplication := getTempApplication(mergedTemplate)
 
 			for _, p := range params {
 				app, err := r.Renderer.RenderTemplateParams(tmplApplication, p)
