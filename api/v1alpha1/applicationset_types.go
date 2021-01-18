@@ -82,6 +82,7 @@ type ClusterGenerator struct {
 type GitGenerator struct {
 	RepoURL             string                      `json:"repoURL"`
 	Directories         []GitDirectoryGeneratorItem `json:"directories,omitempty"`
+	Files               []GitFileGeneratorItem      `json:"files,omitempty"`
 	Revision            string                      `json:"revision"`
 	RequeueAfterSeconds int64                       `json:"requeueAfterSeconds,omitempty"`
 	Template            ApplicationSetTemplate      `json:"template,omitempty"`
