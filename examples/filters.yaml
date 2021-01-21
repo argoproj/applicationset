@@ -37,7 +37,7 @@ spec:
     spec:
       source:
         repoURL: https://github.com/infra-team/cluster-deployments.git
-        targetRevision: "{{version}}"
+        targetRevision: "{{values.version}}"
         chart: guestbook
         helm:
           parameters:

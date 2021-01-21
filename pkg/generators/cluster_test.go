@@ -107,7 +107,7 @@ func TestGenerateParams(t *testing.T) {
 				"foo": "bar",
 			},
 			[]map[string]string{
-				{"foo": "bar", "name": "cHJvZHVjdGlvbi0wMQ==", "server": "https://production-01.example.com", "metadata.labels.environment": "production", "metadata.labels.org": "bar", "metadata.labels.argocd.argoproj.io/secret-type": "cluster", "metadata.annotations.foo.argoproj.io": "production"},
+				{"values.foo": "bar", "name": "cHJvZHVjdGlvbi0wMQ==", "server": "https://production-01.example.com", "metadata.labels.environment": "production", "metadata.labels.org": "bar", "metadata.labels.argocd.argoproj.io/secret-type": "cluster", "metadata.annotations.foo.argoproj.io": "production"},
 			},
 			false,
 			nil,
@@ -129,8 +129,8 @@ func TestGenerateParams(t *testing.T) {
 				"foo": "bar",
 			},
 			[]map[string]string{
-				{"foo": "bar", "name": "c3RhZ2luZy0wMQ==", "server": "https://staging-01.example.com", "metadata.labels.environment": "staging", "metadata.labels.org": "foo", "metadata.labels.argocd.argoproj.io/secret-type": "cluster", "metadata.annotations.foo.argoproj.io": "staging"},
-				{"foo": "bar", "name": "cHJvZHVjdGlvbi0wMQ==", "server": "https://production-01.example.com", "metadata.labels.environment": "production", "metadata.labels.org": "bar", "metadata.labels.argocd.argoproj.io/secret-type": "cluster", "metadata.annotations.foo.argoproj.io": "production"},
+				{"values.foo": "bar", "name": "c3RhZ2luZy0wMQ==", "server": "https://staging-01.example.com", "metadata.labels.environment": "staging", "metadata.labels.org": "foo", "metadata.labels.argocd.argoproj.io/secret-type": "cluster", "metadata.annotations.foo.argoproj.io": "staging"},
+				{"values.foo": "bar", "name": "cHJvZHVjdGlvbi0wMQ==", "server": "https://production-01.example.com", "metadata.labels.environment": "production", "metadata.labels.org": "bar", "metadata.labels.argocd.argoproj.io/secret-type": "cluster", "metadata.annotations.foo.argoproj.io": "production"},
 			},
 			false,
 			nil,
@@ -155,7 +155,7 @@ func TestGenerateParams(t *testing.T) {
 				"name": "baz",
 			},
 			[]map[string]string{
-				{"name": "c3RhZ2luZy0wMQ==", "server": "https://staging-01.example.com", "metadata.labels.environment": "staging", "metadata.labels.org": "foo", "metadata.labels.argocd.argoproj.io/secret-type": "cluster", "metadata.annotations.foo.argoproj.io": "staging"},
+				{"values.name": "baz", "name": "c3RhZ2luZy0wMQ==", "server": "https://staging-01.example.com", "metadata.labels.environment": "staging", "metadata.labels.org": "foo", "metadata.labels.argocd.argoproj.io/secret-type": "cluster", "metadata.annotations.foo.argoproj.io": "staging"},
 			},
 			false,
 			nil,

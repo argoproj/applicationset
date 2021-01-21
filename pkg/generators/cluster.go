@@ -70,9 +70,6 @@ func (g *ClusterGenerator) GenerateParams(
 	res := make([]map[string]string, len(clusterSecretList.Items))
 	for i, cluster := range clusterSecretList.Items {
 		params := make(map[string]string, len(appSetGenerator.Clusters.Values)+len(cluster.ObjectMeta.Annotations)+len(cluster.ObjectMeta.Labels)+2)
-		for key, value := range appSetGenerator.Clusters.Values {
-			params[key] = value
-		}
 		params["name"] = string(cluster.Data["name"])
 		params["server"] = string(cluster.Data["server"])
 		for key, value := range cluster.ObjectMeta.Annotations {
@@ -80,6 +77,9 @@ func (g *ClusterGenerator) GenerateParams(
 		}
 		for key, value := range cluster.ObjectMeta.Labels {
 			params[fmt.Sprintf("metadata.labels.%s", key)] = value
+		}
+		for key, value := range appSetGenerator.Clusters.Values {
+			params[fmt.Sprintf("values.%s", key)] = value
 		}
 		log.WithField("cluster", cluster.Name).Info("matched cluster secret")
 
