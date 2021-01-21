@@ -1,6 +1,22 @@
 VERSION?=$(shell cat VERSION)
-IMAGE?=argoprojlabs/argocd-applicationset:v$(VERSION)
-DOCKER_PUSH?=true
+IMAGE_NAMESPACE?=argoprojlabs
+IMAGE_NAME=applicationset
+IMAGE_TAG?=latest
+CONTAINER_REGISTRY?=
+
+ifdef IMAGE_NAMESPACE
+
+	ifdef CONTAINER_REGISTRY
+		IMAGE_PREFIX=${CONTAINER_REGISTRY}/${IMAGE_NAMESPACE}/
+	else
+		IMAGE_PREFIX=${IMAGE_NAMESPACE}/
+	endif
+
+else
+	IMAGE_PREFIX=
+endif
+
+
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
@@ -22,8 +38,11 @@ test: generate fmt vet manifests
 
 .PHONY: image
 image: test
-	docker build -t $(IMAGE) .
-	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE) ; fi
+	docker build -t ${IMAGE_PREFIX}${IMAGE_NAME}:${IMAGE_TAG} .
+
+.PHONY: image-push
+image-push: image
+	docker push ${IMAGE_PREFIX}${IMAGE_NAME}:${IMAGE_TAG}
 
 .PHONY: deploy
 deploy: manifests
@@ -34,6 +53,7 @@ deploy: manifests
 .PHONY: manifests
 manifests: generate
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=./manifests/crds/
+	hack/generate-manifests.sh
 
 .PHONY: lint
 lint:

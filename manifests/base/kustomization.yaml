@@ -1,8 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+images:
+- name: argoprojlabs/argocd-applicationset
+  newName: argoprojlabs/argocd-applicationset
+  newTag: v0.1.0
+
 namespace: argocd
 
 resources:
-  - deployment.yaml
-  - rbac.yaml
+- deployment.yaml
+- rbac.yaml
