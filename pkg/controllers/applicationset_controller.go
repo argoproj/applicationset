@@ -43,6 +43,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+
+	"github.com/imdario/mergo"
 )
 
 // ApplicationSetReconciler reconciles a ApplicationSet object
@@ -266,14 +268,35 @@ func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSet
 	return &tmplApplication
 }
 
+func mergeGeneratorTemplate(g generators.Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) (argoprojiov1alpha1.ApplicationSetTemplate, error) {
+
+	// Make a copy of the value from `GetTemplate()` before merge, rather than copying directly into
+	// the provided parameter (which will touch the original resource object returned by client-go)
+	dest := g.GetTemplate(requestedGenerator).DeepCopy()
+
+	err := mergo.Merge(dest, applicationSetTemplate)
+
+	return *dest, err
+}
 func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	res := []argov1alpha1.Application{}
 
 	var firstError error
-	tmplApplication := getTempApplication(applicationSetInfo.Spec.Template)
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
 		generators := r.GetRelevantGenerators(&requestedGenerator)
 		for _, g := range generators {
+
+			// we call mergeGeneratorTemplate first because GenerateParams might be more costly so we want to fail fast if there is an error
+			mergedTemplate, err := mergeGeneratorTemplate(g, &requestedGenerator, applicationSetInfo.Spec.Template)
+			if err != nil {
+				log.WithError(err).WithField("generator", g).
+					Error("error generating params")
+				if firstError == nil {
+					firstError = err
+				}
+				continue
+			}
+
 			params, err := g.GenerateParams(&requestedGenerator)
 			if err != nil {
 				log.WithError(err).WithField("generator", g).
@@ -283,6 +306,8 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 				}
 				continue
 			}
+
+			tmplApplication := getTempApplication(mergedTemplate)
 
 			for _, p := range params {
 				app, err := r.Renderer.RenderTemplateParams(tmplApplication, p)
