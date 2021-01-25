@@ -36,6 +36,17 @@ jobs:
           go mod tidy
           git diff --exit-code -- .
 
+  check-manifests:
+    name: Verify generated manifests (ensures that all manifest changes are checked in)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Regenerate the manifests, git diff should report no changes.
+        run: |
+          make manifests
+          git diff --exit-code -- .
+
   build-go:
     name: Build & cache Go code
     runs-on: ubuntu-latest

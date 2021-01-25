@@ -5,6 +5,10 @@ set -x
 
 SRCROOT="$( CDPATH='' cd -- "$(dirname "$0")/.." && pwd -P )"
 
+AUTOGENMSG="# This is an auto-generated file. DO NOT EDIT"
+
+
+
 KUSTOMIZE=${KUSTOMIZE:-kustomize}
 
 TEMPFILE=$(mktemp /tmp/appset-manifests.XXXXXX)
@@ -31,7 +35,9 @@ if [ "$IMAGE_TAG" = "" ]; then
 fi
 
 cd ${SRCROOT}/manifests/base && ${KUSTOMIZE} edit set image argoprojlabs/argocd-applicationset=${CONTAINER_REGISTRY}${IMAGE_NAMESPACE}/argocd-applicationset:${IMAGE_TAG}
-cd ${SRCROOT}/manifests/namespace-install && ${KUSTOMIZE} build . > ${TEMPFILE}
+
+echo "${AUTOGENMSG}" > ${TEMPFILE}
+cd ${SRCROOT}/manifests/namespace-install && ${KUSTOMIZE} build . >> ${TEMPFILE}
 
 mv ${TEMPFILE} ${SRCROOT}/manifests/install.yaml
 cd ${SRCROOT} && chmod 644 manifests/install.yaml
