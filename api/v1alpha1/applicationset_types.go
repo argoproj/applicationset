@@ -77,6 +77,7 @@ type ClusterGenerator struct {
 	// for matching the selector.
 	Selector metav1.LabelSelector   `json:"selector,omitempty"`
 	Template ApplicationSetTemplate `json:"template,omitempty"`
+	Values   map[string]string      `json:"values,omitempty"`
 }
 
 type GitGenerator struct {
