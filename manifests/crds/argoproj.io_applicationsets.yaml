@@ -463,10 +463,23 @@ spec:
                         - metadata
                         - spec
                         type: object
+                      values:
+                        additionalProperties:
+                          type: string
+                        type: object
                     type: object
                   git:
                     properties:
                       directories:
+                        items:
+                          properties:
+                            path:
+                              type: string
+                          required:
+                          - path
+                          type: object
+                        type: array
+                      files:
                         items:
                           properties:
                             path:
