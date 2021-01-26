@@ -367,6 +367,11 @@ spec:
                         - metadata
                         - spec
                         type: object
+                      values:
+                        additionalProperties:
+                          type: string
+                        description: Values contains key/value pairs which are passed directly as parameters to the template
+                        type: object
                     type: object
                   git:
                     properties:
