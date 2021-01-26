@@ -108,7 +108,7 @@ Finally, push the branch and open up a PR for the change.
 ## Dry Run
 
 To perform a dry run of the release process, use your own Git repository and Quay.io account. Follow the above steps, but substitute the following:
-- Use an upstream remote that is hosted in your own repository, rather than the argoproj-lab: `git remote add upstream git@github.com:(your-usename)/applicationset`
+- Use an upstream remote that is hosted in your own repository, rather than the argoproj-lab: `git remote add upstream git@github.com:(your-username)/applicationset`
 - Run release.sh with your own image namespace:
     - `CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=(your-quay.io-usename) ./hack/release.sh (version)`
     - Example: `CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=jgwest-redhat ./hack/release.sh 0.1.0`
