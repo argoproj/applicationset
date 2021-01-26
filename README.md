@@ -100,7 +100,7 @@ make build
 
 5. Run the Application Set Controller from the CLI:
 ```
-NAMESPACE=argocd ./dist/argocd-applicationset --metrics-addr=":18081" --probe-addr=":18082"
+NAMESPACE=argocd ./dist/argocd-applicationset --metrics-addr=":18081" --probe-addr=":18082" --argocd-repo-server=localhost:8081 --debug  --namespace=argocd
 ```
 
 On success, you should see the following(amongst other text):
