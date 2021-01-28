@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -102,7 +103,7 @@ func main() {
 		namespace = "argocd"
 	}
 
-	setupLog.Info("Using argocd namespace", "namespace", namespace)
+	setupLog.Info(fmt.Sprintf("ApplicationSet controller using namespace '%s'", namespace), "namespace", namespace)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
