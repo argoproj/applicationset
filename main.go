@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -69,10 +70,10 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.StringVar(&namespace, "namespace", "argocd", "Argo CD repo namesapce")
+	flag.StringVar(&namespace, "namespace", "", "Argo CD repo namespace (default: argocd)")
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
-	flag.StringVar(&policy, "policy", "sync", "Modify how application is sync between the generator and the cluster. Default is sync (create & update & delete), options: create-only, create-update (no deletion)")
-	flag.BoolVar(&debugLog, "debug", false, "print debug logs")
+	flag.StringVar(&policy, "policy", "sync", "Modify how application is synced between the generator and the cluster. Default is 'sync' (create & update & delete), options: 'create-only', 'create-update' (no deletion)")
+	flag.BoolVar(&debugLog, "debug", false, "Print debug logs")
 	flag.BoolVar(&dryRun, "dry-run", false, "Enable dry run mode")
 	flag.Parse()
 
@@ -88,15 +89,21 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	}
 
-	// Determine the namespace we're running in. Normally injected into the pod as an env
-	// var via the Kube downward API configured in the Deployment.
-	// Developers running the binary locally will need to remember to set the NAMESPACE environment variable.
-	ns := os.Getenv("NAMESPACE")
-	if len(ns) == 0 {
-		setupLog.Info("Please set NAMESPACE environment variable to match where you are running the applicationset controller")
-		os.Exit(1)
+	// If user has not specified a namespace on the CLI, then use the value from NAMESPACE env var
+	if len(namespace) == 0 {
+		// Determine the namespace we're running in. Normally injected into the pod as an env
+		// var via the Kube downward API configured in the Deployment.
+		// Developers running the binary locally will need to remember to set the NAMESPACE environment
+		// variable, or to use --namespace param
+		namespace = os.Getenv("NAMESPACE")
 	}
-	setupLog.Info("using argocd namespace", "namespace", ns)
+
+	// If neither the env var, nor the parameter are specified, use the Argo CD default
+	if len(namespace) == 0 {
+		namespace = "argocd"
+	}
+
+	setupLog.Info(fmt.Sprintf("ApplicationSet controller using namespace '%s'", namespace), "namespace", namespace)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
@@ -104,7 +111,7 @@ func main() {
 		// Our cache and thus watches and client queries are restricted to the namespace we're running in. This assumes
 		// the applicationset controller is in the same namespace as argocd, which should be the same namespace of
 		// all cluster Secrets and Applications we interact with.
-		NewCache:               cache.MultiNamespacedCacheBuilder([]string{ns}),
+		NewCache:               cache.MultiNamespacedCacheBuilder([]string{namespace}),
 		HealthProbeBindAddress: probeBindAddr,
 		Port:                   9443,
 		LeaderElection:         enableLeaderElection,
@@ -136,7 +143,7 @@ func main() {
 	}
 	// +kubebuilder:scaffold:builder
 
-	setupLog.Info("starting manager")
+	setupLog.Info("Starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
