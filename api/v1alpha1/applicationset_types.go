@@ -68,6 +68,8 @@ type ListGenerator struct {
 type ListGeneratorElement struct {
 	Cluster string `json:"cluster"`
 	Url     string `json:"url"`
+	// Values contains key/value pairs which are passed directly as parameters to the template
+	Values map[string]string `json:"values,omitempty"`
 }
 
 // ClusterGenerator defines a generator to match against clusters registered with ArgoCD.
