@@ -1,6 +1,6 @@
 VERSION?=$(shell cat VERSION)
 IMAGE_NAMESPACE?=argoprojlabs
-IMAGE_NAME=applicationset
+IMAGE_NAME?=argocd-applicationset
 IMAGE_TAG?=latest
 CONTAINER_REGISTRY?=
 
