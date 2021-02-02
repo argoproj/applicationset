@@ -4,6 +4,7 @@
 #  - server
 #  - metadata.labels.<key>
 #  - metadata.annotations.<key>
+#  - values.<key>
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -14,13 +15,15 @@ spec:
       selector:
         matchLabels:
           argocd.argoproj.io/secret-type: cluster
+      values:
+        project: default
   template:
     metadata:
       name: '{{name}}-guestbook'
       labels:
         environment: '{{metadata.labels.environment}}'
     spec:
-      project: ""
+      project: '{{values.project}}'
       source:
         repoURL: https://github.com/infra-team/cluster-deployments.git
         targetRevision: HEAD
