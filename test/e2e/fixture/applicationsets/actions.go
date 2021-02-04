@@ -100,8 +100,7 @@ func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 func (a *Actions) Delete() *Actions {
 	a.context.t.Helper()
 
-	deleteProp := metav1.DeletionPropagation(metav1.DeletePropagationForeground)
-
+	deleteProp := metav1.DeletePropagationForeground
 	err := utils.AppSetClientset.Delete(context.Background(), a.context.name, metav1.DeleteOptions{PropagationPolicy: &deleteProp})
 	a.describeAction = fmt.Sprintf("Deleting ApplicationSet '%s' %v", a.context.name, err)
 	a.lastOutput, a.lastError = "", err

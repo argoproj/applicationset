@@ -16,7 +16,6 @@ import (
 	kubefake "k8s.io/client-go/kubernetes/fake"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 type possiblyErroringFakeCtrlRuntimeClient struct {
@@ -241,8 +240,4 @@ func TestGenerateParams(t *testing.T) {
 
 		})
 	}
-}
-
-type clusterClientsetMock struct {
-	mock *mock.Mock
 }
