@@ -33,7 +33,7 @@ func (c *Consequences) Expect(e Expectation) *Consequences {
 			c.context.t.Fatalf("failed expectation: %s", message)
 			return c
 		}
-		log.Infof("pending: %s", message)
+		log.Infof("expectation pending: %s", message)
 	}
 	c.context.t.Fatal("timeout waiting for: " + message)
 	return c
