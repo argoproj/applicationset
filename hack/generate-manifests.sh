@@ -17,7 +17,7 @@ if [ "$CONTAINER_REGISTRY" != "" ]; then
 	CONTAINER_REGISTRY="${CONTAINER_REGISTRY}/"
 fi
 
-
+IMAGE_NAME="${IMAGE_NAME:-argocd-applicationset}"
 IMAGE_NAMESPACE="${IMAGE_NAMESPACE:-argoprojlabs}"
 IMAGE_TAG="${IMAGE_TAG:-}"
 
@@ -34,10 +34,16 @@ if [ "$IMAGE_TAG" = "" ]; then
   IMAGE_TAG=latest
 fi
 
-cd ${SRCROOT}/manifests/base && ${KUSTOMIZE} edit set image argoprojlabs/argocd-applicationset=${CONTAINER_REGISTRY}${IMAGE_NAMESPACE}/argocd-applicationset:${IMAGE_TAG}
+cd ${SRCROOT}/manifests/base && ${KUSTOMIZE} edit set image argoprojlabs/argocd-applicationset=${CONTAINER_REGISTRY}${IMAGE_NAMESPACE}/$IMAGE_NAME:${IMAGE_TAG}
 
+# Use kustomize to render 'manifests/install.yaml'
 echo "${AUTOGENMSG}" > ${TEMPFILE}
 cd ${SRCROOT}/manifests/namespace-install && ${KUSTOMIZE} build . >> ${TEMPFILE}
-
 mv ${TEMPFILE} ${SRCROOT}/manifests/install.yaml
 cd ${SRCROOT} && chmod 644 manifests/install.yaml
+
+# Use kustomize to render 'manifests/install-with-argo-cd.yaml'
+echo "${AUTOGENMSG}" > ${TEMPFILE}
+cd ${SRCROOT}/manifests/namespace-install-with-argo-cd && ${KUSTOMIZE} build . >> ${TEMPFILE}
+mv ${TEMPFILE} ${SRCROOT}/manifests/install-with-argo-cd.yaml
+cd ${SRCROOT} && chmod 644 manifests/install-with-argo-cd.yaml
