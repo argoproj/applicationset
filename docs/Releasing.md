@@ -44,6 +44,7 @@ CONTAINER_REGISTRY=quay.io  ./release.sh (VERSION)
 ```
 
 The release script will (as of this writing):
+
 - Perform some simple sanity checks 
 - Update `VERSION` file at repository root to match the specified version parameter
 - Call `controller-gen` to regenerate the CRDs
@@ -91,9 +92,11 @@ git checkout master
 ```
 
 Increment the version in the VERSION file:
+
 - For example, if the `VERSION` file was `0.1.0`, it should be bumped up to `0.2.0`.
 
 Run `make manifests`. This will regenerate:
+
 - `manifests/base/kustomization.yaml`
 - `manifests/install.yaml`
 
@@ -108,6 +111,7 @@ Finally, push the branch and open up a PR for the change.
 ## Dry Run
 
 To perform a dry run of the release process, use your own Git repository and Quay.io account. Follow the above steps, but substitute the following:
+
 - Use an upstream remote that is hosted in your own repository, rather than the argoproj-lab: `git remote add upstream git@github.com:(your-username)/applicationset`
 - Run release.sh with your own image namespace:
     - `CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=(your-quay.io-usename) ./hack/release.sh (version)`
@@ -124,6 +128,7 @@ git tag -d v0.1.0
 ```
 
 Then within the GitHub UI, on your own repository:
+
 - **WARNING: Be very careful you don't delete a release from the main project source repo**
 - Delete release from GitHub UI
 - Delete tag from GitHub UI

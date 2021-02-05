@@ -1,0 +1,20 @@
+# Application Pruning & Resource Deletion
+
+All `Application` resources created by the ApplicationSet controller (from an ApplicationSet) will contain:
+- A `.metadata.ownerReferences` reference back to the 'parent' `ApplicationSet` resource
+- An Argo CD `resources-finalizer.argocd.argoproj.io` finalizer in `.metadata.finalizers` of the Application. 
+
+The end result is that when an ApplicationSet is deleted, (roughly) the following occurs:
+- The `ApplicationSet` resource itself is deleted
+- Any `Application` resources that were created from this `ApplicationSet` (as identified by owner reference), will be deleted.
+- Any deployed resources (`Deployments`, `Services`, `ConfigMaps`, etc) on the managed cluster, that were created from that `Application` resource (by Argo CD), will be deleted.
+  - Argo CD is responsible for handling this deletion, via [the deletion finalizer](https://argoproj.github.io/argo-cd/user-guide/app_deletion/#about-the-deletion-finalizer).
+
+Thus the lifecycle of the `ApplicationSet`, the `Application`, and the `Application`'s resources, are equivalent.
+
+It *is* still possible to delete an `ApplicationSet` resource, while preventing `Application`s (and their deployed resources) from also being deleted, using a non-cascasing delete:
+```
+kubectl delete ApplicationSet (NAME) --cascade=false
+```
+
+**Note**: Even if using a non-cascaded delete, the `resources-finalizer.argocd.argoproj.io` is still specified on the `Application`. Thus, when the `Application` is deleted, all of its deployed resources will also be deleted. (The lifecycle of the Application, and its 'child' objects, are still equivalent)
