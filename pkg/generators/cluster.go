@@ -15,7 +15,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	argocdappv1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 )
 
 const (
@@ -67,8 +66,6 @@ func (g *ClusterGenerator) GenerateParams(
 	// - Since local clusters do not have secrets, they do not have labels to match against
 	ignoreLocalClusters := len(appSetGenerator.Clusters.Selector.MatchExpressions) > 0 || len(appSetGenerator.Clusters.Selector.MatchLabels) > 0
 
-	clusters := []argocdappv1.Cluster{}
-
 	// ListCluster from Argo CD's util/db package will include the local cluster in the list of clusters
 	settingsMgr := settings.NewSettingsManager(g.ctx, g.clientset, g.namespace)
 	newDB := db.NewDB(g.namespace, settingsMgr, g.clientset)
@@ -77,8 +74,8 @@ func (g *ClusterGenerator) GenerateParams(
 		return nil, err
 	}
 
-	if clustersFromArgoCD != nil {
-		clusters = clustersFromArgoCD.Items
+	if clustersFromArgoCD == nil {
+		return nil, nil
 	}
 
 	clusterSecrets, err := g.getSecretsByClusterName(appSetGenerator)
@@ -90,7 +87,7 @@ func (g *ClusterGenerator) GenerateParams(
 
 	secretsFound := []corev1.Secret{}
 
-	for _, cluster := range clusters {
+	for _, cluster := range clustersFromArgoCD.Items {
 
 		// If there is a secret for this cluster, then it's a non-local cluster, so it will be
 		// handled by the next step.
