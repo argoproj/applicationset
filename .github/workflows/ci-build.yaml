@@ -161,7 +161,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: argoproj/argo-cd
-          ref: v1.8.1
+          ref: v1.8.4
           # Pin a specific commit to prevent Argo CD regressions from impacting us
       - name: Setup Golang
         uses: actions/setup-go@v1
