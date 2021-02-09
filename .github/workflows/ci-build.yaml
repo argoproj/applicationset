@@ -142,10 +142,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        k3s-version: [v1.19.2]
+        k3s-version: [v1.19.2, v1.16.15]
         # k3s-version: [v1.19.2, v1.18.9, v1.17.11, v1.16.15]
-      # needs:
-      # - build-go
     env:
       GOPATH: /home/runner/go
       ARGOCD_FAKE_IN_CLUSTER: 'true'
@@ -238,8 +236,6 @@ jobs:
         run: |
           set -x
           cd "$GITHUB_WORKSPACE/applicationsets"
-          # TODO: re-enable this, or create a validation that ensures this is updated.
-          # make manifests
           kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml
           make build
           make start-e2e 2>&1 | tee /tmp/appset-e2e-server.log &
