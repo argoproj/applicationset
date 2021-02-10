@@ -183,7 +183,7 @@ The generator parameters are:
 
 With this generator example, whenever a new Helm chart/Kustomize YAML/Application subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
 
-**Note**: As of this writing, only (sub-)directories that are valid Argo CD applications (and specifically Helm, Kustomize, or Jsonnet applications) will be matched.
+**Note**: As of this writing, only directories that are valid Argo CD applications (and specifically Helm, Kustomize, or Jsonnet applications) will be matched. This issue is [being tracked here](https://github.com/argoproj-labs/applicationset/issues/121).
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
 
