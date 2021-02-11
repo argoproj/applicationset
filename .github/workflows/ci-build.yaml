@@ -159,8 +159,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: argoproj/argo-cd
+          # Pin a specific commit to prevent Argo CD regressions from impacting us:
+          # This version is verified to match a version consistent with the kustomize install yaml, 
+          # by 'hack/verify-argo-cd-versions.sh'.
+          # BEGIN-ARGO-CD-VERSION
           ref: v1.8.4
-          # Pin a specific commit to prevent Argo CD regressions from impacting us
+          # END-ARGO-CD-VERSION
       - name: Setup Golang
         uses: actions/setup-go@v1
         with:
