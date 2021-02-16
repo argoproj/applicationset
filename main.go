@@ -115,7 +115,7 @@ func main() {
 		HealthProbeBindAddress: probeBindAddr,
 		Port:                   9443,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "58ac56fa.",
+		LeaderElectionID:       "58ac56fa.applicationsets.argoproj.io",
 		DryRunClient:           dryRun,
 	})
 	if err != nil {
