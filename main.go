@@ -128,7 +128,7 @@ func main() {
 	if err = (&controllers.ApplicationSetReconciler{
 		Generators: map[string]generators.Generator{
 			"List":     generators.NewListGenerator(),
-			"Clusters": generators.NewClusterGenerator(mgr.GetClient()),
+			"Clusters": generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
 			"Git":      generators.NewGitGenerator(services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer)),
 		},
 		Client:   mgr.GetClient(),
