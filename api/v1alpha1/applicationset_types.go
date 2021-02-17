@@ -47,8 +47,17 @@ type ApplicationSetSyncPolicy struct {
 
 // ApplicationSetTemplate represents argocd ApplicationSpec
 type ApplicationSetTemplate struct {
-	metav1.ObjectMeta `json:"metadata"`
-	Spec              v1alpha1.ApplicationSpec `json:"spec"`
+	ApplicationSetTemplateMeta `json:"metadata"`
+	Spec                       v1alpha1.ApplicationSpec `json:"spec"`
+}
+
+// ApplicationSetTemplateMeta represents the Argo CD application fields that may
+// be used for Applications generated from the ApplicationSet (based on metav1.ObjectMeta)
+type ApplicationSetTemplateMeta struct {
+	Name        string            `json:"name,omitempty"`
+	Namespace   string            `json:"namespace,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // ApplicationSetGenerator include list item info

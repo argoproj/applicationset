@@ -43,7 +43,7 @@ func TestSimpleListGenerator(t *testing.T) {
 	},
 		Spec: v1alpha1.ApplicationSetSpec{
 			Template: v1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{Name: "{{cluster}}-guestbook"},
+				ApplicationSetTemplateMeta: v1alpha1.ApplicationSetTemplateMeta{Name: "{{cluster}}-guestbook"},
 				Spec: argov1alpha1.ApplicationSpec{
 					Project: "default",
 					Source: argov1alpha1.ApplicationSource{
@@ -128,7 +128,7 @@ func TestSimpleGitGenerator(t *testing.T) {
 		},
 			Spec: v1alpha1.ApplicationSetSpec{
 				Template: v1alpha1.ApplicationSetTemplate{
-					ObjectMeta: metav1.ObjectMeta{Name: "{{path.basename}}"},
+					ApplicationSetTemplateMeta: v1alpha1.ApplicationSetTemplateMeta{Name: "{{path.basename}}"},
 					Spec: argov1alpha1.ApplicationSpec{
 						Project: "default",
 						Source: argov1alpha1.ApplicationSource{
