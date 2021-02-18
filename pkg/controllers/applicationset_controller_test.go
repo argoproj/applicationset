@@ -83,7 +83,7 @@ func TestExtractApplications(t *testing.T) {
 			name:   "Generate two applications",
 			params: []map[string]string{{"name": "app1"}, {"name": "app2"}},
 			template: argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
+				ApplicationSetTemplateMeta: argoprojiov1alpha1.ApplicationSetTemplateMeta{
 					Name:      "name",
 					Namespace: "namespace",
 					Labels:    map[string]string{"label_name": "label_value"},
@@ -100,7 +100,7 @@ func TestExtractApplications(t *testing.T) {
 			name:   "Handles error from the render",
 			params: []map[string]string{{"name": "app1"}, {"name": "app2"}},
 			template: argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
+				ApplicationSetTemplateMeta: argoprojiov1alpha1.ApplicationSetTemplateMeta{
 					Name:      "name",
 					Namespace: "namespace",
 					Labels:    map[string]string{"label_name": "label_value"},
@@ -206,7 +206,7 @@ func TestMergeTemplateApplications(t *testing.T) {
 			name:   "Generate app",
 			params: []map[string]string{{"name": "app1"}},
 			template: argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
+				ApplicationSetTemplateMeta: argoprojiov1alpha1.ApplicationSetTemplateMeta{
 					Name:      "name",
 					Namespace: "namespace",
 					Labels:    map[string]string{"label_name": "label_value"},
@@ -214,14 +214,14 @@ func TestMergeTemplateApplications(t *testing.T) {
 				Spec: argov1alpha1.ApplicationSpec{},
 			},
 			overrideTemplate: argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
+				ApplicationSetTemplateMeta: argoprojiov1alpha1.ApplicationSetTemplateMeta{
 					Name:   "test",
 					Labels: map[string]string{"foo": "bar"},
 				},
 				Spec: argov1alpha1.ApplicationSpec{},
 			},
 			expectedMerged: argoprojiov1alpha1.ApplicationSetTemplate{
-				ObjectMeta: metav1.ObjectMeta{
+				ApplicationSetTemplateMeta: argoprojiov1alpha1.ApplicationSetTemplateMeta{
 					Name:      "test",
 					Namespace: "namespace",
 					Labels:    map[string]string{"label_name": "label_value", "foo": "bar"},
