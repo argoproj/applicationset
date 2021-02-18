@@ -40,10 +40,10 @@ See the documentation for an explanation of fields and additional examples.
 
 ## Documentation
 
-Read [the documentation](https://argocd-applicationset.readthedocs.io/en/stable/) for more information on how to setup and run the ApplicationSet controller, and to learn more about features and usage.
+Read [the documentation](https://argocd-applicationset.readthedocs.io/) for more information on how to setup and run the ApplicationSet controller, and to learn more about features and usage.
 
 The original design doc is available here: https://docs.google.com/document/d/1juWGr20FQaJmuuTIS8mBFmWWDU422M_FQMuhp5c1jt4/edit?usp=sharing
 
 ## Development
 
-Learn more in the documentation on how to [setup a development environment, and build the controller](https://argocd-applicationset.readthedocs.io/en/stable/).
+Learn more in the documentation on how to [setup a development environment, and build the controller](https://argocd-applicationset.readthedocs.io/en/latest/Development/).
