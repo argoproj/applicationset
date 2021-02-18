@@ -8,7 +8,7 @@ While these tools may be utilized for whichever purpose is desired, here are som
 
 An initial design focus of the ApplicationSet controller was to allow an infrastructure team's Kubernetes cluster administrators the ability to automatically create a large, diverse set of Argo CD Applications, across a significant number of clusters, and manage those Applications as a single unit. One example of why this is needed is the *cluster add-on use case*.
 
-In the *cluster add-on use case*, an administrator is responsible for provisioning cluster add-ons to one or more Kubernete clusters: cluster-addons are operators such as the [Prometheus operator](https://github.com/prometheus-operator/prometheus-operator), or controllers such as the [argo-workflows controller](https://argoproj.github.io/argo/) (part of the [Argo ecosystem](https://argoproj.github.io/)).
+In the *cluster add-on use case*, an administrator is responsible for provisioning cluster add-ons to one or more Kubernete clusters: cluster-addons are operators such as the [Prometheus operator](https://github.com/prometheus-operator/prometheus-operator), or controllers such as the [argo-workflows controller](https://argoproj.github.io/argo-workflows/) (part of the [Argo ecosystem](https://argoproj.github.io/)).
 
 Typically these add-ons are required by the applications of development teams (as tenants of a multi-tenant cluster, for instance, they may wish to provide metrics data to Prometheus or orchestrate workflows via Argo Workflows).
 

@@ -37,7 +37,8 @@ spec:
 
 The List generator passes the `url` and `cluster` fields as parameters into the template. In this example, if one wanted to add a second cluster, we could uncomment the second cluster element and the ApplicationSet controller would automatically target it with the defined application.
 
-**Note**: These clusters *must* already be defined within Argo CD, in order to generate applications for these values. The ApplicationSet controller does not create clusters within Argo CD (for instance, it does not have the credentials to do so).
+!!! note "Clusters must be predefined in Argo CD"
+    These clusters *must* already be defined within Argo CD, in order to generate applications for these values. The ApplicationSet controller does not create clusters within Argo CD (for instance, it does not have the credentials to do so).
 
 ## Cluster Generator
 
@@ -188,7 +189,8 @@ The generator parameters are:
 
 Whenever a new Helm chart/Kustomize YAML/Application subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
 
-**Note**: As of this writing, only directories that are valid Argo CD applications (and specifically Helm, Kustomize, or Jsonnet applications) will be matched. This issue is [being tracked here](https://github.com/argoproj-labs/applicationset/issues/121).
+!!! warning "Directories must be valid Argo CD applications"
+    As of this writing, only directories that are valid Argo CD applications (and specifically Helm, Kustomize, or Jsonnet applications) will be matched. This issue is [being tracked here](https://github.com/argoproj-labs/applicationset/issues/121).
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
 
@@ -226,7 +228,7 @@ The `config.json` files contain information describing the cluster (along with e
   "cluster": {
     "owner": "cluster-admin@company.com",
     "name": "engineering-dev",
-    "address": "http://1.2.3.4"
+    "address": "https://1.2.3.4"
   }
 }
 ```
@@ -237,7 +239,7 @@ aws_account: 123456
 asset_id: 11223344
 cluster.owner: cluster-admin@company.com
 cluster.name: engineering-dev
-cluster.address: http://1.2.3.4
+cluster.address: https://1.2.3.4
 ```
 
 
@@ -271,6 +273,7 @@ spec:
 
 Any `config.json` files found under the `cluster-config` directory will be parameterized based on the `path` wildcard pattern specified. Within each file JSON fields are flattened into key/value pairs, with this ApplicationSet example using the `cluster.address` as `cluster.name` parameters in the template.
 
-**Note**: Only JSON file parsing is currently supported. The work to add support for YAML files is [tracked here](https://github.com/argoproj-labs/applicationset/issues/106).
+!!! note "Supported file formats"
+    Only JSON file parsing is currently supported. The work to add support for YAML files is [tracked here](https://github.com/argoproj-labs/applicationset/issues/106).
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.

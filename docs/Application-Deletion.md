@@ -19,4 +19,5 @@ It *is* still possible to delete an `ApplicationSet` resource, while preventing 
 kubectl delete ApplicationSet (NAME) --cascade=false
 ```
 
-**Note**: Even if using a non-cascaded delete, the `resources-finalizer.argocd.argoproj.io` is still specified on the `Application`. Thus, when the `Application` is deleted, all of its deployed resources will also be deleted. (The lifecycle of the Application, and its 'child' objects, are still equivalent)
+!!! warning
+    Even if using a non-cascaded delete, the `resources-finalizer.argocd.argoproj.io` is still specified on the `Application`. Thus, when the `Application` is deleted, all of its deployed resources will also be deleted. (The lifecycle of the Application, and its *child* objects, are still equivalent)

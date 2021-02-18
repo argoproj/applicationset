@@ -24,12 +24,13 @@ markdown_extensions:
 nav:
   - Introduction: index.md
   - Getting Started: Geting-Started.md
-  - Use Case: Use-Cases.md
-  - Argo CD Integration: Argo-CD-Integration.md
+  - Use Cases: Use-Cases.md
+  - How ApplicationSet controller interacts with Argo CD: Argo-CD-Integration.md
   - Generators: Generators.md
-  - Templates: Template.md
-  - Application Deletion: Application-Deletion.md
+  - Template fields: Template.md
+  - Application Pruning & Resource Deletion: Application-Deletion.md
   - Developer Guide:
+    - Building and Running the Controller: Development.md
     - Running E2E Tests: E2E-Tests.md
     - Release Guidance: Releasing.md
 
