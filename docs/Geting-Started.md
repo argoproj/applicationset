@@ -23,6 +23,7 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/appli
 Once installed, the ApplicationSet controller requires no additional setup.
 
 The `manifests/install.yaml` file contains the Kubernetes manifests required to install the ApplicationSet controller:
+
 - CustomResourceDefinition for `ApplicationSet` resource
 - Deployment for `argocd-applicationset-controller`
 - ServiceAccount for use by ApplicationSet controller, to access Argo CD resources

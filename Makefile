@@ -4,6 +4,12 @@ IMAGE_NAME?=argocd-applicationset
 IMAGE_TAG?=latest
 CONTAINER_REGISTRY?=
 
+MKDOCS_DOCKER_IMAGE?=squidfunk/mkdocs-material:4.1.1
+MKDOCS_RUN_ARGS?=
+
+CURRENT_DIR=$(shell pwd)
+
+
 ifdef IMAGE_NAMESPACE
 
 	ifdef CONTAINER_REGISTRY
@@ -100,3 +106,20 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+.PHONY: build-docs-local
+build-docs-local:
+	mkdocs build
+
+.PHONY: build-docs
+build-docs:
+	docker run ${MKDOCS_RUN_ARGS} --rm -it -p 8000:8000 -v ${CURRENT_DIR}:/docs ${MKDOCS_DOCKER_IMAGE} build
+
+.PHONY: serve-docs-local
+serve-docs-local:
+	mkdocs serve
+
+.PHONY: serve-docs
+serve-docs:
+	docker run ${MKDOCS_RUN_ARGS} --rm -it -p 8000:8000 -v ${CURRENT_DIR}:/docs ${MKDOCS_DOCKER_IMAGE} serve -a 0.0.0.0:8000
+

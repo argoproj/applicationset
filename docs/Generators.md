@@ -35,21 +35,24 @@ spec:
 ```
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/list-generator).*)
 
-The `url` and `cluster` fields are passed as parameters into the template in a straightforward fashion. If one wanted to add a second cluster, one could uncomment and apply the commented out elements, and the ApplicationSet controller would automatically target this new cluster.
+The List generator passes the `url` and `cluster` fields as parameters into the template. In this example, if one wanted to add a second cluster, we could uncomment the second cluster element and the ApplicationSet controller would automatically target it with the defined application.
 
-**Note**: These clusters *must* already be defined within Argo CD, in order to generate applications for these values. The ApplicationSet controller does not create clusters within Argo CD (nor does it have the credentials to do so).
+**Note**: These clusters *must* already be defined within Argo CD, in order to generate applications for these values. The ApplicationSet controller does not create clusters within Argo CD (for instance, it does not have the credentials to do so).
 
 ## Cluster Generator
 
-In Argo CD, managed clusters [are stored within Secrets](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) in the Argo CD namespace. The ApplicationSet controller uses those same Secret values to generate parameters to identify and target available clusters.
+In Argo CD, managed clusters [are stored within Secrets](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) in the Argo CD namespace. The ApplicationSet controller uses those same Secrets to generate parameters to identify and target available clusters.
 
-For each cluster registered with Argo CD, the Cluster generator produces a list of items found within the cluster secret. It automatically provides the following parameters as values to the Application template for each cluster:
+For each cluster registered with Argo CD, the Cluster generator produces parameters based on the list of items found within the cluster secret. 
+
+It automatically provides the following parameter values to the Application template for each cluster:
+
 - `name`
 - `server`
 - `metadata.labels.<key>` *(for each label in the Secret)*
 - `metadata.annotations.<key>` *(for each annotation in the Secret)*
 
-Within the [Argo CD cluster secret](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) are data fields describing the cluster:
+Within [Argo CD cluster Secrets](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) are data fields describing the cluster:
 ```yaml
 kind: Secret
 data:
@@ -88,7 +91,7 @@ spec:
 ```
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/cluster).*)
 
-In this example, the cluster secret's `name` and `server` fields are used to populate the `Application` resource `name` and `server` (for the destination cluster).
+In this example, the cluster secret's `name` and `server` fields are used to populate the `Application` resource `name` and `server` (which are then used to target that same cluster).
 
 ### Label selector
 
@@ -145,11 +148,12 @@ Suppose you have a Git repository with the following directory structure:
     └── values.yaml
 ```
 
-This reposistory contains two directories, one for each of the workloads to deploy: 
+This reposistory contains two directories, one for each of the workloads to deploy:
+
 - an Argo Workflow controller kustomization YAML file
 - a Prometheus Operator Helm chart
 
-We can then deploy both workloads, using this example:
+We can deploy both workloads, using this example:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -178,10 +182,11 @@ spec:
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-directory).*)
 
 The generator parameters are:
-- `{{path}}`: The directory paths within the Git repository that match the `path` wildcard
-- `{{path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (eg `/directory/directory2` would produce `directory2`)
 
-With this generator example, whenever a new Helm chart/Kustomize YAML/Application subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
+- `{{path}}`: The directory paths within the Git repository that match the `path` wildcard.
+- `{{path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (eg `/directory/directory2` would produce `directory2`).
+
+Whenever a new Helm chart/Kustomize YAML/Application subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
 
 **Note**: As of this writing, only directories that are valid Argo CD applications (and specifically Helm, Kustomize, or Jsonnet applications) will be matched. This issue is [being tracked here](https://github.com/argoproj-labs/applicationset/issues/121).
 
@@ -208,7 +213,8 @@ Suppose you have a Git repository with the following directory structure:
 ```
 
 The folders are:
-- `guestbook` is a simple guestbook application to deploy to the clusters. 
+
+- `guestbook` contains the Kubernetes resources for a simple guestbook application
 - `cluster-config` contains JSON files describing the individual engineering clusters: one for `dev` and one for `prod`.
 - `git-generator-files.yaml` is the example `ApplicationSet` resource that deploys `guestbook` to the specified clusters.
 
@@ -225,8 +231,8 @@ The `config.json` files contain information describing the cluster (along with e
 }
 ```
 
-The `config.json` files are automatically discovered by the Git generator, and the contents of those files are parsed and converted into template parameters. Here are the parameters generated that would be generated for the above JSON:
-```
+Git commits containing changes to the `config.json` files are automatically discovered by the Git generator, and the contents of those files are parsed and converted into template parameters. Here are the parameters generated for the above JSON:
+```text
 aws_account: 123456
 asset_id: 11223344
 cluster.owner: cluster-admin@company.com
@@ -263,8 +269,8 @@ spec:
 ```
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-files-discovery).*)
 
-Any `config.json` files found under the `cluster-config` directory will be parameterized based on the `path` wildcard pattern specified. Within each file, JSON fields are flattened into key/value pairs, with this ApplicationSet example using the `cluster.address` as `cluster.name` parameters in the template.
+Any `config.json` files found under the `cluster-config` directory will be parameterized based on the `path` wildcard pattern specified. Within each file JSON fields are flattened into key/value pairs, with this ApplicationSet example using the `cluster.address` as `cluster.name` parameters in the template.
 
-**Note**: Support for parsing YAML files, in addition to JSON files, is planned. This work is [tracked here](https://github.com/argoproj-labs/applicationset/issues/106).
+**Note**: Only JSON file parsing is currently supported. The work to add support for YAML files is [tracked here](https://github.com/argoproj-labs/applicationset/issues/106).
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
