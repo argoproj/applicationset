@@ -1,0 +1,37 @@
+
+site_name: ApplicationSet Controller
+repo_url: https://github.com/argoproj-labs/applicationset
+strict: true
+theme:
+  name: material
+  palette:
+    primary: teal
+  font:
+    text: 'Work Sans'
+  logo: 'assets/logo.png'
+extra_css:
+- assets/extra.css
+- css/extra.css
+extra_javascript:
+- js/jquery-2.1.1.min.js
+- js/modernizr-2.8.3.min.js
+- js/theme.js
+markdown_extensions:
+- codehilite
+- admonition
+- toc:
+    permalink: true
+nav:
+  - Introduction: index.md
+  - Getting Started: Geting-Started.md
+  - Use Cases: Use-Cases.md
+  - How ApplicationSet controller interacts with Argo CD: Argo-CD-Integration.md
+  - Generators: Generators.md
+  - Template fields: Template.md
+  - Application Pruning & Resource Deletion: Application-Deletion.md
+  - Developer Guide:
+    - Building and Running the Controller: Development.md
+    - Running E2E Tests: E2E-Tests.md
+    - Release Guidance: Releasing.md
+
+

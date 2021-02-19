@@ -1,0 +1,6 @@
+https://1.2.3.4
+https://2.4.6.8
+https://9.8.7.6
+https://github.com/infra-team/cluster-deployments.git
+https://kubernetes.default.svc
+https://github.com/argoproj-labs/applicationset/commit
