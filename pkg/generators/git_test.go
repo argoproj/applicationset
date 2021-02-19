@@ -41,6 +41,11 @@ func (a argoCDServiceMock) GetFileContent(ctx context.Context, repoURL string, r
 	return args.Get(0).([]byte), args.Error(1)
 }
 
+func (a argoCDServiceMock) GetDirectories(ctx context.Context, repoURL string, revision string) ([]string, error) {
+	args := a.mock.Called(ctx, repoURL, revision)
+	return args.Get(0).([]string), args.Error(1)
+}
+
 func TestGitGenerateParamsFromDirectories(t *testing.T) {
 
 	cases := []struct {
@@ -104,7 +109,8 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 		cc := c
 		t.Run(cc.name, func(t *testing.T) {
 			argoCDServiceMock := argoCDServiceMock{mock: &mock.Mock{}}
-			argoCDServiceMock.mock.On("GetApps", mock.Anything, mock.Anything, mock.Anything).Return(c.repoApps, c.repoError)
+
+			argoCDServiceMock.mock.On("GetDirectories", mock.Anything, mock.Anything, mock.Anything).Return(c.repoApps, c.repoError)
 
 			var gitGenerator = NewGitGenerator(argoCDServiceMock)
 			applicationSetInfo := argoprojiov1alpha1.ApplicationSet{

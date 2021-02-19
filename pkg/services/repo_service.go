@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
@@ -26,8 +27,16 @@ type argoCDService struct {
 }
 
 type Repos interface {
+	// GetApps return a list of valid Argo CD Application sources within the repo, as per the rules described here: https://argoproj.github.io/argo-cd/user-guide/tool_detection/
 	GetApps(ctx context.Context, repoURL string, revision string) ([]string, error)
+
+	// GetPaths returns a list of files (not directories) within the target repo
 	GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error)
+
+	// GetDirectories returns a list of directories (not files) within the target repo
+	GetDirectories(ctx context.Context, repoURL string, revision string) ([]string, error)
+
+	// GetFileContent returns the contents of a particular repository file
 	GetFileContent(ctx context.Context, repoURL string, revision string, path string) ([]byte, error)
 }
 
@@ -95,6 +104,56 @@ func (a *argoCDService) GetPaths(ctx context.Context, repoURL string, revision s
 	return paths, nil
 }
 
+func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revision string) ([]string, error) {
+
+	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error in GetRepository")
+	}
+
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled())
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkoutRepo(gitRepoClient, revision)
+	if err != nil {
+		return nil, err
+	}
+
+	filteredPaths := []string{}
+
+	repoRoot := gitRepoClient.Root()
+
+	filepath.Walk(repoRoot, func(path string, info os.FileInfo, err error) error {
+
+		if !info.IsDir() { // Skip files: directories only
+			return nil
+		}
+
+		fname := info.Name()
+		if fname == ".git" { // Skip repository metadata
+			return filepath.SkipDir
+		}
+
+		relativePath, err := filepath.Rel(repoRoot, path)
+		if err != nil {
+			return err
+		}
+
+		if relativePath == "." { // Exclude '.' from results
+			return nil
+		}
+
+		filteredPaths = append(filteredPaths, relativePath)
+
+		return nil
+	})
+
+	return filteredPaths, nil
+
+}
+
 func (a *argoCDService) GetFileContent(ctx context.Context, repoURL string, revision string, path string) ([]byte, error) {
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
@@ -123,7 +182,7 @@ func (a *argoCDService) GetFileContent(ctx context.Context, repoURL string, revi
 func checkoutRepo(gitRepoClient git.Client, revision string) error {
 	err := gitRepoClient.Init()
 	if err != nil {
-		return errors.Wrap(err, "Error during initiliazing repo")
+		return errors.Wrap(err, "Error during initializing repo")
 	}
 
 	err = gitRepoClient.Fetch()
