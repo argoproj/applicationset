@@ -34,7 +34,7 @@ The template subfields correspond directly to [the spec of an Argo CD `Applicati
     - **server**: API Server URL for the cluster (Example: `https://kubernetes.default.svc`)
     - **namespace**: Target namespace in which to deploy the manifests from `source` (Example: `my-app-namespace`)
 
-But note:
+Note:
 
 - Referenced clusters must already be defined in Argo CD, for the ApplicationSet controller to use them
 - Only **one** of `name` or `server` may be specified: if both are specified, an error is returned.

@@ -20,6 +20,6 @@ In this diagram an `ApplicationSet` resource is defined, and it is the responsib
 
 Argo CD generates the application's Kubernetes resources based on the contents of the Git repository defined within the Application `spec` field, deploying e.g. Deployments, Service, and other resources.
 
-Creation, updates, or deletion of ApplicationSets will have a direct effect on the Applications present in the Argo CD namespace. Likewise, cluster events (the addition/deletion of Argo CD cluster secrets, when using Cluster generator), or changes in Git (when using Git generator), will be used as input to the ApplicationSet controller in constructing `Application` resources.
+Creation, update, or deletion of ApplicationSets will have a direct effect on the Applications present in the Argo CD namespace. Likewise, cluster events (the addition/deletion of Argo CD cluster secrets, when using Cluster generator), or changes in Git (when using Git generator), will be used as input to the ApplicationSet controller in constructing `Application` resources.
 
 Argo CD and the ApplicationSet controller work together to ensure a consistent set of Application resources exist, and are deployed across the target clusters.
