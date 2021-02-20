@@ -125,8 +125,10 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 
 	repoRoot := gitRepoClient.Root()
 
-	filepath.Walk(repoRoot, func(path string, info os.FileInfo, err error) error {
-
+	if err := filepath.Walk(repoRoot, func(path string, info os.FileInfo, fnErr error) error {
+		if fnErr != nil {
+			return fnErr
+		}
 		if !info.IsDir() { // Skip files: directories only
 			return nil
 		}
@@ -148,7 +150,9 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 		filteredPaths = append(filteredPaths, relativePath)
 
 		return nil
-	})
+	}); err != nil {
+		return nil, err
+	}
 
 	return filteredPaths, nil
 
