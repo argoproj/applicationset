@@ -10,10 +10,8 @@ import (
 	"github.com/argoproj/argo-cd/util/db"
 	"github.com/argoproj/argo-cd/util/git"
 	"github.com/argoproj/argo-cd/util/io"
-	"github.com/argoproj/argo-cd/util/settings"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"k8s.io/client-go/kubernetes"
 )
 
 // RepositoryDB Is a lean facade for ArgoDB,
@@ -33,11 +31,10 @@ type Repos interface {
 	GetFileContent(ctx context.Context, repoURL string, revision string, path string) ([]byte, error)
 }
 
-func NewArgoCDService(ctx context.Context, clientset kubernetes.Interface, namespace string, repoServerAddress string) Repos {
-	settingsMgr := settings.NewSettingsManager(ctx, clientset, namespace)
+func NewArgoCDService(db db.ArgoDB, repoServerAddress string) Repos {
 
 	return &argoCDService{
-		repositoriesDB: db.NewDB(namespace, settingsMgr, clientset).(RepositoryDB),
+		repositoriesDB: db.(RepositoryDB),
 		repoClientset:  apiclient.NewRepoServerClientset(repoServerAddress, 5),
 	}
 }

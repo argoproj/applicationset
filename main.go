@@ -31,11 +31,14 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/util/db"
+	argosettings "github.com/argoproj/argo-cd/util/settings"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
+	appclientset "github.com/argoproj/argo-cd/pkg/client/clientset/versioned"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -124,19 +127,25 @@ func main() {
 	}
 
 	k8s := kubernetes.NewForConfigOrDie(mgr.GetConfig())
+	argoSettingsMgr := argosettings.NewSettingsManager(context.Background(), k8s, namespace)
+	appclientset := appclientset.NewForConfigOrDie(mgr.GetConfig())
+
+	argoCDDB := db.NewDB(namespace, argoSettingsMgr, k8s)
 
 	if err = (&controllers.ApplicationSetReconciler{
 		Generators: map[string]generators.Generator{
 			"List":     generators.NewListGenerator(),
 			"Clusters": generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
-			"Git":      generators.NewGitGenerator(services.NewArgoCDService(context.Background(), k8s, namespace, argocdRepoServer)),
+			"Git":      generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
 		},
-		Client:   mgr.GetClient(),
-		Log:      ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
-		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor("applicationset-controller"),
-		Renderer: &utils.Render{},
-		Policy:   policyObj,
+		Client:           mgr.GetClient(),
+		Log:              ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
+		Scheme:           mgr.GetScheme(),
+		Recorder:         mgr.GetEventRecorderFor("applicationset-controller"),
+		Renderer:         &utils.Render{},
+		Policy:           policyObj,
+		ArgoAppClientset: appclientset,
+		ArgoDB:           argoCDDB,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
