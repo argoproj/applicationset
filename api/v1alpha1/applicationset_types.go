@@ -98,7 +98,7 @@ type GitGenerator struct {
 	Directories         []GitDirectoryGeneratorItem `json:"directories,omitempty"`
 	Files               []GitFileGeneratorItem      `json:"files,omitempty"`
 	Revision            string                      `json:"revision"`
-	RequeueAfterSeconds int64                       `json:"requeueAfterSeconds,omitempty"`
+	RequeueAfterSeconds *int64                      `json:"requeueAfterSeconds,omitempty"`
 	Template            ApplicationSetTemplate      `json:"template,omitempty"`
 }
 
