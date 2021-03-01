@@ -10,9 +10,7 @@ import (
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
 	"github.com/argoproj/argo-cd/util/db"
 	"github.com/argoproj/argo-cd/util/git"
-	"github.com/argoproj/argo-cd/util/io"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 // RepositoryDB Is a lean facade for ArgoDB,
@@ -27,8 +25,6 @@ type argoCDService struct {
 }
 
 type Repos interface {
-	// GetApps return a list of valid Argo CD Application sources within the repo, as per the rules described here: https://argoproj.github.io/argo-cd/user-guide/tool_detection/
-	GetApps(ctx context.Context, repoURL string, revision string) ([]string, error)
 
 	// GetPaths returns a list of files (not directories) within the target repo
 	GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error)
@@ -46,37 +42,6 @@ func NewArgoCDService(db db.ArgoDB, repoServerAddress string) Repos {
 		repositoriesDB: db.(RepositoryDB),
 		repoClientset:  apiclient.NewRepoServerClientset(repoServerAddress, 5),
 	}
-}
-
-func (a *argoCDService) GetApps(ctx context.Context, repoURL string, revision string) ([]string, error) {
-	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
-	if err != nil {
-
-		return nil, errors.Wrap(err, "Error in GetRepository")
-	}
-
-	conn, repoClient, err := a.repoClientset.NewRepoServerClient()
-	defer io.Close(conn)
-	if err != nil {
-		return nil, errors.Wrap(err, "Error in creating repo service client")
-	}
-
-	apps, err := repoClient.ListApps(ctx, &apiclient.ListAppsRequest{
-		Repo:     repo,
-		Revision: revision,
-	})
-	log.Debugf("apps - %#v", apps)
-	if err != nil {
-		return nil, errors.Wrap(err, "Error in ListApps")
-	}
-
-	res := []string{}
-
-	for name := range apps.Apps {
-		res = append(res, name)
-	}
-
-	return res, nil
 }
 
 func (a *argoCDService) GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error) {
