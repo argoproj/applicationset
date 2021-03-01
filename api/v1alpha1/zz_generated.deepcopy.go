@@ -284,6 +284,11 @@ func (in *GitGenerator) DeepCopyInto(out *GitGenerator) {
 		*out = make([]GitFileGeneratorItem, len(*in))
 		copy(*out, *in)
 	}
+	if in.RequeueAfterSeconds != nil {
+		in, out := &in.RequeueAfterSeconds, &out.RequeueAfterSeconds
+		*out = new(int64)
+		**out = **in
+	}
 	in.Template.DeepCopyInto(&out.Template)
 }
 

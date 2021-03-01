@@ -15,6 +15,10 @@ import (
 
 var _ Generator = (*GitGenerator)(nil)
 
+const (
+	DefaultRequeueAfterSeconds = 3 * time.Minute
+)
+
 type GitGenerator struct {
 	repos services.Repos
 }
@@ -31,7 +35,14 @@ func (g *GitGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.Applicati
 }
 
 func (g *GitGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
-	return time.Duration(appSetGenerator.Git.RequeueAfterSeconds) * time.Second
+
+	// Return a requeue default of 3 minutes, if no default is specified.
+
+	if appSetGenerator.Git.RequeueAfterSeconds != nil {
+		return time.Duration(*appSetGenerator.Git.RequeueAfterSeconds) * time.Second
+	}
+
+	return DefaultRequeueAfterSeconds
 }
 
 func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
