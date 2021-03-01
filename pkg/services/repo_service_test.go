@@ -11,7 +11,6 @@ import (
 	"github.com/argoproj/argo-cd/util/io"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/grpc"
 )
 
 type ArgocdRepositoryMock struct {
@@ -23,33 +22,6 @@ func (a ArgocdRepositoryMock) GetRepository(ctx context.Context, url string) (*v
 
 	return args.Get(0).(*v1alpha1.Repository), args.Error(1)
 
-}
-
-type repoServerClientMock struct {
-	mock *mock.Mock
-}
-
-func (r repoServerClientMock) GenerateManifest(ctx context.Context, in *apiclient.ManifestRequest, opts ...grpc.CallOption) (*apiclient.ManifestResponse, error) {
-	return nil, nil
-}
-func (r repoServerClientMock) ListApps(ctx context.Context, in *apiclient.ListAppsRequest, opts ...grpc.CallOption) (*apiclient.AppList, error) {
-	args := r.mock.Called(ctx, in)
-
-	return args.Get(0).(*apiclient.AppList), args.Error(1)
-}
-func (r repoServerClientMock) ListRefs(ctx context.Context, in *apiclient.ListRefsRequest, opts ...grpc.CallOption) (*apiclient.Refs, error) {
-	args := r.mock.Called(ctx, in)
-
-	return args.Get(0).(*apiclient.Refs), args.Error(1)
-}
-func (r repoServerClientMock) GetAppDetails(ctx context.Context, in *apiclient.RepoServerAppDetailsQuery, opts ...grpc.CallOption) (*apiclient.RepoAppDetailsResponse, error) {
-	return nil, nil
-}
-func (r repoServerClientMock) GetRevisionMetadata(ctx context.Context, in *apiclient.RepoServerRevisionMetadataRequest, opts ...grpc.CallOption) (*v1alpha1.RevisionMetadata, error) {
-	return nil, nil
-}
-func (r repoServerClientMock) GetHelmCharts(ctx context.Context, in *apiclient.HelmChartsRequest, opts ...grpc.CallOption) (*apiclient.HelmChartsResponse, error) {
-	return nil, nil
 }
 
 type closer struct {
