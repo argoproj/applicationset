@@ -98,7 +98,7 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 	// Get all paths that match the requested path string, removing duplicates
 	allPathsMap := make(map[string]bool)
 	for _, requestedPath := range appSetGenerator.Git.Files {
-		paths, err := g.repos.GetPaths(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, requestedPath.Path)
+		paths, err := g.repos.GetFilePaths(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, requestedPath.Path)
 		if err != nil {
 			return nil, err
 		}

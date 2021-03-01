@@ -26,8 +26,8 @@ type argoCDService struct {
 
 type Repos interface {
 
-	// GetPaths returns a list of files (not directories) within the target repo
-	GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error)
+	// GetFilePaths returns a list of files (not directories) within the target repo
+	GetFilePaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error)
 
 	// GetDirectories returns a list of directories (not files) within the target repo
 	GetDirectories(ctx context.Context, repoURL string, revision string) ([]string, error)
@@ -44,7 +44,7 @@ func NewArgoCDService(db db.ArgoDB, repoServerAddress string) Repos {
 	}
 }
 
-func (a *argoCDService) GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error) {
+func (a *argoCDService) GetFilePaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error) {
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error in GetRepository")

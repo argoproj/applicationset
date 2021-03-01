@@ -29,7 +29,7 @@ func (a argoCDServiceMock) GetApps(ctx context.Context, repoURL string, revision
 	return args.Get(0).([]string), args.Error(1)
 }
 
-func (a argoCDServiceMock) GetPaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error) {
+func (a argoCDServiceMock) GetFilePaths(ctx context.Context, repoURL string, revision string, pattern string) ([]string, error) {
 	args := a.mock.Called(ctx, repoURL, revision, pattern)
 
 	return args.Get(0).([]string), args.Error(1)
@@ -245,7 +245,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 		cc := c
 		t.Run(cc.name, func(t *testing.T) {
 			argoCDServiceMock := argoCDServiceMock{mock: &mock.Mock{}}
-			argoCDServiceMock.mock.On("GetPaths", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(c.repoPaths, c.repoPathsError)
+			argoCDServiceMock.mock.On("GetFilePaths", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(c.repoPaths, c.repoPathsError)
 
 			if c.repoPaths != nil {
 				for _, repoPath := range c.repoPaths {
