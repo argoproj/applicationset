@@ -28,6 +28,8 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/util/argo"
+	"github.com/argoproj/argo-cd/util/db"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,6 +45,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	appclientset "github.com/argoproj/argo-cd/pkg/client/clientset/versioned"
+	argoutil "github.com/argoproj/argo-cd/util/argo"
+
+	apierr "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/imdario/mergo"
 )
@@ -50,10 +56,12 @@ import (
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
-	Log        logr.Logger
-	Scheme     *runtime.Scheme
-	Recorder   record.EventRecorder
-	Generators map[string]generators.Generator
+	Log              logr.Logger
+	Scheme           *runtime.Scheme
+	Recorder         record.EventRecorder
+	Generators       map[string]generators.Generator
+	ArgoDB           db.ArgoDB
+	ArgoAppClientset appclientset.Interface
 	utils.Policy
 	utils.Renderer
 }
@@ -81,7 +89,8 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	if hasDuplicates, name := hasDuplicateNames(desiredApplications); hasDuplicates {
+
+	if validateError := r.validateGeneratedApplications(ctx, desiredApplications, applicationSetInfo, req.Namespace); validateError != nil {
 		// The reconciler presumes that any errors that are returned are a signal
 		// that the resource should attempt to be reconciled again (causing
 		// Reconcile to be called again, which will return the same error, ad
@@ -93,7 +102,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		// will fail. So just log it and return that the resource was
 		// successfully reconciled (which is true... it was reconciled to an
 		// error condition).
-		log.Errorf("ApplicationSet %s contains applications with duplicate name: %s", applicationSetInfo.Name, name)
+		log.Errorf("%s", validateError.Error())
 		return ctrl.Result{}, nil
 	}
 
@@ -122,6 +131,41 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	return ctrl.Result{
 		RequeueAfter: requeueAfter,
 	}, nil
+}
+
+// validateGeneratedApplications uses the Argo CD validation functions to verify the correctness of the
+// generated applications.
+func (r *ApplicationSetReconciler) validateGeneratedApplications(ctx context.Context, desiredApplications []argov1alpha1.Application, applicationSetInfo argoprojiov1alpha1.ApplicationSet, namespace string) (err error) {
+
+	if hasDuplicates, name := hasDuplicateNames(desiredApplications); hasDuplicates {
+		return fmt.Errorf("ApplicationSet %s contains applications with duplicate name: %s", applicationSetInfo.Name, name)
+	}
+
+	for _, app := range desiredApplications {
+
+		proj, err := r.ArgoAppClientset.ArgoprojV1alpha1().AppProjects(namespace).Get(ctx, app.Spec.GetProject(), metav1.GetOptions{})
+		if err != nil {
+			if apierr.IsNotFound(err) {
+				return fmt.Errorf("application references project %s which does not exist", app.Spec.Project)
+			}
+			return err
+		}
+
+		if err := argoutil.ValidateDestination(ctx, &app.Spec.Destination, r.ArgoDB); err != nil {
+			return fmt.Errorf("application destination spec is invalid: %s", err.Error())
+		}
+
+		conditions, err := argoutil.ValidatePermissions(ctx, &app.Spec, proj, r.ArgoDB)
+		if err != nil {
+			return err
+		}
+		if len(conditions) > 0 {
+			return fmt.Errorf("application spec is invalid: %s", argo.FormatAppConditions(conditions))
+		}
+
+	}
+
+	return nil
 }
 
 // Log a warning if there are unrecognized generators

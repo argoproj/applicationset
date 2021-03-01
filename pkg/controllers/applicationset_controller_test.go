@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
+	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/sirupsen/logrus"
 	logtest "github.com/sirupsen/logrus/hooks/test"
@@ -22,6 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	appclientset "github.com/argoproj/argo-cd/pkg/client/clientset/versioned/fake"
+	dbmocks "github.com/argoproj/argo-cd/util/db/mocks"
 )
 
 type generatorMock struct {
@@ -1300,5 +1304,203 @@ func TestHasDuplicateNames(t *testing.T) {
 		hasDuplicates, name := hasDuplicateNames(c.desiredApps)
 		assert.Equal(t, c.hasDuplicates, hasDuplicates)
 		assert.Equal(t, c.duplicateName, name)
+	}
+}
+
+func TestValidateGeneratedApplications(t *testing.T) {
+
+	scheme := runtime.NewScheme()
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	client := fake.NewClientBuilder().WithScheme(scheme).Build()
+
+	// Valid cluster
+	myCluster := argov1alpha1.Cluster{
+		Server: "https://kubernetes.default.svc",
+		Name:   "my-cluster",
+	}
+
+	// Valid project
+	myProject := &argov1alpha1.AppProject{
+		ObjectMeta: metav1.ObjectMeta{Name: "default", Namespace: "namespace"},
+		Spec: argov1alpha1.AppProjectSpec{
+			SourceRepos: []string{"*"},
+			Destinations: []argov1alpha1.ApplicationDestination{
+				{
+					Namespace: "*",
+					Server:    "*",
+				},
+			},
+			ClusterResourceWhitelist: []metav1.GroupKind{
+				{
+					Group: "*",
+					Kind:  "*",
+				},
+			},
+		},
+	}
+
+	// Test a subset of the validations that 'validateGeneratedApplications' performs
+	for _, cc := range []struct {
+		name           string
+		apps           []argov1alpha1.Application
+		expectedErrors []string
+	}{
+		{
+			name: "valid app should return true",
+			apps: []argov1alpha1.Application{
+				{
+					TypeMeta:   metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "default",
+						Source: argov1alpha1.ApplicationSource{
+							RepoURL:        "https://url",
+							Path:           "/",
+							TargetRevision: "HEAD",
+						},
+						Destination: argov1alpha1.ApplicationDestination{
+							Namespace: "namespace",
+							Name:      "my-cluster",
+						},
+					},
+				},
+			},
+			expectedErrors: []string{},
+		},
+		{
+			name: "can't have both name and server defined",
+			apps: []argov1alpha1.Application{
+				{
+					TypeMeta:   metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "default",
+						Source: argov1alpha1.ApplicationSource{
+							RepoURL:        "https://url",
+							Path:           "/",
+							TargetRevision: "HEAD",
+						},
+						Destination: argov1alpha1.ApplicationDestination{
+							Namespace: "namespace",
+							Server:    "my-server",
+							Name:      "my-cluster",
+						},
+					},
+				},
+			},
+			expectedErrors: []string{"application destination can't have both name and server defined"},
+		},
+		{
+			name: "project mismatch should return error",
+			apps: []argov1alpha1.Application{
+				{
+					TypeMeta:   metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "DOES-NOT-EXIST",
+						Source: argov1alpha1.ApplicationSource{
+							RepoURL:        "https://url",
+							Path:           "/",
+							TargetRevision: "HEAD",
+						},
+						Destination: argov1alpha1.ApplicationDestination{
+							Namespace: "namespace",
+							Name:      "my-cluster",
+						},
+					},
+				},
+			},
+			expectedErrors: []string{"application references project DOES-NOT-EXIST which does not exist"},
+		},
+		{
+			name: "valid app should return true",
+			apps: []argov1alpha1.Application{
+				{
+					TypeMeta:   metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "default",
+						Source: argov1alpha1.ApplicationSource{
+							RepoURL:        "https://url",
+							Path:           "/",
+							TargetRevision: "HEAD",
+						},
+						Destination: argov1alpha1.ApplicationDestination{
+							Namespace: "namespace",
+							Name:      "my-cluster",
+						},
+					},
+				},
+			},
+			expectedErrors: []string{},
+		},
+		{
+			name: "cluster should match",
+			apps: []argov1alpha1.Application{
+				{
+					TypeMeta:   metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "default",
+						Source: argov1alpha1.ApplicationSource{
+							RepoURL:        "https://url",
+							Path:           "/",
+							TargetRevision: "HEAD",
+						},
+						Destination: argov1alpha1.ApplicationDestination{
+							Namespace: "namespace",
+							Name:      "nonexistent-cluster",
+						},
+					},
+				},
+			},
+			expectedErrors: []string{"there are no clusters with this name: nonexistent-cluster"},
+		},
+	} {
+
+		t.Run(cc.name, func(t *testing.T) {
+
+			argoDBMock := dbmocks.ArgoDB{}
+			argoDBMock.On("GetCluster", mock.Anything, "https://kubernetes.default.svc").Return(&myCluster, nil)
+			argoDBMock.On("ListClusters", mock.Anything).Return(&v1alpha1.ClusterList{Items: []argov1alpha1.Cluster{
+				myCluster,
+			}}, nil)
+
+			argoObjs := []runtime.Object{myProject}
+			for _, app := range cc.apps {
+				argoObjs = append(argoObjs, &app)
+			}
+
+			r := ApplicationSetReconciler{
+				Client:           client,
+				Scheme:           scheme,
+				Recorder:         record.NewFakeRecorder(1),
+				Generators:       map[string]generators.Generator{},
+				ArgoDB:           &argoDBMock,
+				ArgoAppClientset: appclientset.NewSimpleClientset(argoObjs...),
+			}
+
+			appSetInfo := argoprojiov1alpha1.ApplicationSet{}
+
+			err := r.validateGeneratedApplications(context.TODO(), cc.apps, appSetInfo, "namespace")
+
+			if err == nil {
+				assert.Equal(t, len(cc.expectedErrors), 0, "Expected errors but none were seen")
+			} else {
+				// An error was returned: it should be expected
+				matched := false
+				for _, expectedErr := range cc.expectedErrors {
+					foundMatch := strings.Contains(err.Error(), expectedErr)
+					assert.True(t, foundMatch, "Unble to locate expected error: %s", cc.expectedErrors)
+					matched = matched || foundMatch
+				}
+				assert.True(t, matched, "An unexpected error occurrred: %v", err)
+			}
+		})
 	}
 }
