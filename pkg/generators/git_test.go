@@ -242,7 +242,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 				"cluster-config/staging/config.json":    fmt.Errorf("staging config file get content error"),
 			},
 			expected:      []map[string]string{},
-			expectedError: fmt.Errorf("Unable to process file 'cluster-config/staging/config.json': staging config file get content error"),
+			expectedError: fmt.Errorf("unable to process file 'cluster-config/staging/config.json': staging config file get content error"),
 		},
 		{
 			name:  "test invalid JSON file returns error",
@@ -256,7 +256,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 			repoPathsError:         nil,
 			repoFileContentsErrors: map[string]error{},
 			expected:               []map[string]string{},
-			expectedError:          fmt.Errorf("Unable to process file 'cluster-config/production/config.json': Unable to parse JSON file: invalid character 'i' looking for beginning of value"),
+			expectedError:          fmt.Errorf("unable to process file 'cluster-config/production/config.json': unable to parse JSON file: invalid character 'i' looking for beginning of value"),
 		},
 		{
 			name:  "test JSON array",
