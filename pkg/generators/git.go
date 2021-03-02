@@ -3,6 +3,7 @@ package generators
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"path"
 	"sort"
 	"time"
@@ -118,38 +119,59 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 	// Generate params from each path, and return
 	res := []map[string]string{}
 	for _, path := range allPaths {
-		params, err := g.generateParamsFromGitFile(appSetGenerator, path)
+
+		// A JSON file path can contain multiple sets of parameters (ie it is an array)
+		paramsArray, err := g.generateParamsFromGitFile(appSetGenerator, path)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to process file '%s': %v", path, err)
 		}
 
-		res = append(res, params)
+		for index := range paramsArray {
+			res = append(res, paramsArray[index])
+		}
 	}
 	return res, nil
 }
 
-func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, path string) (map[string]string, error) {
-	content, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path)
+func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, path string) ([]map[string]string, error) {
+
+	fileContent, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path)
 	if err != nil {
 		return nil, err
 	}
 
-	config := make(map[string]interface{})
-	err = json.Unmarshal(content, &config)
+	objectsFound := []map[string]interface{}{}
+
+	// First, we attempt to parse as an array
+	err = json.Unmarshal(fileContent, &objectsFound)
 	if err != nil {
-		return nil, err
+		// If unable to parse as an array, attempt to parse as a single JSON object
+		singleJSONObj := make(map[string]interface{})
+		err = json.Unmarshal(fileContent, &singleJSONObj)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse JSON file: %v", err)
+		}
+		objectsFound = append(objectsFound, singleJSONObj)
 	}
 
-	flat, err := flatten.Flatten(config, "", flatten.DotStyle)
-	if err != nil {
-		return nil, err
-	}
-	params := make(map[string]string)
-	for k, v := range flat {
-		params[k] = v.(string)
+	res := []map[string]string{}
+
+	// Flatten all JSON objects found, and return them
+	for _, objectFound := range objectsFound {
+
+		flat, err := flatten.Flatten(objectFound, "", flatten.DotStyle)
+		if err != nil {
+			return nil, err
+		}
+		params := map[string]string{}
+		for k, v := range flat {
+			params[k] = v.(string)
+		}
+		res = append(res, params)
 	}
 
-	return params, nil
+	return res, nil
+
 }
 
 func (g *GitGenerator) filterApps(Directories []argoprojiov1alpha1.GitDirectoryGeneratorItem, allApps []string) []string {

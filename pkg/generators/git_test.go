@@ -146,11 +146,16 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 func TestGitGenerateParamsFromFiles(t *testing.T) {
 
 	cases := []struct {
-		name                   string
-		files                  []argoprojiov1alpha1.GitFileGeneratorItem
-		repoPaths              []string
-		repoFileContents       map[string][]byte
-		repoPathsError         error
+		name string
+		// files is the list of paths/globs to match
+		files []argoprojiov1alpha1.GitFileGeneratorItem
+		// repoPaths is the list of matching paths in the simulated git repository
+		repoPaths []string
+		// repoFileContents maps repo path to the literal contents of that path
+		repoFileContents map[string][]byte
+		// if repoPathsError is non-nil, the call to GetPaths(...) will return this error value
+		repoPathsError error
+		// if repoFileContentsErrors contains a path key, the error value will be returned on the call to GetFileContents(...)
 		repoFileContentsErrors map[string]error
 		expected               []map[string]string
 		expectedError          error
@@ -237,7 +242,66 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 				"cluster-config/staging/config.json":    fmt.Errorf("staging config file get content error"),
 			},
 			expected:      []map[string]string{},
-			expectedError: fmt.Errorf("staging config file get content error"),
+			expectedError: fmt.Errorf("unable to process file 'cluster-config/staging/config.json': staging config file get content error"),
+		},
+		{
+			name:  "test invalid JSON file returns error",
+			files: []argoprojiov1alpha1.GitFileGeneratorItem{{Path: "**/config.json"}},
+			repoPaths: []string{
+				"cluster-config/production/config.json",
+			},
+			repoFileContents: map[string][]byte{
+				"cluster-config/production/config.json": []byte(`invalid json file`),
+			},
+			repoPathsError:         nil,
+			repoFileContentsErrors: map[string]error{},
+			expected:               []map[string]string{},
+			expectedError:          fmt.Errorf("unable to process file 'cluster-config/production/config.json': unable to parse JSON file: invalid character 'i' looking for beginning of value"),
+		},
+		{
+			name:  "test JSON array",
+			files: []argoprojiov1alpha1.GitFileGeneratorItem{{Path: "**/config.json"}},
+			repoPaths: []string{
+				"cluster-config/production/config.json",
+			},
+			repoFileContents: map[string][]byte{
+				"cluster-config/production/config.json": []byte(`
+				[
+					{
+						"cluster": {
+							"owner": "john.doe@example.com",
+							"name": "production",
+							"address": "https://kubernetes.default.svc",
+							"inner": {
+								"one" : "two"
+							}
+						}
+					},
+					{
+						"cluster": {
+							"owner": "john.doe@example.com",
+							"name": "staging",
+							"address": "https://kubernetes.default.svc"
+						}
+					}
+				]`),
+			},
+			repoPathsError:         nil,
+			repoFileContentsErrors: map[string]error{},
+			expected: []map[string]string{
+				{
+					"cluster.owner":     "john.doe@example.com",
+					"cluster.name":      "production",
+					"cluster.address":   "https://kubernetes.default.svc",
+					"cluster.inner.one": "two",
+				},
+				{
+					"cluster.owner":   "john.doe@example.com",
+					"cluster.name":    "staging",
+					"cluster.address": "https://kubernetes.default.svc",
+				},
+			},
+			expectedError: nil,
 		},
 	}
 
@@ -245,12 +309,12 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 		cc := c
 		t.Run(cc.name, func(t *testing.T) {
 			argoCDServiceMock := argoCDServiceMock{mock: &mock.Mock{}}
-			argoCDServiceMock.mock.On("GetFilePaths", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(c.repoPaths, c.repoPathsError)
-
+			argoCDServiceMock.mock.On("GetFilePaths", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				Return(c.repoPaths, c.repoPathsError)
 			if c.repoPaths != nil {
 				for _, repoPath := range c.repoPaths {
-					fmt.Println("repoPath: ", repoPath)
-					argoCDServiceMock.mock.On("GetFileContent", mock.Anything, mock.Anything, mock.Anything, repoPath).Return(c.repoFileContents[repoPath], c.repoFileContentsErrors[repoPath]).Once()
+					argoCDServiceMock.mock.On("GetFileContent", mock.Anything, mock.Anything, mock.Anything, repoPath).
+						Return(c.repoFileContents[repoPath], c.repoFileContentsErrors[repoPath]).Once()
 				}
 			}
 
