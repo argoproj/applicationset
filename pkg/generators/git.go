@@ -72,19 +72,21 @@ func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Applic
 }
 
 func (g *GitGenerator) generateParamsForGitDirectories(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
-	allApps, err := g.repos.GetApps(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision)
+
+	// Directories, not files
+	allPaths, err := g.repos.GetDirectories(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision)
 	if err != nil {
 		return nil, err
 	}
 
 	log.WithFields(log.Fields{
-		"allAps":   allApps,
-		"total":    len(allApps),
+		"allPaths": allPaths,
+		"total":    len(allPaths),
 		"repoURL":  appSetGenerator.Git.RepoURL,
 		"revision": appSetGenerator.Git.Revision,
 	}).Info("applications result from the repo service")
 
-	requestedApps := g.filterApps(appSetGenerator.Git.Directories, allApps)
+	requestedApps := g.filterApps(appSetGenerator.Git.Directories, allPaths)
 
 	res := g.generateParamsFromApps(requestedApps, appSetGenerator)
 
@@ -96,7 +98,7 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 	// Get all paths that match the requested path string, removing duplicates
 	allPathsMap := make(map[string]bool)
 	for _, requestedPath := range appSetGenerator.Git.Files {
-		paths, err := g.repos.GetPaths(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, requestedPath.Path)
+		paths, err := g.repos.GetFilePaths(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, requestedPath.Path)
 		if err != nil {
 			return nil, err
 		}
