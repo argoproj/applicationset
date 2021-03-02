@@ -1442,6 +1442,7 @@ rules:
   - argoproj.io
   resources:
   - applications
+  - appprojects
   - applicationsets
   - applicationsets/finalizers
   verbs:
