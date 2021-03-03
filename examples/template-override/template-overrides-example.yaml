@@ -17,7 +17,7 @@ spec:
         spec:
           project: "default"
           source:
-            revision: HEAD
+            targetRevision: HEAD
             repoURL: https://github.com/argoproj-labs/applicationset.git
             path: 'examples/template-override/{{cluster}}-override'
           destination: {}
