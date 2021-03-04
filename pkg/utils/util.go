@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/pkg/errors"
@@ -53,14 +54,16 @@ func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, params map
 }
 
 // Replace executes basic string substitution of a template with replacement values.
-// allowUnresolved indicates whether or not it is acceptable to have unresolved variables
-// remaining in the substituted template. prefixFilter will apply the replacements only
-// to variables with the specified prefix
+// 'allowUnresolved' indicates whether or not it is acceptable to have unresolved variables
+// remaining in the substituted template.
 func (r *Render) replace(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allowUnresolved bool) (string, error) {
 	var unresolvedErr error
 	replacedTmpl := fstTmpl.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
-		replacement, ok := replaceMap[tag]
-		if !ok {
+
+		trimmedTag := strings.TrimSpace(tag)
+
+		replacement, ok := replaceMap[trimmedTag]
+		if len(trimmedTag) == 0 || !ok {
 			if allowUnresolved {
 				// just write the same string back
 				return w.Write([]byte(fmt.Sprintf("{{%s}}", tag)))
