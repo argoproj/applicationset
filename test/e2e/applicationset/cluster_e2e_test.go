@@ -220,3 +220,167 @@ func TestClusterGeneratorWithLocalCluster(t *testing.T) {
 		})
 	}
 }
+
+func TestSimpleClusterGeneratorAddingCluster(t *testing.T) {
+
+	expectedAppTemplate := argov1alpha1.Application{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Application",
+			APIVersion: "argoproj.io/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "{{name}}-guestbook",
+			Namespace: utils.ArgoCDNamespace,
+		},
+		Spec: argov1alpha1.ApplicationSpec{
+			Project: "default",
+			Source: argov1alpha1.ApplicationSource{
+				RepoURL:        "https://github.com/argoproj/argocd-example-apps.git",
+				TargetRevision: "HEAD",
+				Path:           "guestbook",
+			},
+			Destination: argov1alpha1.ApplicationDestination{
+				Name:      "{{name}}",
+				Namespace: "guestbook",
+			},
+		},
+	}
+
+	expectedAppCluster1 := *expectedAppTemplate.DeepCopy()
+	expectedAppCluster1.Spec.Destination.Name = "cluster1"
+	expectedAppCluster1.ObjectMeta.Name = "cluster1-guestbook"
+
+	expectedAppCluster2 := *expectedAppTemplate.DeepCopy()
+	expectedAppCluster2.Spec.Destination.Name = "cluster2"
+	expectedAppCluster2.ObjectMeta.Name = "cluster2-guestbook"
+
+	Given(t).
+		// Create a ClusterGenerator-based ApplicationSet
+		When().
+		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
+		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
+			Name: "simple-cluster-generator",
+		},
+			Spec: v1alpha1.ApplicationSetSpec{
+				Template: v1alpha1.ApplicationSetTemplate{
+					ApplicationSetTemplateMeta: v1alpha1.ApplicationSetTemplateMeta{Name: "{{name}}-guestbook"},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "default",
+						Source: argov1alpha1.ApplicationSource{
+							RepoURL:        "https://github.com/argoproj/argocd-example-apps.git",
+							TargetRevision: "HEAD",
+							Path:           "guestbook",
+						},
+						Destination: argov1alpha1.ApplicationDestination{
+							Name: "{{name}}",
+							// Server:    "{{server}}",
+							Namespace: "guestbook",
+						},
+					},
+				},
+				Generators: []v1alpha1.ApplicationSetGenerator{
+					{
+						Clusters: &v1alpha1.ClusterGenerator{
+							Selector: metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"argocd.argoproj.io/secret-type": "cluster",
+								},
+							},
+						},
+					},
+				},
+			},
+		}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{expectedAppCluster1})).
+
+		// Update the ApplicationSet template namespace, and verify it updates the Applications
+		When().
+		CreateClusterSecret("my-secret2", "cluster2", "https://kubernetes.default.svc").
+		Then().Expect(ApplicationsExist([]argov1alpha1.Application{expectedAppCluster1, expectedAppCluster2})).
+
+		// Delete the ApplicationSet, and verify it deletes the Applications
+		When().
+		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{expectedAppCluster1, expectedAppCluster2}))
+}
+
+func TestSimpleClusterGeneratorDeletingCluster(t *testing.T) {
+
+	expectedAppTemplate := argov1alpha1.Application{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Application",
+			APIVersion: "argoproj.io/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "{{name}}-guestbook",
+			Namespace: utils.ArgoCDNamespace,
+		},
+		Spec: argov1alpha1.ApplicationSpec{
+			Project: "default",
+			Source: argov1alpha1.ApplicationSource{
+				RepoURL:        "https://github.com/argoproj/argocd-example-apps.git",
+				TargetRevision: "HEAD",
+				Path:           "guestbook",
+			},
+			Destination: argov1alpha1.ApplicationDestination{
+				Name:      "{{name}}",
+				Namespace: "guestbook",
+			},
+		},
+	}
+
+	expectedAppCluster1 := *expectedAppTemplate.DeepCopy()
+	expectedAppCluster1.Spec.Destination.Name = "cluster1"
+	expectedAppCluster1.ObjectMeta.Name = "cluster1-guestbook"
+
+	expectedAppCluster2 := *expectedAppTemplate.DeepCopy()
+	expectedAppCluster2.Spec.Destination.Name = "cluster2"
+	expectedAppCluster2.ObjectMeta.Name = "cluster2-guestbook"
+
+	Given(t).
+		// Create a ClusterGenerator-based ApplicationSet
+		When().
+		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
+		CreateClusterSecret("my-secret2", "cluster2", "https://kubernetes.default.svc").
+		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
+			Name: "simple-cluster-generator",
+		},
+			Spec: v1alpha1.ApplicationSetSpec{
+				Template: v1alpha1.ApplicationSetTemplate{
+					ApplicationSetTemplateMeta: v1alpha1.ApplicationSetTemplateMeta{Name: "{{name}}-guestbook"},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "default",
+						Source: argov1alpha1.ApplicationSource{
+							RepoURL:        "https://github.com/argoproj/argocd-example-apps.git",
+							TargetRevision: "HEAD",
+							Path:           "guestbook",
+						},
+						Destination: argov1alpha1.ApplicationDestination{
+							Name: "{{name}}",
+							// Server:    "{{server}}",
+							Namespace: "guestbook",
+						},
+					},
+				},
+				Generators: []v1alpha1.ApplicationSetGenerator{
+					{
+						Clusters: &v1alpha1.ClusterGenerator{
+							Selector: metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"argocd.argoproj.io/secret-type": "cluster",
+								},
+							},
+						},
+					},
+				},
+			},
+		}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{expectedAppCluster1, expectedAppCluster2})).
+
+		// Update the ApplicationSet template namespace, and verify it updates the Applications
+		When().
+		DeleteClusterSecret("my-secret2").
+		Then().Expect(ApplicationsExist([]argov1alpha1.Application{expectedAppCluster1})).
+		Expect(ApplicationsDoNotExist([]argov1alpha1.Application{expectedAppCluster2})).
+
+		// Delete the ApplicationSet, and verify it deletes the Applications
+		When().
+		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{expectedAppCluster1}))
+}
