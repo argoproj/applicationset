@@ -18,7 +18,9 @@ COPY pkg/ pkg/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -a -o applicationset-controller main.go
 
-FROM debian:10-slim
+FROM ubuntu:20.10
+
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y && \
   apt-get install -y git-all && \
   rm -r /var/lib/apt/lists /var/cache/apt/archives
