@@ -30,15 +30,22 @@ type ClusterGenerator struct {
 	ctx       context.Context
 	clientset kubernetes.Interface
 	// namespace is the Argo CD namespace
-	namespace string
+	namespace       string
+	settingsManager *settings.SettingsManager
+	argoDB          db.ArgoDB
 }
 
 func NewClusterGenerator(c client.Client, ctx context.Context, clientset kubernetes.Interface, namespace string) Generator {
+
+	settingsManager := settings.NewSettingsManager(ctx, clientset, namespace)
+
 	g := &ClusterGenerator{
-		Client:    c,
-		ctx:       ctx,
-		clientset: clientset,
-		namespace: namespace,
+		Client:          c,
+		ctx:             ctx,
+		clientset:       clientset,
+		namespace:       namespace,
+		settingsManager: settingsManager,
+		argoDB:          db.NewDB(namespace, settingsManager, clientset),
 	}
 	return g
 }
@@ -67,9 +74,7 @@ func (g *ClusterGenerator) GenerateParams(
 	ignoreLocalClusters := len(appSetGenerator.Clusters.Selector.MatchExpressions) > 0 || len(appSetGenerator.Clusters.Selector.MatchLabels) > 0
 
 	// ListCluster from Argo CD's util/db package will include the local cluster in the list of clusters
-	settingsMgr := settings.NewSettingsManager(g.ctx, g.clientset, g.namespace)
-	newDB := db.NewDB(g.namespace, settingsMgr, g.clientset)
-	clustersFromArgoCD, err := newDB.ListClusters(g.ctx)
+	clustersFromArgoCD, err := g.argoDB.ListClusters(g.ctx)
 	if err != nil {
 		return nil, err
 	}
