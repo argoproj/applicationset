@@ -39,7 +39,14 @@ func (h *clusterSecretEventHandler) Generic(e event.GenericEvent, q workqueue.Ra
 	h.queueRelatedAppGenerators(q, e.Object)
 }
 
-func (h *clusterSecretEventHandler) queueRelatedAppGenerators(q workqueue.RateLimitingInterface, object client.Object) {
+// addRateLimitingInterface defines the Add method of workqueue.RateLimitingInterface, allow us to easily mock
+// it for testing purposes.
+type addRateLimitingInterface interface {
+	Add(item interface{})
+}
+
+func (h *clusterSecretEventHandler) queueRelatedAppGenerators(q addRateLimitingInterface, object client.Object) {
+
 	// Check for label, lookup all ApplicationSets that might match the cluster, queue them all
 	if object.GetLabels()[generators.ArgoCDSecretTypeLabel] != generators.ArgoCDSecretTypeCluster {
 		return
@@ -56,8 +63,10 @@ func (h *clusterSecretEventHandler) queueRelatedAppGenerators(q workqueue.RateLi
 		h.Log.WithError(err).Error("unable to list ApplicationSets")
 		return
 	}
+
 	h.Log.WithField("count", len(appSetList.Items)).Info("listed ApplicationSets")
 	for _, appSet := range appSetList.Items {
+
 		foundClusterGenerator := false
 		for _, generator := range appSet.Spec.Generators {
 			if generator.Clusters != nil {
@@ -66,6 +75,7 @@ func (h *clusterSecretEventHandler) queueRelatedAppGenerators(q workqueue.RateLi
 			}
 		}
 		if foundClusterGenerator {
+
 			// TODO: only queue the AppGenerator if the labels match this cluster
 			req := ctrl.Request{NamespacedName: types.NamespacedName{Namespace: appSet.Namespace, Name: appSet.Name}}
 			q.Add(req)
