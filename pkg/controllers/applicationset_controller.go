@@ -81,6 +81,11 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// Do not attempt to further reconcile the ApplicationSet if it is being deleted.
+	if applicationSetInfo.ObjectMeta.DeletionTimestamp != nil {
+		return ctrl.Result{}, nil
+	}
+
 	// Log a warning if there are unrecognized generators
 	checkInvalidGenerators(&applicationSetInfo)
 
