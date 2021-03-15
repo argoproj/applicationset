@@ -18,8 +18,9 @@ func TestSimpleListGenerator(t *testing.T) {
 			APIVersion: "argoproj.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "my-cluster-guestbook",
-			Namespace: utils.ArgoCDNamespace,
+			Name:       "my-cluster-guestbook",
+			Namespace:  utils.ArgoCDNamespace,
+			Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
 		},
 		Spec: argov1alpha1.ApplicationSpec{
 			Project: "default",
@@ -35,6 +36,7 @@ func TestSimpleListGenerator(t *testing.T) {
 		},
 	}
 	var expectedAppNewNamespace *argov1alpha1.Application
+	var expectedAppNewMetadata *argov1alpha1.Application
 
 	Given(t).
 		// Create a ListGenerator-based ApplicationSet
@@ -79,9 +81,21 @@ func TestSimpleListGenerator(t *testing.T) {
 			appset.Spec.Template.Spec.Destination.Namespace = "guestbook2"
 		}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{*expectedAppNewNamespace})).
 
+		// Update the metadata fields in the appset template, and make sure it propagates to the apps
+		When().
+		And(func() {
+			expectedAppNewMetadata = expectedAppNewNamespace.DeepCopy()
+			expectedAppNewMetadata.ObjectMeta.Annotations = map[string]string{"annotation-key": "annotation-value"}
+			expectedAppNewMetadata.ObjectMeta.Labels = map[string]string{"label-key": "label-value"}
+		}).
+		Update(func(appset *v1alpha1.ApplicationSet) {
+			appset.Spec.Template.Annotations = map[string]string{"annotation-key": "annotation-value"}
+			appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
+		}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{*expectedAppNewMetadata})).
+
 		// Delete the ApplicationSet, and verify it deletes the Applications
 		When().
-		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{*expectedAppNewNamespace}))
+		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{*expectedAppNewMetadata}))
 
 }
 
@@ -93,8 +107,9 @@ func TestSimpleGitDirectoryGenerator(t *testing.T) {
 				APIVersion: "argoproj.io/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: utils.ArgoCDNamespace,
+				Name:       name,
+				Namespace:  utils.ArgoCDNamespace,
+				Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
 			},
 			Spec: argov1alpha1.ApplicationSpec{
 				Project: "default",
@@ -118,6 +133,7 @@ func TestSimpleGitDirectoryGenerator(t *testing.T) {
 	}
 
 	var expectedAppsNewNamespace []argov1alpha1.Application
+	var expectedAppsNewMetadata []argov1alpha1.Application
 
 	Given(t).
 		When().
@@ -169,6 +185,21 @@ func TestSimpleGitDirectoryGenerator(t *testing.T) {
 			appset.Spec.Template.Spec.Destination.Namespace = "guestbook2"
 		}).Then().Expect(ApplicationsExist(expectedAppsNewNamespace)).
 
+		// Update the metadata fields in the appset template, and make sure it propagates to the apps
+		When().
+		And(func() {
+			for _, expectedApp := range expectedAppsNewNamespace {
+				expectedAppNewMetadata := expectedApp.DeepCopy()
+				expectedAppNewMetadata.ObjectMeta.Annotations = map[string]string{"annotation-key": "annotation-value"}
+				expectedAppNewMetadata.ObjectMeta.Labels = map[string]string{"label-key": "label-value"}
+				expectedAppsNewMetadata = append(expectedAppsNewMetadata, *expectedAppNewMetadata)
+			}
+		}).
+		Update(func(appset *v1alpha1.ApplicationSet) {
+			appset.Spec.Template.Annotations = map[string]string{"annotation-key": "annotation-value"}
+			appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
+		}).Then().Expect(ApplicationsExist(expectedAppsNewMetadata)).
+
 		// Delete the ApplicationSet, and verify it deletes the Applications
 		When().
 		Delete().Then().Expect(ApplicationsDoNotExist(expectedAppsNewNamespace))
@@ -183,8 +214,9 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 				APIVersion: "argoproj.io/v1alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: utils.ArgoCDNamespace,
+				Name:       name,
+				Namespace:  utils.ArgoCDNamespace,
+				Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
 			},
 			Spec: argov1alpha1.ApplicationSpec{
 				Project: "default",
@@ -207,6 +239,7 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 	}
 
 	var expectedAppsNewNamespace []argov1alpha1.Application
+	var expectedAppsNewMetadata []argov1alpha1.Application
 
 	Given(t).
 		When().
@@ -257,6 +290,21 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 		Update(func(appset *v1alpha1.ApplicationSet) {
 			appset.Spec.Template.Spec.Destination.Namespace = "guestbook2"
 		}).Then().Expect(ApplicationsExist(expectedAppsNewNamespace)).
+
+		// Update the metadata fields in the appset template, and make sure it propagates to the apps
+		When().
+		And(func() {
+			for _, expectedApp := range expectedAppsNewNamespace {
+				expectedAppNewMetadata := expectedApp.DeepCopy()
+				expectedAppNewMetadata.ObjectMeta.Annotations = map[string]string{"annotation-key": "annotation-value"}
+				expectedAppNewMetadata.ObjectMeta.Labels = map[string]string{"label-key": "label-value"}
+				expectedAppsNewMetadata = append(expectedAppsNewMetadata, *expectedAppNewMetadata)
+			}
+		}).
+		Update(func(appset *v1alpha1.ApplicationSet) {
+			appset.Spec.Template.Annotations = map[string]string{"annotation-key": "annotation-value"}
+			appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
+		}).Then().Expect(ApplicationsExist(expectedAppsNewMetadata)).
 
 		// Delete the ApplicationSet, and verify it deletes the Applications
 		When().

@@ -302,20 +302,27 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, c := range []struct {
-		appSet     argoprojiov1alpha1.ApplicationSet
-		existsApps []argov1alpha1.Application
-		apps       []argov1alpha1.Application
-		expected   []argov1alpha1.Application
+		// name is human-readable test name
+		name string
+		// appSet is the ApplicationSet we are generating resources for
+		appSet argoprojiov1alpha1.ApplicationSet
+		// existingApps are the apps that already exist on the cluster
+		existingApps []argov1alpha1.Application
+		// desiredApps are the generated apps to create/update
+		desiredApps []argov1alpha1.Application
+		// expected is what we expect the cluster Applications to look like, after createOrUpdateInCluster
+		expected []argov1alpha1.Application
 	}{
 		{
+			name: "Create an app that doesn't exist",
 			appSet: argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
 					Namespace: "namespace",
 				},
 			},
-			existsApps: nil,
-			apps: []argov1alpha1.Application{
+			existingApps: nil,
+			desiredApps: []argov1alpha1.Application{
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "app1",
@@ -337,6 +344,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 			},
 		},
 		{
+			name: "Update an existing app with a different project name",
 			appSet: argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
@@ -350,7 +358,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					},
 				},
 			},
-			existsApps: []argov1alpha1.Application{
+			existingApps: []argov1alpha1.Application{
 				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Application",
@@ -366,7 +374,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					},
 				},
 			},
-			apps: []argov1alpha1.Application{
+			desiredApps: []argov1alpha1.Application{
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "app1",
@@ -394,6 +402,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 			},
 		},
 		{
+			name: "Create a new app and check it doesn't replace the existing app",
 			appSet: argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
@@ -407,7 +416,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					},
 				},
 			},
-			existsApps: []argov1alpha1.Application{
+			existingApps: []argov1alpha1.Application{
 				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Application",
@@ -423,7 +432,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					},
 				},
 			},
-			apps: []argov1alpha1.Application{
+			desiredApps: []argov1alpha1.Application{
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "app2",
@@ -450,39 +459,316 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Ensure that labels and annotations are added (via update) into an exiting application",
+			appSet: argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+				Spec: argoprojiov1alpha1.ApplicationSetSpec{
+					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+						Spec: argov1alpha1.ApplicationSpec{
+							Project: "project",
+						},
+					},
+				},
+			},
+			existingApps: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						ResourceVersion: "2",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:        "app1",
+						Labels:      map[string]string{"label-key": "label-value"},
+						Annotations: map[string]string{"annot-key": "annot-value"},
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+			expected: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						Labels:          map[string]string{"label-key": "label-value"},
+						Annotations:     map[string]string{"annot-key": "annot-value"},
+						ResourceVersion: "3",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+		},
+		{
+			name: "Ensure that labels and annotations are removed from an existing app",
+			appSet: argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+				Spec: argoprojiov1alpha1.ApplicationSetSpec{
+					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+						Spec: argov1alpha1.ApplicationSpec{
+							Project: "project",
+						},
+					},
+				},
+			},
+			existingApps: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						ResourceVersion: "2",
+						Labels:          map[string]string{"label-key": "label-value"},
+						Annotations:     map[string]string{"annot-key": "annot-value"},
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+			expected: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						ResourceVersion: "3",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+		},
+		{
+			name: "Ensure that status and operation fields are not overriden by an update, when removing labels/annotations",
+			appSet: argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+				Spec: argoprojiov1alpha1.ApplicationSetSpec{
+					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+						Spec: argov1alpha1.ApplicationSpec{
+							Project: "project",
+						},
+					},
+				},
+			},
+			existingApps: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						ResourceVersion: "2",
+						Labels:          map[string]string{"label-key": "label-value"},
+						Annotations:     map[string]string{"annot-key": "annot-value"},
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+					Status: argov1alpha1.ApplicationStatus{
+						Resources: []argov1alpha1.ResourceStatus{{Name: "sample-name"}},
+					},
+					Operation: &argov1alpha1.Operation{
+						Sync: &argov1alpha1.SyncOperation{Revision: "sample-revision"},
+					},
+				},
+			},
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+			expected: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						ResourceVersion: "3",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+					Status: argov1alpha1.ApplicationStatus{
+						Resources: []argov1alpha1.ResourceStatus{{Name: "sample-name"}},
+					},
+					Operation: &argov1alpha1.Operation{
+						Sync: &argov1alpha1.SyncOperation{Revision: "sample-revision"},
+					},
+				},
+			},
+		},
+		{
+			name: "Ensure that status and operation fields are not overriden by an update, when removing labels/annotations and adding other fields",
+			appSet: argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+				Spec: argoprojiov1alpha1.ApplicationSetSpec{
+					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+						Spec: argov1alpha1.ApplicationSpec{
+							Project:     "project",
+							Source:      argov1alpha1.ApplicationSource{Path: "path", TargetRevision: "revision", RepoURL: "repoURL"},
+							Destination: argov1alpha1.ApplicationDestination{Server: "server", Namespace: "namespace"},
+						},
+					},
+				},
+			},
+			existingApps: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						ResourceVersion: "2",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+					Status: argov1alpha1.ApplicationStatus{
+						Resources: []argov1alpha1.ResourceStatus{{Name: "sample-name"}},
+					},
+					Operation: &argov1alpha1.Operation{
+						Sync: &argov1alpha1.SyncOperation{Revision: "sample-revision"},
+					},
+				},
+			},
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:        "app1",
+						Labels:      map[string]string{"label-key": "label-value"},
+						Annotations: map[string]string{"annot-key": "annot-value"},
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project:     "project",
+						Source:      argov1alpha1.ApplicationSource{Path: "path", TargetRevision: "revision", RepoURL: "repoURL"},
+						Destination: argov1alpha1.ApplicationDestination{Server: "server", Namespace: "namespace"},
+					},
+				},
+			},
+			expected: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						Labels:          map[string]string{"label-key": "label-value"},
+						Annotations:     map[string]string{"annot-key": "annot-value"},
+						ResourceVersion: "3",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project:     "project",
+						Source:      argov1alpha1.ApplicationSource{Path: "path", TargetRevision: "revision", RepoURL: "repoURL"},
+						Destination: argov1alpha1.ApplicationDestination{Server: "server", Namespace: "namespace"},
+					},
+					Status: argov1alpha1.ApplicationStatus{
+						Resources: []argov1alpha1.ResourceStatus{{Name: "sample-name"}},
+					},
+					Operation: &argov1alpha1.Operation{
+						Sync: &argov1alpha1.SyncOperation{Revision: "sample-revision"},
+					},
+				},
+			},
+		},
 	} {
-		initObjs := []client.Object{&c.appSet}
-		for _, a := range c.existsApps {
-			err = controllerutil.SetControllerReference(&c.appSet, &a, scheme)
-			assert.Nil(t, err)
-			initObjs = append(initObjs, &a)
-		}
 
-		client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
+		t.Run(c.name, func(t *testing.T) {
 
-		r := ApplicationSetReconciler{
-			Client:   client,
-			Scheme:   scheme,
-			Recorder: record.NewFakeRecorder(len(initObjs) + len(c.expected)),
-		}
+			initObjs := []client.Object{&c.appSet}
 
-		err = r.createOrUpdateInCluster(context.TODO(), c.appSet, c.apps)
-		assert.Nil(t, err)
+			for _, a := range c.existingApps {
+				err = controllerutil.SetControllerReference(&c.appSet, &a, scheme)
+				assert.Nil(t, err)
+				initObjs = append(initObjs, &a)
+			}
 
-		for _, obj := range c.expected {
-			got := &argov1alpha1.Application{}
-			_ = client.Get(context.Background(), crtclient.ObjectKey{
-				Namespace: obj.Namespace,
-				Name:      obj.Name,
-			}, got)
+			client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
 
-			err = controllerutil.SetControllerReference(&c.appSet, &obj, r.Scheme)
+			r := ApplicationSetReconciler{
+				Client:   client,
+				Scheme:   scheme,
+				Recorder: record.NewFakeRecorder(len(initObjs) + len(c.expected)),
+			}
+
+			err = r.createOrUpdateInCluster(context.TODO(), c.appSet, c.desiredApps)
 			assert.Nil(t, err)
 
-			assert.Equal(t, obj, *got)
-		}
+			for _, obj := range c.expected {
+				got := &argov1alpha1.Application{}
+				_ = client.Get(context.Background(), crtclient.ObjectKey{
+					Namespace: obj.Namespace,
+					Name:      obj.Name,
+				}, got)
+
+				err = controllerutil.SetControllerReference(&c.appSet, &obj, r.Scheme)
+				assert.Nil(t, err)
+				assert.Equal(t, obj, *got)
+			}
+		})
 	}
-
 }
 
 func TestCreateApplications(t *testing.T) {

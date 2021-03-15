@@ -407,21 +407,36 @@ func (r *ApplicationSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 // createOrUpdateInCluster will create / update application resources in the cluster.
-// For new application it will call create
-// For application that need to update it will call update
-// The function also adds owner reference to all applications, and uses it for delete them.
+// - For new applications, it will call create
+// - For existing application, it will call update
+// The function also adds owner reference to all applications, and uses it to delete them.
 func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
 
 	var firstError error
-	//create or updates the application in appList
-	for _, app := range desiredApplications {
-		appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": applicationSet.Name})
-		app.Namespace = applicationSet.Namespace
+	// Creates or updates the application in appList
+	for _, generatedApp := range desiredApplications {
 
-		found := app
-		action, err := utils.CreateOrUpdate(ctx, r.Client, &found, func() error {
-			found.Spec = app.Spec
-			return controllerutil.SetControllerReference(&applicationSet, &found, r.Scheme)
+		appLog := log.WithFields(log.Fields{"app": generatedApp.Name, "appSet": applicationSet.Name})
+		generatedApp.Namespace = applicationSet.Namespace
+
+		found := &argov1alpha1.Application{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      generatedApp.Name,
+				Namespace: generatedApp.Namespace,
+			},
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Application",
+				APIVersion: "argoproj.io/v1alpha1",
+			},
+		}
+
+		action, err := utils.CreateOrUpdate(ctx, r.Client, found, func() error {
+			// Copy only the Application/ObjectMeta fields that are significant, from the generatedApp
+			found.Spec = generatedApp.Spec
+			found.ObjectMeta.Annotations = generatedApp.Annotations
+			found.ObjectMeta.Finalizers = generatedApp.Finalizers
+			found.ObjectMeta.Labels = generatedApp.Labels
+			return controllerutil.SetControllerReference(&applicationSet, found, r.Scheme)
 		})
 
 		if err != nil {
@@ -432,7 +447,7 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 			continue
 		}
 
-		r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, fmt.Sprint(action), "%s Application %q", action, app.Name)
+		r.Recorder.Eventf(&applicationSet, core.EventTypeNormal, fmt.Sprint(action), "%s Application %q", action, generatedApp.Name)
 		appLog.Logf(log.InfoLevel, "%s Application", action)
 	}
 	return firstError

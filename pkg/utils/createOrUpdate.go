@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -15,9 +16,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// CreateOrUpdate overrides "sigs.k8s.io/controller-runtime" function to add equality for argov1alpha1.ApplicationDestination
-// argov1alpha1.ApplicationDestination has a private variable, so the default implementation fails to compare it
+// CreateOrUpdate overrides "sigs.k8s.io/controller-runtime" function
+// in sigs.k8s.io/controller-runtime/pkg/controller/controllerutil/controllerutil.go
+// to add equality for argov1alpha1.ApplicationDestination
+// argov1alpha1.ApplicationDestination has a private variable, so the default
+// implementation fails to compare it.
+//
+// CreateOrUpdate creates or updates the given object in the Kubernetes
+// cluster. The object's desired state must be reconciled with the existing
+// state inside the passed in callback MutateFn.
+//
+// The MutateFn is called regardless of creating or updating an object.
+//
+// It returns the executed operation and an error.
 func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f controllerutil.MutateFn) (controllerutil.OperationResult, error) {
+
 	key := client.ObjectKeyFromObject(obj)
 	if err := c.Get(ctx, key, obj); err != nil {
 		if !errors.IsNotFound(err) {
@@ -59,6 +72,26 @@ func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f c
 		},
 		func(a, b argov1alpha1.ApplicationDestination) bool {
 			return a.Namespace == b.Namespace && a.Name == b.Name && a.Server == b.Server
+		},
+		func(a, b metav1.ObjectMeta) bool {
+			// Only include significant fields in the equality comparison, for object metadata
+			filterFields := func(om metav1.ObjectMeta) *metav1.ObjectMeta {
+				result := metav1.ObjectMeta{
+					Name:        om.Name,
+					Namespace:   om.Namespace,
+					Labels:      om.Labels,
+					Annotations: om.Annotations,
+					Finalizers:  om.Finalizers,
+				}
+				return result.DeepCopy()
+			}
+			res := reflect.DeepEqual(filterFields(a), filterFields(b))
+			return res
+		},
+		func(a, b argov1alpha1.ApplicationSpec) bool {
+			// ApplicationSpec can be compared as is
+			res := reflect.DeepEqual(a, b)
+			return res
 		},
 	)
 

@@ -7,6 +7,7 @@ import (
 
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/gitops-engine/pkg/diff"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type state = string
@@ -110,7 +111,16 @@ func filterFields(input argov1alpha1.Application) argov1alpha1.Application {
 
 	spec := input.Spec
 
+	metaCopy := input.ObjectMeta.DeepCopy()
+
 	output := argov1alpha1.Application{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      metaCopy.Labels,
+			Annotations: metaCopy.Annotations,
+			Name:        metaCopy.Name,
+			Namespace:   metaCopy.Namespace,
+			Finalizers:  metaCopy.Finalizers,
+		},
 		Spec: argov1alpha1.ApplicationSpec{
 			Source: argov1alpha1.ApplicationSource{
 				Path:           spec.Source.Path,
