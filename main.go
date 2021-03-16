@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -39,6 +40,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	appclientset "github.com/argoproj/argo-cd/pkg/client/clientset/versioned"
+	"github.com/argoproj/pkg/stats"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -150,6 +152,9 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
 		os.Exit(1)
 	}
+
+	stats.StartStatsTicker(10 * time.Minute)
+
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("Starting manager")
