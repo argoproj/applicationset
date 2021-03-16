@@ -18,8 +18,9 @@ func TestSimpleClusterGenerator(t *testing.T) {
 			APIVersion: "argoproj.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "cluster1-guestbook",
-			Namespace: utils.ArgoCDNamespace,
+			Name:       "cluster1-guestbook",
+			Namespace:  utils.ArgoCDNamespace,
+			Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
 		},
 		Spec: argov1alpha1.ApplicationSpec{
 			Project: "default",
@@ -36,6 +37,7 @@ func TestSimpleClusterGenerator(t *testing.T) {
 	}
 
 	var expectedAppNewNamespace *argov1alpha1.Application
+	var expectedAppNewMetadata *argov1alpha1.Application
 
 	Given(t).
 		// Create a ClusterGenerator-based ApplicationSet
@@ -85,6 +87,18 @@ func TestSimpleClusterGenerator(t *testing.T) {
 			appset.Spec.Template.Spec.Destination.Namespace = "guestbook2"
 		}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{*expectedAppNewNamespace})).
 
+		// Update the metadata fields in the appset template, and make sure it propagates to the apps
+		When().
+		And(func() {
+			expectedAppNewMetadata = expectedAppNewNamespace.DeepCopy()
+			expectedAppNewMetadata.ObjectMeta.Annotations = map[string]string{"annotation-key": "annotation-value"}
+			expectedAppNewMetadata.ObjectMeta.Labels = map[string]string{"label-key": "label-value"}
+		}).
+		Update(func(appset *v1alpha1.ApplicationSet) {
+			appset.Spec.Template.Annotations = map[string]string{"annotation-key": "annotation-value"}
+			appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
+		}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{*expectedAppNewMetadata})).
+
 		// Delete the ApplicationSet, and verify it deletes the Applications
 		When().
 		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{*expectedAppNewNamespace}))
@@ -98,8 +112,9 @@ func TestClusterGeneratorWithLocalCluster(t *testing.T) {
 			APIVersion: "argoproj.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "in-cluster-guestbook",
-			Namespace: utils.ArgoCDNamespace,
+			Name:       "in-cluster-guestbook",
+			Namespace:  utils.ArgoCDNamespace,
+			Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
 		},
 		Spec: argov1alpha1.ApplicationSpec{
 			Project: "default",
@@ -144,6 +159,7 @@ func TestClusterGeneratorWithLocalCluster(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var expectedAppNewNamespace *argov1alpha1.Application
+			var expectedAppNewMetadata *argov1alpha1.Application
 
 			// Create the expected application from the template, and copy in the destination from the test case
 			expectedApp := *expectedAppTemplate.DeepCopy()
@@ -185,6 +201,18 @@ func TestClusterGeneratorWithLocalCluster(t *testing.T) {
 				Update(func(appset *v1alpha1.ApplicationSet) {
 					appset.Spec.Template.Spec.Destination.Namespace = "guestbook2"
 				}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{*expectedAppNewNamespace})).
+
+				// Update the metadata fields in the appset template, and make sure it propagates to the apps
+				When().
+				And(func() {
+					expectedAppNewMetadata = expectedAppNewNamespace.DeepCopy()
+					expectedAppNewMetadata.ObjectMeta.Annotations = map[string]string{"annotation-key": "annotation-value"}
+					expectedAppNewMetadata.ObjectMeta.Labels = map[string]string{"label-key": "label-value"}
+				}).
+				Update(func(appset *v1alpha1.ApplicationSet) {
+					appset.Spec.Template.Annotations = map[string]string{"annotation-key": "annotation-value"}
+					appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
+				}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{*expectedAppNewMetadata})).
 
 				// Delete the ApplicationSet, and verify it deletes the Applications
 				When().

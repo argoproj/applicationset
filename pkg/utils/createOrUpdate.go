@@ -15,9 +15,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// CreateOrUpdate overrides "sigs.k8s.io/controller-runtime" function to add equality for argov1alpha1.ApplicationDestination
-// argov1alpha1.ApplicationDestination has a private variable, so the default implementation fails to compare it
+// CreateOrUpdate overrides "sigs.k8s.io/controller-runtime" function
+// in sigs.k8s.io/controller-runtime/pkg/controller/controllerutil/controllerutil.go
+// to add equality for argov1alpha1.ApplicationDestination
+// argov1alpha1.ApplicationDestination has a private variable, so the default
+// implementation fails to compare it.
+//
+// CreateOrUpdate creates or updates the given object in the Kubernetes
+// cluster. The object's desired state must be reconciled with the existing
+// state inside the passed in callback MutateFn.
+//
+// The MutateFn is called regardless of creating or updating an object.
+//
+// It returns the executed operation and an error.
 func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f controllerutil.MutateFn) (controllerutil.OperationResult, error) {
+
 	key := client.ObjectKeyFromObject(obj)
 	if err := c.Get(ctx, key, obj); err != nil {
 		if !errors.IsNotFound(err) {
