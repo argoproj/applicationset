@@ -47,7 +47,7 @@ jobs:
           # Use a fixed version of kustomize, rather than the version on the 'runs-on' image
           wget https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.9.4/kustomize_v3.9.4_linux_amd64.tar.gz
           tar xzf kustomize_v3.9.4_linux_amd64.tar.gz
-          KUSTOMIZE=~/kustomize make manifests
+          KUSTOMIZE=${PWD}/kustomize make manifests
           git diff --exit-code -- .
 
   build-go:
