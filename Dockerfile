@@ -29,6 +29,16 @@ COPY hack/from-argo-cd/git-ask-pass.sh /usr/local/bin/git-ask-pass.sh
 COPY hack/from-argo-cd/gpg-wrapper.sh /usr/local/bin/gpg-wrapper.sh
 COPY hack/from-argo-cd/git-verify-wrapper.sh /usr/local/bin/git-verify-wrapper.sh
 
+# Support for mounting configuration from a configmap
+RUN mkdir -p /app/config/ssh && \
+    touch /app/config/ssh/ssh_known_hosts && \
+    ln -s /app/config/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
+
+RUN mkdir -p /app/config/tls
+RUN mkdir -p /app/config/gpg/source && \
+    mkdir -p /app/config/gpg/keys
+#    chown argocd /app/config/gpg/keys && \
+#    chmod 0700 /app/config/gpg/keys
 
 WORKDIR /
 COPY --from=builder /workspace/applicationset-controller /usr/local/bin/
