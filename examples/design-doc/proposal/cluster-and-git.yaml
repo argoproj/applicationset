@@ -1,0 +1,32 @@
+# This example demonstrates the combining of the git generator with a clusgter generator
+# The expected output would be an application per git directory and a clsuter (applicztions_count = git directory * clusters)
+#
+#
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-git
+spec:
+  generators:
+  - git:
+      name: cluster-deployments
+      repoURL: https://github.com/infra-team/cluster-deployments.git
+      directories:
+      - path: add-ons/*
+  - clusters:
+      dependsOn: cluster-deployments
+      selector:
+        matchLabels:
+          argocd.argoproj.io/secret-type: cluster
+  template:
+    metadata:
+      name: '{{path.basename}}-{{name}}'
+    spec:
+      project: '{{metadata.labels.environment}}'
+      source:
+        repoURL: https://github.com/infra-team/cluster-deployments.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: '{{server}}'
+        namespace: '{{path.basename}}'
