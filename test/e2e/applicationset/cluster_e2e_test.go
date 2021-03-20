@@ -229,8 +229,9 @@ func TestSimpleClusterGeneratorAddingCluster(t *testing.T) {
 			APIVersion: "argoproj.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "{{name}}-guestbook",
-			Namespace: utils.ArgoCDNamespace,
+			Name:       "{{name}}-guestbook",
+			Namespace:  utils.ArgoCDNamespace,
+			Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
 		},
 		Spec: argov1alpha1.ApplicationSpec{
 			Project: "default",
