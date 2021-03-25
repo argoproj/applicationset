@@ -520,6 +520,28 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 		_, exists := m[app.Name]
 
 		if !exists {
+
+			// Only check if the finalizers need to be removed IF there are finalizers to remove
+			if len(app.Finalizers) > 0 {
+				// If the destination is invalid (for example the cluster is no longer defined), then remove
+				// the application finalizers to avoid triggering Argo CD bug #5817
+				if err := argoutil.ValidateDestination(ctx, &app.Spec.Destination, r.ArgoDB); err != nil {
+					app.Finalizers = []string{}
+
+					r.Recorder.Eventf(&applicationSet, corev1.EventTypeNormal, "Updated", "Updated Application %q finalizer before deletion", app.Name)
+					appLog.Log(log.InfoLevel, "Updating application finalizer before deletion")
+
+					err := r.Client.Update(ctx, &app, &client.UpdateOptions{})
+					if err != nil {
+						appLog.WithError(err).Error("failed to update Application")
+						if firstError != nil {
+							firstError = err
+						}
+						continue
+					}
+				}
+			}
+
 			err := r.Client.Delete(ctx, &app)
 			if err != nil {
 				appLog.WithError(err).Error("failed to delete Application")
