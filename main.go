@@ -32,6 +32,7 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/reposerver/apiclient"
 	"github.com/argoproj/argo-cd/util/db"
 	argosettings "github.com/argoproj/argo-cd/util/settings"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -67,6 +68,7 @@ func main() {
 	var enableLeaderElection bool
 	var namespace string
 	var argocdRepoServer string
+	var argocdRepoServerTimeout int
 	var policy string
 	var debugLog bool
 	var dryRun bool
@@ -77,6 +79,7 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&namespace, "namespace", "", "Argo CD repo namespace (default: argocd)")
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
+	flag.IntVar(&argocdRepoServerTimeout, "argocd-repo-server-timeout", 60, "Argo CD repo server connection timeout")
 	flag.StringVar(&policy, "policy", "sync", "Modify how application is synced between the generator and the cluster. Default is 'sync' (create & update & delete), options: 'create-only', 'create-update' (no deletion)")
 	flag.BoolVar(&debugLog, "debug", false, "Print debug logs")
 	flag.BoolVar(&dryRun, "dry-run", false, "Enable dry run mode")
@@ -134,11 +137,17 @@ func main() {
 
 	argoCDDB := db.NewDB(namespace, argoSettingsMgr, k8s)
 
+	// TODO, mount certificates and enable TLS
+	tlsConfig := apiclient.TLSConfiguration{
+		DisableTLS:       true,
+		StrictValidation: false,
+	}
+
 	if err = (&controllers.ApplicationSetReconciler{
 		Generators: map[string]generators.Generator{
 			"List":     generators.NewListGenerator(),
 			"Clusters": generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
-			"Git":      generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
+			"Git":      generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer, argocdRepoServerTimeout, tlsConfig)),
 		},
 		Client:           mgr.GetClient(),
 		Log:              ctrl.Log.WithName("controllers").WithName("ApplicationSet"),

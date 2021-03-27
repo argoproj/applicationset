@@ -36,11 +36,11 @@ type Repos interface {
 	GetFileContent(ctx context.Context, repoURL string, revision string, path string) ([]byte, error)
 }
 
-func NewArgoCDService(db db.ArgoDB, repoServerAddress string) Repos {
+func NewArgoCDService(db db.ArgoDB, repoServerAddress string, repoServerTimeout int, tlsConfig apiclient.TLSConfiguration) Repos {
 
 	return &argoCDService{
 		repositoriesDB: db.(RepositoryDB),
-		repoClientset:  apiclient.NewRepoServerClientset(repoServerAddress, 5),
+		repoClientset:  apiclient.NewRepoServerClientset(repoServerAddress, repoServerTimeout, tlsConfig),
 	}
 }
 
@@ -154,7 +154,7 @@ func checkoutRepo(gitRepoClient git.Client, revision string) error {
 		return errors.Wrap(err, "Error during initializing repo")
 	}
 
-	err = gitRepoClient.Fetch()
+	err = gitRepoClient.Fetch(revision)
 	if err != nil {
 		return errors.Wrap(err, "Error during fetching repo")
 	}
