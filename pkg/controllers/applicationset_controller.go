@@ -27,6 +27,7 @@ import (
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
+	"github.com/argoproj/argo-cd/common"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/util/argo"
 	"github.com/argoproj/argo-cd/util/db"
@@ -520,7 +521,18 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 		_, exists := m[app.Name]
 
 		if !exists {
-			err := r.Client.Delete(ctx, &app)
+
+			// Removes the Argo CD resources finalizer if the application contains an invalid target (eg missing cluster)
+			err := r.removeFinalizerOnInvalidDestination(ctx, applicationSet, &app, appLog)
+			if err != nil {
+				appLog.WithError(err).Error("failed to update Application")
+				if firstError != nil {
+					firstError = err
+				}
+				continue
+			}
+
+			err = r.Client.Delete(ctx, &app)
 			if err != nil {
 				appLog.WithError(err).Error("failed to delete Application")
 				if firstError != nil {
@@ -533,6 +545,43 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 		}
 	}
 	return firstError
+}
+
+// removeFinalizerOnInvalidDestination removes the Argo CD resources finalizer if the application contains an invalid target (eg missing cluster)
+func (r *ApplicationSetReconciler) removeFinalizerOnInvalidDestination(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, app *argov1alpha1.Application, appLog *log.Entry) error {
+
+	// Only check if the finalizers need to be removed IF there are finalizers to remove
+	if len(app.Finalizers) == 0 {
+		return nil
+	}
+
+	// If the destination is invalid (for example the cluster is no longer defined), then remove
+	// the application finalizers to avoid triggering Argo CD bug #5817
+	if err := argoutil.ValidateDestination(ctx, &app.Spec.Destination, r.ArgoDB); err != nil {
+
+		// Filter out the Argo CD finalizer from the finalizer list
+		newFinalizers := []string{}
+		for _, existingFinalizer := range app.Finalizers {
+			if existingFinalizer != common.ResourcesFinalizerName { // only remove this one
+				newFinalizers = append(newFinalizers, existingFinalizer)
+			}
+		}
+
+		// If the finalizer length changed (due to filtering out an Argo finalizer), update the finalizer list on the app
+		if len(newFinalizers) != len(app.Finalizers) {
+			app.Finalizers = newFinalizers
+
+			r.Recorder.Eventf(&applicationSet, corev1.EventTypeNormal, "Updated", "Updated Application %q finalizer before deletion, because application has an invalid destination", app.Name)
+			appLog.Log(log.InfoLevel, "Updating application finalizer before deletion, because application has an invalid destination")
+
+			err := r.Client.Update(ctx, app, &client.UpdateOptions{})
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 var _ handler.EventHandler = &clusterSecretEventHandler{}
