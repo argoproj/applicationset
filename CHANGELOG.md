@@ -23,20 +23,20 @@ Got feature requests, bug reports, or want to contribute code? Let us know on ou
 
 A great deal of work has gone into bringing this project to life, from many different contributors, all the way from its inception in early 2020 until today. It is terrific to be able to bring all that work together as ApplicationSet's first release, and make it available to a wider audience… we welcome you to try it out, and let us know what you think!
 A big thanks to all ApplicationSet controller contributors for their hard work over the last year, whether it be contributing code, writing design documentation, performing code reviews, writing user documentation, and opening issues and PRs:
-- Omer Kahani (@OmerKahani)
-- Devan Goodwin (@dgoodwin)
-- Michael Goodness (@mgoodness)
-- Alexander Matyushentsev (@alexmt)
-- Jonathan West (@jgwest)
-- Matteo Ruina (@maruina)
-- Jesse Suen (@jessesuen)
-- Xianlu Bird (@xianlubird)
-- William Tam (@wtam2018)
-- Ratnadeep Debnath (@rtnpro)
-- John Pitman (@jopit)
-- Shoubhik Bose (@sbose78)
-- Alex Sharov (@kvendingoldo)
-- Omer Levi Hevroni (@omerlh)
+- Omer Kahani ([@OmerKahani](https://github.com/OmerKahani))
+- Devan Goodwin ([@dgoodwin](https://github.com/dgoodwin))
+- Michael Goodness ([@mgoodness](https://github.com/mgoodness))
+- Alexander Matyushentsev ([@alexmt](https://github.com/alexmt))
+- Jonathan West ([@jgwest](https://github.com/jgwest))
+- Matteo Ruina ([@maruina](https://github.com/maruina))
+- Jesse Suen ([@jessesuen](https://github.com/jessesuen))
+- Xianlu Bird ([@xianlubird](https://github.com/xianlubird))
+- William Tam ([@wtam2018](https://github.com/wtam2018))
+- Ratnadeep Debnath ([@rtnpro](https://github.com/rtnpro))
+- John Pitman ([@jopit](https://github.com/jopit))
+- Shoubhik Bose ([@sbose78](https://github.com/sbose78))
+- Alex Sharov ([@kvendingoldo](https://github.com/kvendingoldo))
+- Omer Levi Hevroni ([@omerlh](https://github.com/omerlh))
 
 The ApplicationSet controller would not exist without the contributions of these talented individuals! 🎉
 
