@@ -9,16 +9,14 @@ theme:
   font:
     text: 'Work Sans'
   logo: 'assets/logo.png'
-extra_css:
-- assets/extra.css
-- css/extra.css
 extra_javascript:
 - js/jquery-2.1.1.min.js
 - js/modernizr-2.8.3.min.js
 - js/theme.js
 markdown_extensions:
-- codehilite
 - admonition
+- pymdownx.highlight
+- pymdownx.superfences
 - toc:
     permalink: true
 nav:
