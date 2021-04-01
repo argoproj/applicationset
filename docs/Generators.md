@@ -129,7 +129,7 @@ In Argo CD, the 'local cluster' is the cluster upon which Argo CD (and the Appli
  
 The cluster generator will automatically target both local and non-local clusters, for every cluster that matches the cluster selector.
 
-If you wish to target only remote clusters with your Applications (eg you want to exclude the local cluster), then use a cluster selector with labels, for example:
+If you wish to target only remote clusters with your Applications (e.g. you want to exclude the local cluster), then use a cluster selector with labels, for example:
 ```yaml
 spec:
   generators:
@@ -203,7 +203,7 @@ spec:
 The generator parameters are:
 
 - `{{path}}`: The directory paths within the Git repository that match the `path` wildcard.
-- `{{path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (eg `/directory/directory2` would produce `directory2`).
+- `{{path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (e.g. `/directory/directory2` would produce `directory2`).
 
 Whenever a new Helm chart/Kustomize YAML/Application/plain subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
 
