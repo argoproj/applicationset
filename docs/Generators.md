@@ -123,15 +123,33 @@ metadata:
 # (...)
 ```
 
+### Deploying to the local cluster
 
-### Deploying to local cluster
+In Argo CD, the 'local cluster' is the cluster upon which Argo CD (and the ApplicationSet controller) is installed. This is to distinguish it from 'remote clusters', which are those that are added to Argo CD [declaratively](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) or via the [Argo CD CLI](https://argoproj.github.io/argo-cd/getting_started/#5-register-a-cluster-to-deploy-apps-to-optional).
+ 
+The cluster generator will automatically target both local and non-local clusters, for every cluster that matches the cluster selector.
 
-The Cluster generator currently requires that an [Argo CD cluster secret exist](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters), in order to allow the ApplicationSet controller to create `Application` resources targeting that cluster.
-    
-However, if you are only using the 'local' cluster with Argo CD (ie the cluster upon which Argo CD is installed, when it is installed in cluster mode), then there will *not* be a Secret defined for your cluster: when using a local cluster, Argo CD does not create a cluster secret for it (or require one to exist).
-    
-Thus until [this ApplicationSet issue is resolved](https://github.com/argoproj-labs/applicationset/issues/35), if you want to use a local cluster with the Cluster generator then the workaround [here](https://github.com/argoproj-labs/applicationset/issues/35#issuecomment-769358837) can be used.
+If you wish to target only remote clusters with your Applications (e.g. you want to exclude the local cluster), then use a cluster selector with labels, for example:
+```yaml
+spec:
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          argocd.argoproj.io/secret-type: cluster
+```
 
+This selector will not match the default local cluster, since the default local cluster does not have a Secret (and thus does not have the `argocd.argoproj.io/secret-type` label on that secret). Any cluster selector that selects on that label will automatically exclude the default local cluster.
+
+However, if you do wish to target both local and non-local clusters, while also using label matching, you can create a secret for the local cluster within the Argo CD web UI:
+
+1. Within the Argo CD web UI, select *Settings*, then *Clusters*.
+2. Select your local cluster, usually named `in-cluster`.
+3. Click the *Edit* button, and change the the *NAME* of the cluster to another value, for example `in-cluster-local`. Any other value here is fine. 
+4. Leave all other fields unchanged.
+5. Click *Save*.
+
+These steps might seem counterintuitive, but the act of changing one of the default values for the local cluster causes the Argo CD Web UI to create a new secret for this cluster. In the Argo CD namespace, you should now see a Secret resource named `cluster-(cluster suffix)` with label `argocd.argoproj.io/secret-type": "cluster"`. You may also create a local [cluster secret declaratively](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters), or with the CLI using `argocd cluster add "(context name)" --in-cluster`, rather than through the Web UI.
 
 ## Git Generator: Directories
 
@@ -185,12 +203,9 @@ spec:
 The generator parameters are:
 
 - `{{path}}`: The directory paths within the Git repository that match the `path` wildcard.
-- `{{path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (eg `/directory/directory2` would produce `directory2`).
+- `{{path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (e.g. `/directory/directory2` would produce `directory2`).
 
-Whenever a new Helm chart/Kustomize YAML/Application subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
-
-!!! warning "Directories must be valid Argo CD applications"
-    As of this writing, only directories that are valid Argo CD applications (and specifically Helm, Kustomize, or Jsonnet applications) will be matched. This issue is [being tracked here](https://github.com/argoproj-labs/applicationset/issues/121).
+Whenever a new Helm chart/Kustomize YAML/Application/plain subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
 
