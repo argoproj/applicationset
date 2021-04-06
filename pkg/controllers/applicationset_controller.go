@@ -435,6 +435,16 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 			},
 		}
 
+		var mergeType utils.UpdateType
+		switch applicationSet.Spec.SyncPolicy.MergeType {
+		case "overwrite":
+			mergeType = utils.Overwrite
+		case "merge":
+			mergeType = utils.Merge
+		default:
+			mergeType = utils.Overwrite
+		}
+
 		action, err := utils.CreateOrUpdate(ctx, r.Client, found, func() error {
 			// Copy only the Application/ObjectMeta fields that are significant, from the generatedApp
 			found.Spec = generatedApp.Spec
@@ -442,7 +452,7 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 			found.ObjectMeta.Finalizers = generatedApp.Finalizers
 			found.ObjectMeta.Labels = generatedApp.Labels
 			return controllerutil.SetControllerReference(&applicationSet, found, r.Scheme)
-		})
+		}, mergeType)
 
 		if err != nil {
 			appLog.WithError(err).WithField("action", action).Errorf("failed to %s Application", action)

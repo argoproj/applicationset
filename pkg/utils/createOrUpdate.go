@@ -15,6 +15,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+type UpdateType string
+
+const (
+	Overwrite UpdateType = "Overwrite"
+	Merge     UpdateType = "Merge"
+)
+
 // CreateOrUpdate overrides "sigs.k8s.io/controller-runtime" function
 // in sigs.k8s.io/controller-runtime/pkg/controller/controllerutil/controllerutil.go
 // to add equality for argov1alpha1.ApplicationDestination
@@ -28,7 +35,7 @@ import (
 // The MutateFn is called regardless of creating or updating an object.
 //
 // It returns the executed operation and an error.
-func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f controllerutil.MutateFn) (controllerutil.OperationResult, error) {
+func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f controllerutil.MutateFn, updateType UpdateType) (controllerutil.OperationResult, error) {
 
 	key := client.ObjectKeyFromObject(obj)
 	if err := c.Get(ctx, key, obj); err != nil {
@@ -78,8 +85,16 @@ func CreateOrUpdate(ctx context.Context, c client.Client, obj client.Object, f c
 		return controllerutil.OperationResultNone, nil
 	}
 
-	if err := c.Update(ctx, obj); err != nil {
-		return controllerutil.OperationResultNone, err
+	switch updateType {
+	case Overwrite:
+		if err := c.Update(ctx, obj); err != nil {
+			return controllerutil.OperationResultNone, err
+		}
+	case Merge:
+		patch := client.MergeFrom(obj)
+		if err := c.Patch(ctx, obj, patch); err != nil {
+			return controllerutil.OperationResultNone, err
+		}
 	}
 	return controllerutil.OperationResultUpdated, nil
 }

@@ -42,8 +42,12 @@ type ApplicationSetSpec struct {
 // ApplicationSet.
 type ApplicationSetSyncPolicy struct {
 	// SkipPrune will disable the default behavior which will delete Applications that are no longer being generated for the ApplicationSet which created them, or the ApplicationSet itself is deleted. If SkipPrune is set to true, these Applications will be orphaned but continue to exist.
-	SkipPrune bool `json:"skipPrune,omitempty"`
+	SkipPrune bool                 `json:"skipPrune,omitempty"`
+	MergeType ApplicationMergeType `json:"mergeType,omitempty"`
 }
+
+// +kubebuilder:validation:Enum=overwrite;merge
+type ApplicationMergeType string
 
 // ApplicationSetTemplate represents argocd ApplicationSpec
 type ApplicationSetTemplate struct {
