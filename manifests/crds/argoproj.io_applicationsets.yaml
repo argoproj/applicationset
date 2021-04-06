@@ -1345,6 +1345,11 @@ spec:
                 description: ApplicationSetSyncPolicy configures how generated Applications
                   will relate to their ApplicationSet.
                 properties:
+                  mergeType:
+                    enum:
+                    - overwrite
+                    - merge
+                    type: string
                   skipPrune:
                     description: SkipPrune will disable the default behavior which
                       will delete Applications that are no longer being generated
