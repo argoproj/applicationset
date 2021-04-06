@@ -5,7 +5,7 @@
 I am excited to announce the first release of the Argo CD ApplicationSet controller, v0.1.0, releasing now alongside Argo CD v2.0!
 
 The ApplicationSet controller provides the ability:
-- To deploy Argo CD Applications to multiple Kubernetes cluster at once
+- To deploy Argo CD Applications to multiple Kubernetes clusters at once
 - To deploy multiple Argo CD applications from a single monorepo
 - Allows unprivileged cluster users (those without access to the Argo CD namespace) to deploy Argo CD applications without the need to involve cluster administrators in enabling the destination clusters/namespaces
 
@@ -13,10 +13,10 @@ BUT, best of all, all these features are controlled by only a single Application
 
 Unlike with an Argo CD Application resource, which deploys resources from a single Git repository to a single destination cluster/namespace, ApplicationSet uses templated automation to create, modify, and manage multiple Argo CD applications at once.
 
-You can learn more about from the [ApplicationSet documentation](https://argocd-applicationset.readthedocs.io) or check out the source [and learn how you can contribute](https://github.com/argoproj-labs/applicationset/).
+You can learn more about this from the [ApplicationSet documentation](https://argocd-applicationset.readthedocs.io) or check out the source [and learn how you can contribute](https://github.com/argoproj-labs/applicationset/).
 
 Since this is our first release, we would ❤️ if you would give ApplicationSets a shot, and let us know what cool problems you are solving with it, or what pain points you hit.
-Got feature requests, bug reports, or want to contribute code? Let us know on our project repository, or join us on #argo-cd-appset on Slack.
+Got feature requests, bug reports, or want to contribute code? Let us know on our project repository, or join us on [#argo-cd-appset on Slack](https://argoproj.github.io/community/join-slack).
 
 
 ## Contributors
