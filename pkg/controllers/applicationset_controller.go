@@ -435,14 +435,16 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 			},
 		}
 
-		var mergeType utils.UpdateType
-		switch applicationSet.Spec.SyncPolicy.MergeType {
-		case "overwrite":
-			mergeType = utils.Overwrite
-		case "merge":
-			mergeType = utils.Merge
-		default:
-			mergeType = utils.Overwrite
+		mergeType := utils.Overwrite
+		if applicationSet.Spec.SyncPolicy != nil {
+			switch applicationSet.Spec.SyncPolicy.MergeType {
+			case "overwrite":
+				mergeType = utils.Overwrite
+			case "merge":
+				mergeType = utils.Merge
+			default:
+				mergeType = utils.Overwrite
+			}
 		}
 
 		action, err := utils.CreateOrUpdate(ctx, r.Client, found, func() error {
