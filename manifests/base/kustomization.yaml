@@ -3,8 +3,8 @@ kind: Kustomization
 
 images:
 - name: argoprojlabs/argocd-applicationset
-  newName: argoprojlabs/argocd-applicationset
-  newTag: latest
+  newName: quay.io/argocdapplicationset/argocd-applicationset
+  newTag: v0.1.0
 
 namespace: argocd
 

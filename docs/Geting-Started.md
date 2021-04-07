@@ -17,7 +17,7 @@ The ApplicationSet controller *must* be installed into the same namespace as the
 Presuming that Argo CD is installed into the `argocd` namespace, run the following command:
 
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.1.0/manifests/install.yaml
 ```
 
 Once installed, the ApplicationSet controller requires no additional setup.
@@ -37,7 +37,7 @@ You may install both the ApplicationSet controller and the latest stable Argo CD
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install-with-argo-cd.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.1.0/manifests/install-with-argo-cd.yaml
 ```
 
 Once installed, follow the [Argo CD Getting Started](https://argoproj.github.io/argo-cd/getting_started/) to access Argo CD and log-in to the Web UI.
