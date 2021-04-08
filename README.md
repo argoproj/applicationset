@@ -48,7 +48,7 @@ The parameter generation via multiple sources (cluster, list, git repos), and th
 
 ## Documentation
 
-Blog post: [Introducing the ApplicationSet Controller for Argo CD](https://blog.argoproj.io/introducing-the-applicationset-controller-for-argo-cd-982e28b62dc5)
+Take a look at our introductory blog post, [Introducing the ApplicationSet Controller for Argo CD](https://blog.argoproj.io/introducing-the-applicationset-controller-for-argo-cd-982e28b62dc5).
 
 Check out [the complete documentation](https://argocd-applicationset.readthedocs.io/) for a complete introduction, how to setup and run the ApplicationSet controller, how it interacts with Argo CD, generators, templates, use cases, and more.
 
