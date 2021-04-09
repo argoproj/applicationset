@@ -53,6 +53,13 @@ import (
 	"github.com/imdario/mergo"
 )
 
+const (
+	// Rather than importing the whole argocd-notifications controller, just copying the const here
+	//   https://github.com/argoproj-labs/argocd-notifications/blob/33d345fa838829bb50fca5c08523aba380d2c12b/pkg/controller/subscriptions.go#L12
+	//   https://github.com/argoproj-labs/argocd-notifications/blob/33d345fa838829bb50fca5c08523aba380d2c12b/pkg/controller/state.go#L17
+	NotifiedAnnotationKey = "notified.notifications.argoproj.io"
+)
+
 // ApplicationSetReconciler reconciles a ApplicationSet object
 type ApplicationSetReconciler struct {
 	client.Client
@@ -438,7 +445,16 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 		action, err := utils.CreateOrUpdate(ctx, r.Client, found, func() error {
 			// Copy only the Application/ObjectMeta fields that are significant, from the generatedApp
 			found.Spec = generatedApp.Spec
+
+			// Preserve argo cd notifications state
+			if state, exists := found.ObjectMeta.Annotations[NotifiedAnnotationKey]; exists {
+				if generatedApp.Annotations == nil {
+					generatedApp.Annotations = map[string]string{}
+				}
+				generatedApp.Annotations[NotifiedAnnotationKey] = state
+			}
 			found.ObjectMeta.Annotations = generatedApp.Annotations
+
 			found.ObjectMeta.Finalizers = generatedApp.Finalizers
 			found.ObjectMeta.Labels = generatedApp.Labels
 			return controllerutil.SetControllerReference(&applicationSet, found, r.Scheme)
