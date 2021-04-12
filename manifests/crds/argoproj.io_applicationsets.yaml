@@ -504,7 +504,6 @@ spec:
                               path:
                                 type: string
                             required:
-                            - exclude
                             - path
                             type: object
                           type: array
