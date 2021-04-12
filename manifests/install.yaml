@@ -12,6 +12,9 @@ spec:
     kind: ApplicationSet
     listKind: ApplicationSetList
     plural: applicationsets
+    shortNames:
+    - appset
+    - appsets
     singular: applicationset
   scope: Namespaced
   versions:
