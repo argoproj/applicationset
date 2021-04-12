@@ -41,7 +41,7 @@ func EnsureCleanState(t *testing.T) {
 
 	start := time.Now()
 
-	policy := v1.DeletePropagationBackground
+	policy := v1.DeletePropagationForeground
 	// delete resources
 	// kubectl delete applicationsets --all
 	CheckError(AppSetClientset.DeleteCollection(context.Background(), v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{}))
