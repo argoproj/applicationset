@@ -784,18 +784,12 @@ func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
 	err = argov1alpha1.AddToScheme(scheme)
 	assert.Nil(t, err)
 
-	myCluster := argov1alpha1.Cluster{
-		Server: "https://kubernetes.default.svc",
-		Name:   "my-cluster2",
-	}
-
 	for _, c := range []struct {
 		// name is human-readable test name
 		name               string
 		existingFinalizers []string
 		expectedFinalizers []string
 	}{
-
 		{
 			name:               "no finalizers",
 			existingFinalizers: []string{},
@@ -806,7 +800,6 @@ func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
 			existingFinalizers: []string{common.ResourcesFinalizerName},
 			expectedFinalizers: nil,
 		},
-
 		{
 			name:               "contains only non-argo finalizer",
 			existingFinalizers: []string{"non-argo-finalizer"},
@@ -850,19 +843,31 @@ func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
 			initObjs := []crtclient.Object{&app, &appSet}
 
 			client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-secret",
+					Namespace: "namespace",
+					Labels: map[string]string{
+						generators.ArgoCDSecretTypeLabel: generators.ArgoCDSecretTypeCluster,
+					},
+				},
+				Data: map[string][]byte{
+					// Since this test requires the cluster to be an invalid destination, we
+					// always return a cluster named 'my-cluster2' (different from app 'my-cluster', above)
+					"name":   []byte("mycluster2"),
+					"server": []byte("https://kubernetes.default.svc"),
+					"config": []byte("{\"username\":\"foo\",\"password\":\"foo\"}"),
+				},
+			}
 
-			// Always return a cluster named 'my-cluster2' (different from app 'my-cluster')
-			dbMock := &dbmocks.ArgoDB{}
-			dbMock.On("GetCluster", mock.Anything, "https://kubernetes.default.svc").Return(&myCluster, nil)
-			dbMock.On("ListClusters", mock.Anything).Return(&argov1alpha1.ClusterList{Items: []argov1alpha1.Cluster{
-				myCluster,
-			}}, nil)
+			objects := append([]runtime.Object{}, secret)
+			kubeclientset := kubefake.NewSimpleClientset(objects...)
 
 			r := ApplicationSetReconciler{
-				Client:   client,
-				Scheme:   scheme,
-				Recorder: record.NewFakeRecorder(10),
-				ArgoDB:   dbMock,
+				Client:        client,
+				Scheme:        scheme,
+				Recorder:      record.NewFakeRecorder(10),
+				KubeClientset: kubeclientset,
 			}
 
 			appLog := logrus.WithFields(logrus.Fields{"app": app.Name, "appSet": ""})
