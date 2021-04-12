@@ -521,19 +521,17 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 
 		if !exists {
 
-			if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, applicationSet.Namespace); err != nil {
-				// Removes the Argo CD resources finalizer if the application contains an invalid target (eg missing cluster)
-				err := r.removeFinalizerOnInvalidDestination(ctx, applicationSet, &app, appLog)
-				if err != nil {
-					appLog.WithError(err).Error("failed to update Application")
-					if firstError != nil {
-						firstError = err
-					}
-					continue
+			// Removes the Argo CD resources finalizer if the application contains an invalid target (eg missing cluster)
+			err := r.removeFinalizerOnInvalidDestination(ctx, applicationSet, &app, appLog)
+			if err != nil {
+				appLog.WithError(err).Error("failed to update Application")
+				if firstError != nil {
+					firstError = err
 				}
+				continue
 			}
 
-			err := r.Client.Delete(ctx, &app)
+			err = r.Client.Delete(ctx, &app)
 			if err != nil {
 				appLog.WithError(err).Error("failed to delete Application")
 				if firstError != nil {
@@ -558,7 +556,7 @@ func (r *ApplicationSetReconciler) removeFinalizerOnInvalidDestination(ctx conte
 
 	// If the destination is invalid (for example the cluster is no longer defined), then remove
 	// the application finalizers to avoid triggering Argo CD bug #5817
-	if err := argoutil.ValidateDestination(ctx, &app.Spec.Destination, r.ArgoDB); err != nil {
+	if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, applicationSet.Namespace); err != nil {
 
 		// Filter out the Argo CD finalizer from the finalizer list
 		newFinalizers := []string{}
