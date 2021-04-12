@@ -499,9 +499,12 @@ spec:
                         directories:
                           items:
                             properties:
+                              exclude:
+                                type: boolean
                               path:
                                 type: string
                             required:
+                            - exclude
                             - path
                             type: object
                           type: array

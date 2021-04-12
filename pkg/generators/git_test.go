@@ -88,6 +88,24 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			name:        "It filters application according to the paths with Exclude",
+			directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "p1/*", Exclude: true}, {Path: "*"}, {Path: "*/*"}},
+			repoApps: []string{
+				"app1",
+				"app2",
+				"p1/app2",
+				"p1/app3",
+				"p2/app3",
+			},
+			repoError: nil,
+			expected: []map[string]string{
+				{"path": "app1", "path.basename": "app1"},
+				{"path": "app2", "path.basename": "app2"},
+				{"path": "p2/app3", "path.basename": "app3"},
+			},
+			expectedError: nil,
+		},
+		{
 			name:          "handles empty response from repo server",
 			directories:   []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 			repoApps:      []string{},

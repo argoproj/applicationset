@@ -103,7 +103,8 @@ type GitGenerator struct {
 }
 
 type GitDirectoryGeneratorItem struct {
-	Path string `json:"path"`
+	Path    string `json:"path"`
+	Exclude bool   `json:"exclude"`
 }
 
 type GitFileGeneratorItem struct {
