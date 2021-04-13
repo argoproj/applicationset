@@ -446,7 +446,7 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 			// Copy only the Application/ObjectMeta fields that are significant, from the generatedApp
 			found.Spec = generatedApp.Spec
 
-			// Preserve argo cd notifications state
+			// Preserve argo cd notifications state (https://github.com/argoproj-labs/applicationset/issues/180)
 			if state, exists := found.ObjectMeta.Annotations[NotifiedAnnotationKey]; exists {
 				if generatedApp.Annotations == nil {
 					generatedApp.Annotations = map[string]string{}
