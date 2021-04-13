@@ -23,6 +23,7 @@ import (
 
 // ApplicationSet is a set of Application resources
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:path=applicationsets,shortName=appset;appsets
 type ApplicationSet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
