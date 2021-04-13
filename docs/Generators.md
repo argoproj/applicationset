@@ -209,6 +209,36 @@ Whenever a new Helm chart/Kustomize YAML/Application/plain subfolder is added to
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
 
+The generator also supports `exclude` option in order to exclude directories in the repository from being created by the applicationset;
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-addons
+spec:
+  generators:
+  - git:
+      repoURL: https://github.com/argoproj-labs/applicationset.git
+      revision: HEAD
+      directories:
+      - path: examples/git-generator-directory/cluster-addons/*
+      - path: examples/git-generator-directory/cluster-addons/exclude-helm-guestbook
+        exclude: true
+  template:
+    metadata:
+      name: '{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/argoproj-labs/applicationset.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+```
+
 ## Git Generator: Files
 
 The Git file generator is the second subtype of the Git generator. The Git file generator generates parameters using the contents of JSON files found within a specified repository.
