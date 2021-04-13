@@ -736,6 +736,72 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Ensure that argocd notifications state annotation is preserved from an existing app",
+			appSet: argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+				Spec: argoprojiov1alpha1.ApplicationSetSpec{
+					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+						Spec: argov1alpha1.ApplicationSpec{
+							Project: "project",
+						},
+					},
+				},
+			},
+			existingApps: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						ResourceVersion: "2",
+						Labels:          map[string]string{"label-key": "label-value"},
+						Annotations: map[string]string{
+							"annot-key":           "annot-value",
+							NotifiedAnnotationKey: `{"b620d4600c771a6f4cxxxxxxx:on-deployed:[0].y7b5sbwa2Q329JYHxxxxxx-fBs:slack:slack-test":1617144614}`,
+						},
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+			desiredApps: []argov1alpha1.Application{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "app1",
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+			expected: []argov1alpha1.Application{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Application",
+						APIVersion: "argoproj.io/v1alpha1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:            "app1",
+						Namespace:       "namespace",
+						ResourceVersion: "3",
+						Annotations: map[string]string{
+							NotifiedAnnotationKey: `{"b620d4600c771a6f4cxxxxxxx:on-deployed:[0].y7b5sbwa2Q329JYHxxxxxx-fBs:slack:slack-test":1617144614}`,
+						},
+					},
+					Spec: argov1alpha1.ApplicationSpec{
+						Project: "project",
+					},
+				},
+			},
+		},
 	} {
 
 		t.Run(c.name, func(t *testing.T) {
