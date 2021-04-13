@@ -223,8 +223,8 @@ spec:
       revision: HEAD
       directories:
       - path: examples/git-generator-directory/cluster-addons/*
-      - path: examples/git-generator-directory/cluster-addons/exclude-helm-guestbook
-        exclude: true
+      - exclude: true
+        path: examples/git-generator-directory/cluster-addons/exclude-helm-guestbook
   template:
     metadata:
       name: '{{path.basename}}'
