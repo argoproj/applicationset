@@ -39,7 +39,7 @@ test: generate fmt vet manifests
 	go test -race -count=1 -coverprofile=coverage.out `go list ./... | grep -v 'test/e2e'`
 
 .PHONY: image
-image: test
+image: generate fmt vet
 	docker build -t ${IMAGE_PREFIX}${IMAGE_NAME}:${IMAGE_TAG} .
 
 .PHONY: image-push

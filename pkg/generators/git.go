@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"path"
 	"sort"
+	"strings"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	"github.com/jeremywohl/flatten"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 var _ Generator = (*GitGenerator)(nil)
@@ -120,14 +122,24 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 	res := []map[string]string{}
 	for _, path := range allPaths {
 
-		// A JSON file path can contain multiple sets of parameters (ie it is an array)
-		paramsArray, err := g.generateParamsFromGitFile(appSetGenerator, path)
-		if err != nil {
-			return nil, fmt.Errorf("unable to process file '%s': %v", path, err)
-		}
-
-		for index := range paramsArray {
-			res = append(res, paramsArray[index])
+		if strings.HasSuffix(path, ".yaml") {
+			// A YAML file path can contain multiple sets of parameters (ie it is an array)
+			paramsArray, err := g.generateParamsFromGitYamlFile(appSetGenerator, path)
+			if err != nil {
+				return nil, fmt.Errorf("unable to process file '%s': %v", path, err)
+			}
+			for index := range paramsArray {
+				res = append(res, paramsArray[index])
+			}
+		} else {
+			// A JSON file path can contain multiple sets of parameters (ie it is an array)
+			paramsArray, err := g.generateParamsFromGitFile(appSetGenerator, path)
+			if err != nil {
+				return nil, fmt.Errorf("unable to process file '%s': %v", path, err)
+			}
+			for index := range paramsArray {
+				res = append(res, paramsArray[index])
+			}
 		}
 	}
 	return res, nil
@@ -206,4 +218,39 @@ func (g *GitGenerator) generateParamsFromApps(requestedApps []string, _ *argopro
 	}
 
 	return res
+}
+
+func (g *GitGenerator) generateParamsFromGitYamlFile(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, path string) ([]map[string]string, error) {
+
+	fileContent, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path)
+	if err != nil {
+		return nil, err
+	}
+
+	objectsFound := map[string]interface{}{}
+
+	err = yaml.Unmarshal(fileContent, &objectsFound)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse YAML file: %v", err)
+	}
+
+	res := []map[string]string{}
+	params := map[string]string{}
+
+	for k, v := range objectsFound {
+		switch v.(type) {
+		case string:
+			params[k] = v.(string)
+		default:
+			d, err := yaml.Marshal(&v)
+			if err != nil {
+				return nil, fmt.Errorf("unable to marschal YAML value from file: %v", err)
+			}
+			params[k] = string(d)
+		}
+	}
+	res = append(res, params)
+
+	return res, nil
+
 }
