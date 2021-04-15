@@ -6,6 +6,13 @@ IMAGE_NAMESPACE="ghcr.io/lorislab" DOCKER_PUSH=false make image
 docker push ghcr.io/lorislab/argocd-applicationset:latest
 ```
 
+Local
+```
+IMAGE_NAMESPACE="k3d-registry.localhost:5000" DOCKER_PUSH=false make image
+docker push k3d-registry.localhost:5000/argocd-applicationset:latest
+kubectl patch deployment -n argocd argocd-applicationset-controller -p '{"spec":{"template":{"spec":{"containers":[{"name":"argocd-applicationset-controller","image":"k3d-registry.localhost:5000/argocd-applicationset:latest"}]}}}}'
+```
+
 # Argo CD ApplicationSet Controller 
 
 The ApplicationSet controller is a Kubernetes controller that adds support for a new custom `ApplicationSet` CustomResourceDefinition (CRD). This controller/CRD enables both automation and greater flexibility when managing Argo CD Applications across a large number of clusters and within monorepos, plus it makes self-service usage possible on multitenant Kubernetes clusters.

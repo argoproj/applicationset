@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/pkg/services"
+	"github.com/imdario/mergo"
 	"github.com/jeremywohl/flatten"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -122,24 +124,20 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 	res := []map[string]string{}
 	for _, path := range allPaths {
 
+		var paramsArray []map[string]string
+		var err error
 		if strings.HasSuffix(path, ".yaml") {
 			// A YAML file path can contain multiple sets of parameters (ie it is an array)
-			paramsArray, err := g.generateParamsFromGitYamlFile(appSetGenerator, path)
-			if err != nil {
-				return nil, fmt.Errorf("unable to process file '%s': %v", path, err)
-			}
-			for index := range paramsArray {
-				res = append(res, paramsArray[index])
-			}
+			paramsArray, err = g.generateParamsFromGitYamlFile(appSetGenerator, path)
 		} else {
 			// A JSON file path can contain multiple sets of parameters (ie it is an array)
-			paramsArray, err := g.generateParamsFromGitFile(appSetGenerator, path)
-			if err != nil {
-				return nil, fmt.Errorf("unable to process file '%s': %v", path, err)
-			}
-			for index := range paramsArray {
-				res = append(res, paramsArray[index])
-			}
+			paramsArray, err = g.generateParamsFromGitFile(appSetGenerator, path)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("unable to process file '%s': %v", path, err)
+		}
+		for index := range paramsArray {
+			res = append(res, paramsArray[index])
 		}
 	}
 	return res, nil
@@ -220,37 +218,60 @@ func (g *GitGenerator) generateParamsFromApps(requestedApps []string, _ *argopro
 	return res
 }
 
-func (g *GitGenerator) generateParamsFromGitYamlFile(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, path string) ([]map[string]string, error) {
+func (g *GitGenerator) generateParamsFromGitYamlFile(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, p string) ([]map[string]string, error) {
 
-	fileContent, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path)
+	filenamePath := path.Base(p)
+	filename := strings.TrimSuffix(filenamePath, filepath.Ext(filenamePath))
+	dirPath := filepath.Dir(p)
+	dir := path.Base(dirPath)
+
+	// load global values
+	gv := map[string]interface{}{}
+	globalValuesContent, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, dirPath+"/global.yml")
+	if err == nil && len(globalValuesContent) > 0 {
+		err = yaml.Unmarshal(globalValuesContent, &gv)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse global YAML file: %v", err)
+		}
+	}
+	fileContent, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, p)
 	if err != nil {
 		return nil, err
 	}
 
-	objectsFound := map[string]interface{}{}
-
-	err = yaml.Unmarshal(fileContent, &objectsFound)
+	// load yaml configuration
+	config := map[string]interface{}{}
+	err = yaml.Unmarshal(fileContent, &config)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse YAML file: %v", err)
 	}
 
-	res := []map[string]string{}
-	params := map[string]string{}
+	// merge the global configuration
+	if len(gv) > 0 {
+		mergo.Merge(&config, gv)
+	}
 
-	for k, v := range objectsFound {
-		switch v.(type) {
+	// create output parameters
+	params := map[string]string{}
+	params["path"] = filenamePath
+	params["path.basename"] = filename
+	params["dir"] = dirPath
+	params["dir.basename"] = dir
+	for k, v := range config {
+		switch w := v.(type) {
 		case string:
 			params[k] = v.(string)
 		default:
-			d, err := yaml.Marshal(&v)
+			tmp, err := yaml.Marshal(&v)
 			if err != nil {
+				fmt.Printf("parameter type %v", w)
 				return nil, fmt.Errorf("unable to marschal YAML value from file: %v", err)
 			}
-			params[k] = string(d)
+			params[k] = string(tmp)
 		}
 	}
+
+	res := []map[string]string{}
 	res = append(res, params)
-
 	return res, nil
-
 }
