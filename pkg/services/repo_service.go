@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/reposerver/apiclient"
@@ -99,7 +100,7 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 		}
 
 		fname := info.Name()
-		if fname == ".git" { // Skip repository metadata
+		if strings.HasPrefix(fname, ".") { // Skip all folders starts with "."
 			return filepath.SkipDir
 		}
 
