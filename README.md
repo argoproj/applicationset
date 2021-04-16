@@ -1,4 +1,72 @@
-# Changes
+# YAML Implementation
+
+> Docker image: ghcr.io/lorislab/argocd-applicationset:latest
+
+ApplicationSet will search for `*.yaml` files in the git repository.
+>Currently only the roor keys of the yaml file could be use for template.
+
+ApplicationSet Example
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: test
+spec:
+  generators:
+  - git:
+      repoURL: git@gitlab.com:1000kit/playground/local/env.git
+      revision: test2
+      files:
+      - path: '*.yaml'
+  template:
+    metadata:
+      name: '{{path.basename}}-test-local'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://harbor.1000kit.org/chartrepo/1000kit/'
+        targetRevision: '{{version}}'
+        chart: '{{chart}}'
+        helm:
+          releaseName: '{{path.basename}}'
+          values: |
+            {{values}}
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: 'test'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+```
+Helm chart definition 
+```yaml
+chart: ping-quarkus
+version: ">=0.0.0-0"
+values:
+  app:
+    db:
+      enabled: false
+    env:
+      ENV_TEST_1: 'false'  
+```
+Template file (globa.yml)
+```yaml
+values:
+  global:
+    default_url: localhost
+    db:
+      admin:
+        username: "postgres"
+        password: "onecx"
+      host: "onecx-db-postgresql"
+      port: "5432"
+    routing:
+      type: ingress
+  app:
+    env:
+      QUARKUS_TKIT_LOG_CONSOLE_JSON: 'false'
+```
 
 Build
 ```
