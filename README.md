@@ -5,6 +5,8 @@
 ApplicationSet will search for `*.yaml` files in the git repository.
 >Currently only the roor keys of the yaml file could be use for template.
 
+Before the ApplicaitonSet is generated the yaml file will be merge with `template yaml` file `global.yml` if this file exists.
+
 ApplicationSet Example
 ```yaml
 apiVersion: argoproj.io/v1alpha1
