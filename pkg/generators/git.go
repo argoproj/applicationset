@@ -174,11 +174,12 @@ func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1al
 
 }
 
-func (g *GitGenerator) filterApps(Directories []argoprojiov1alpha1.GitDirectoryGeneratorItem, allApps []string) []string {
+func (g *GitGenerator) filterApps(Directories []argoprojiov1alpha1.GitDirectoryGeneratorItem, allPaths []string) []string {
 	res := []string{}
-	for _, appPath := range allApps {
+	for _, appPath := range allPaths {
 		appInclude := false
 		appExclude := false
+		// Iterating over each appPath and check whether directories object has requestedPath that matches the appPath
 		for _, requestedPath := range Directories {
 			match, err := path.Match(requestedPath.Path, appPath)
 			if err != nil {
@@ -193,6 +194,7 @@ func (g *GitGenerator) filterApps(Directories []argoprojiov1alpha1.GitDirectoryG
 				appExclude = true
 			}
 		}
+		// Whenever there is a path with exclude: true it wont be included, even if it is included in a different path pattern
 		if appInclude && !appExclude {
 			res = append(res, appPath)
 		}

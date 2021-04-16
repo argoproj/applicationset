@@ -209,7 +209,9 @@ Whenever a new Helm chart/Kustomize YAML/Application/plain subfolder is added to
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
 
-The generator also supports `exclude` option in order to exclude directories in the repository from being created by the applicationset;
+### Exclude directories
+
+The generator also supports `exclude` option in order to exclude directories in the repository from being created by the applicationset:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
