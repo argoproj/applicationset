@@ -83,7 +83,7 @@ func createClusterSecret(secretName string, clusterName string, clusterServer st
 }
 
 // From util/argo/argo_test.go
-// (ported to use slightly kubeclientset)
+// (ported to use kubeclientset)
 func TestValidateDestination(t *testing.T) {
 
 	t.Run("Validate destination with server url", func(t *testing.T) {
