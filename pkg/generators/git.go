@@ -248,7 +248,8 @@ func (g *GitGenerator) generateParamsFromGitYamlFile(appSetGenerator *argoprojio
 
 	// merge the global configuration
 	if len(gv) > 0 {
-		mergo.Merge(&config, gv)
+		mergo.Merge(&gv, config, mergConfig)
+		config = gv
 	}
 
 	// create output parameters
@@ -274,4 +275,8 @@ func (g *GitGenerator) generateParamsFromGitYamlFile(appSetGenerator *argoprojio
 	res := []map[string]string{}
 	res = append(res, params)
 	return res, nil
+}
+
+func mergConfig(config *mergo.Config) {
+	config.Overwrite = true
 }
