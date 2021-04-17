@@ -8,23 +8,24 @@ metadata:
   name: cluster-git
 spec:
   generators:
-  - git:
-      name: cluster-deployments
-      repoURL: https://github.com/infra-team/cluster-deployments.git
-      directories:
-      - path: add-ons/*
-  - clusters:
-      dependsOn: cluster-deployments
-      selector:
-        matchLabels:
-          argocd.argoproj.io/secret-type: cluster
+  - metrix:
+    - git:
+        name: cluster-deployments
+        repoURL: https://github.com/argoproj-labs/applicationset.git
+        directories:
+        - path: examples/proposal/metrix/cluster-addons/*
+    - clusters:
+        dependsOn: cluster-deployments
+        selector:
+          matchLabels:
+            argocd.argoproj.io/secret-type: cluster
   template:
     metadata:
       name: '{{path.basename}}-{{name}}'
     spec:
       project: '{{metadata.labels.environment}}'
       source:
-        repoURL: https://github.com/infra-team/cluster-deployments.git
+        repoURL: https://github.com/argoproj-labs/applicationset.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:
