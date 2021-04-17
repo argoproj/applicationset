@@ -8,29 +8,30 @@ metadata:
   name: list-git
 spec:
   generators:
-  - git:
-      name: cluster-deployments
-      repoURL: https://github.com/infra-team/cluster-deployments.git
-      directories:
-      - path: add-ons/*
-  - list:
-      dependsOn: cluster-deployments
-      elements:
-      - cluster: engineering-dev
-        url: https://1.2.3.4
-        values:
-          project: dev
-      - cluster: engineering-prod
-        url: https://2.4.6.8
-        values:
-          project: prod
+  - metrix:
+    - git:
+        name: cluster-deployments
+        repoURL: https://github.com/argoproj-labs/applicationset.git
+        directories:
+        - path: add-ons/*
+    - list:
+        dependsOn: cluster-deployments
+        elements:
+        - cluster: engineering-dev
+          url: https://1.2.3.4
+          values:
+            project: dev
+        - cluster: engineering-prod
+          url: https://2.4.6.8
+          values:
+            project: prod
   template:
     metadata:
       name: '{{path.basename}}-{{cluster}}'
     spec:
       project: '{{values.project}}'
       source:
-        repoURL: https://github.com/infra-team/cluster-deployments.git
+        repoURL: https://github.com/argoproj-labs/applicationset.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:
