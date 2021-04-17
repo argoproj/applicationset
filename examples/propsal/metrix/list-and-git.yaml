@@ -9,22 +9,23 @@ metadata:
 spec:
   generators:
   - metrix:
-    - git:
-        name: cluster-deployments
-        repoURL: https://github.com/argoproj-labs/applicationset.git
-        directories:
-        - path: add-ons/*
-    - list:
-        dependsOn: cluster-deployments
-        elements:
-        - cluster: engineering-dev
-          url: https://1.2.3.4
-          values:
-            project: dev
-        - cluster: engineering-prod
-          url: https://2.4.6.8
-          values:
-            project: prod
+    generators:
+      - git:
+          name: cluster-deployments
+          repoURL: https://github.com/argoproj-labs/applicationset.git
+          directories:
+          - path: examples/proposal/metrix/cluster-addons/*
+      - list:
+          dependsOn: cluster-deployments
+          elements:
+          - cluster: engineering-dev
+            url: https://1.2.3.4
+            values:
+              project: dev
+          - cluster: engineering-prod
+            url: https://2.4.6.8
+            values:
+              project: prod
   template:
     metadata:
       name: '{{path.basename}}-{{cluster}}'

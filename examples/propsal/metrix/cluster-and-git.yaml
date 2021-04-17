@@ -9,16 +9,17 @@ metadata:
 spec:
   generators:
   - metrix:
-    - git:
-        name: cluster-deployments
-        repoURL: https://github.com/argoproj-labs/applicationset.git
-        directories:
-        - path: examples/proposal/metrix/cluster-addons/*
-    - clusters:
-        dependsOn: cluster-deployments
-        selector:
-          matchLabels:
-            argocd.argoproj.io/secret-type: cluster
+    generators:
+      - git:
+          name: cluster-deployments
+          repoURL: https://github.com/argoproj-labs/applicationset.git
+          directories:
+          - path: examples/proposal/metrix/cluster-addons/*
+      - clusters:
+          dependsOn: cluster-deployments
+          selector:
+            matchLabels:
+              argocd.argoproj.io/secret-type: cluster
   template:
     metadata:
       name: '{{path.basename}}-{{name}}'

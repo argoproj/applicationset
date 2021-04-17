@@ -63,16 +63,22 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List     *ListGenerator            `json:"list,omitempty"`
-	Clusters *ClusterGenerator         `json:"clusters,omitempty"`
-	Git      *GitGenerator             `json:"git,omitempty"`
-	Metrix   []ApplicationSetGenerator `json:"metrix,omitempty"`
+	List     *ListGenerator    `json:"list,omitempty"`
+	Clusters *ClusterGenerator `json:"clusters,omitempty"`
+	Git      *GitGenerator     `json:"git,omitempty"`
+	Metrix   *MetrixGenerator  `json:"metrix,omitempty"`
 }
 
 // ListGenerator include items info
 type ListGenerator struct {
 	Elements []ListGeneratorElement `json:"elements"`
 	Template ApplicationSetTemplate `json:"template,omitempty"`
+}
+
+// MetrixGenerator include Other generators
+type MetrixGenerator struct {
+	Generators []ApplicationSetGenerator `json:"elements"`
+	Template   ApplicationSetTemplate    `json:"template,omitempty"`
 }
 
 // ListGeneratorElement include cluster and url info
