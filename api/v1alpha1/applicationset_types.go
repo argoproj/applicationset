@@ -63,9 +63,10 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List     *ListGenerator    `json:"list,omitempty"`
-	Clusters *ClusterGenerator `json:"clusters,omitempty"`
-	Git      *GitGenerator     `json:"git,omitempty"`
+	List     *ListGenerator            `json:"list,omitempty"`
+	Clusters *ClusterGenerator         `json:"clusters,omitempty"`
+	Git      *GitGenerator             `json:"git,omitempty"`
+	Metrix   []ApplicationSetGenerator `json:"metrix,omitempty"`
 }
 
 // ListGenerator include items info

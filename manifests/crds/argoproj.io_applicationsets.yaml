@@ -1344,6 +1344,9 @@ spec:
                       required:
                       - elements
                       type: object
+                    metrix:
+                      items: {}
+                      type: array
                   type: object
                 type: array
               syncPolicy:
