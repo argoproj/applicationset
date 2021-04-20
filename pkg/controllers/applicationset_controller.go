@@ -18,11 +18,7 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"reflect"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
@@ -49,8 +45,6 @@ import (
 	argoutil "github.com/argoproj/argo-cd/util/argo"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
-
-	"github.com/imdario/mergo"
 )
 
 const (
@@ -94,7 +88,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Log a warning if there are unrecognized generators
-	checkInvalidGenerators(&applicationSetInfo)
+	utils.CheckInvalidGenerators(&applicationSetInfo)
 
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
 	desiredApplications, err := r.generateApplications(applicationSetInfo)
@@ -180,90 +174,6 @@ func (r *ApplicationSetReconciler) validateGeneratedApplications(ctx context.Con
 	return nil
 }
 
-// Log a warning if there are unrecognized generators
-func checkInvalidGenerators(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) {
-	hasInvalidGenerators, invalidGenerators := invalidGenerators(applicationSetInfo)
-	if len(invalidGenerators) > 0 {
-		gnames := []string{}
-		for n := range invalidGenerators {
-			gnames = append(gnames, n)
-		}
-		sort.Strings(gnames)
-		aname := applicationSetInfo.ObjectMeta.Name
-		msg := "ApplicationSet %s contains unrecognized generators: %s"
-		log.Warnf(msg, aname, strings.Join(gnames, ", "))
-	} else if hasInvalidGenerators {
-		name := applicationSetInfo.ObjectMeta.Name
-		msg := "ApplicationSet %s contains unrecognized generators"
-		log.Warnf(msg, name)
-	}
-}
-
-// Return true if there are unknown generators specified in the application set.  If we can discover the names
-// of these generators, return the names as the keys in a map
-func invalidGenerators(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) (bool, map[string]bool) {
-	names := make(map[string]bool)
-	hasInvalidGenerators := false
-	for index, generator := range applicationSetInfo.Spec.Generators {
-		v := reflect.Indirect(reflect.ValueOf(generator))
-		found := false
-		for i := 0; i < v.NumField(); i++ {
-			field := v.Field(i)
-			if !field.CanInterface() {
-				continue
-			}
-			if !reflect.ValueOf(field.Interface()).IsNil() {
-				found = true
-				break
-			}
-		}
-		if !found {
-			hasInvalidGenerators = true
-			addInvalidGeneratorNames(names, applicationSetInfo, index)
-		}
-	}
-	return hasInvalidGenerators, names
-}
-
-func addInvalidGeneratorNames(names map[string]bool, applicationSetInfo *argoprojiov1alpha1.ApplicationSet, index int) {
-	// The generator names are stored in the "kubectl.kubernetes.io/last-applied-configuration" annotation
-	config := applicationSetInfo.ObjectMeta.Annotations["kubectl.kubernetes.io/last-applied-configuration"]
-	var values map[string]interface{}
-	err := json.Unmarshal([]byte(config), &values)
-	if err != nil {
-		log.Warnf("couldn't unmarshal kubectl.kubernetes.io/last-applied-configuration: %+v", config)
-		return
-	}
-
-	spec, ok := values["spec"].(map[string]interface{})
-	if !ok {
-		log.Warn("coundn't get spec from kubectl.kubernetes.io/last-applied-configuration annotation")
-		return
-	}
-
-	generators, ok := spec["generators"].([]interface{})
-	if !ok {
-		log.Warn("coundn't get generators from kubectl.kubernetes.io/last-applied-configuration annotation")
-		return
-	}
-
-	if index >= len(generators) {
-		log.Warnf("index %d out of range %d for generator in kubectl.kubernetes.io/last-applied-configuration", index, len(generators))
-		return
-	}
-
-	generator, ok := generators[index].(map[string]interface{})
-	if !ok {
-		log.Warn("coundn't get generator from kubectl.kubernetes.io/last-applied-configuration annotation")
-		return
-	}
-
-	for key := range generator {
-		names[key] = true
-		break
-	}
-}
-
 func hasDuplicateNames(applications []argov1alpha1.Application) (bool, string) {
 	nameSet := map[string]struct{}{}
 	for _, app := range applications {
@@ -275,29 +185,11 @@ func hasDuplicateNames(applications []argov1alpha1.Application) (bool, string) {
 	return false, ""
 }
 
-func (r *ApplicationSetReconciler) GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator) []generators.Generator {
-	var res []generators.Generator
-
-	v := reflect.Indirect(reflect.ValueOf(requestedGenerator))
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if !field.CanInterface() {
-			continue
-		}
-
-		if !reflect.ValueOf(field.Interface()).IsNil() {
-			res = append(res, r.Generators[v.Type().Field(i).Name])
-		}
-	}
-
-	return res
-}
-
 func (r *ApplicationSetReconciler) getMinRequeueAfter(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) time.Duration {
 	var res time.Duration
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
 
-		generators := r.GetRelevantGenerators(&requestedGenerator)
+		generators := generators.GetRelevantGenerators(&requestedGenerator, r.Generators)
 
 		for _, g := range generators {
 			t := g.GetRequeueAfter(&requestedGenerator)
@@ -324,51 +216,28 @@ func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSet
 	return &tmplApplication
 }
 
-func mergeGeneratorTemplate(g generators.Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) (argoprojiov1alpha1.ApplicationSetTemplate, error) {
-
-	// Make a copy of the value from `GetTemplate()` before merge, rather than copying directly into
-	// the provided parameter (which will touch the original resource object returned by client-go)
-	dest := g.GetTemplate(requestedGenerator).DeepCopy()
-
-	err := mergo.Merge(dest, applicationSetTemplate)
-
-	return *dest, err
-}
 func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
 	res := []argov1alpha1.Application{}
 
 	var firstError error
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
-		generators := r.GetRelevantGenerators(&requestedGenerator)
-		for _, g := range generators {
-
-			// we call mergeGeneratorTemplate first because GenerateParams might be more costly so we want to fail fast if there is an error
-			mergedTemplate, err := mergeGeneratorTemplate(g, &requestedGenerator, applicationSetInfo.Spec.Template)
-			if err != nil {
-				log.WithError(err).WithField("generator", g).
-					Error("error generating params")
-				if firstError == nil {
-					firstError = err
-				}
-				continue
+		t, err := generators.Transform(requestedGenerator, r.Generators, applicationSetInfo.Spec.Template)
+		if err != nil {
+			log.WithError(err).WithField("generator", requestedGenerator).
+				Error("error generating application from params")
+			if firstError == nil {
+				firstError = err
 			}
+			continue
+		}
 
-			params, err := g.GenerateParams(&requestedGenerator)
-			if err != nil {
-				log.WithError(err).WithField("generator", g).
-					Error("error generating params")
-				if firstError == nil {
-					firstError = err
-				}
-				continue
-			}
+		for _, a := range t {
+			tmplApplication := getTempApplication(a.Template)
 
-			tmplApplication := getTempApplication(mergedTemplate)
-
-			for _, p := range params {
+			for _, p := range a.Params {
 				app, err := r.Renderer.RenderTemplateParams(tmplApplication, p)
 				if err != nil {
-					log.WithError(err).WithField("params", params).WithField("generator", g).
+					log.WithError(err).WithField("params", a.Params).WithField("generator", requestedGenerator).
 						Error("error generating application from params")
 					if firstError == nil {
 						firstError = err
@@ -377,12 +246,13 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 				}
 				res = append(res, *app)
 			}
-
-			log.WithField("generator", g).Infof("generated %d applications", len(res))
-			log.WithField("generator", g).Debugf("apps from generator: %+v", res)
-
 		}
+
+		log.WithField("generator", requestedGenerator).Infof("generated %d applications", len(res))
+		log.WithField("generator", requestedGenerator).Debugf("apps from generator: %+v", res)
+
 	}
+
 	return res, firstError
 }
 

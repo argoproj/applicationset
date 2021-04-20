@@ -134,12 +134,18 @@ func main() {
 
 	argoCDDB := db.NewDB(namespace, argoSettingsMgr, k8s)
 
+	baseGenerators := map[string]generators.Generator{
+		"List":     generators.NewListGenerator(),
+		"Clusters": generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
+		"Git":      generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
+	}
+
+	combineGenerators := map[string]generators.Generator{
+		"Metrix": generators.NewMertixGenerator(baseGenerators),
+	}
+
 	if err = (&controllers.ApplicationSetReconciler{
-		Generators: map[string]generators.Generator{
-			"List":     generators.NewListGenerator(),
-			"Clusters": generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
-			"Git":      generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
-		},
+		Generators:       generators.CombineMaps(baseGenerators, combineGenerators),
 		Client:           mgr.GetClient(),
 		Log:              ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
 		Scheme:           mgr.GetScheme(),

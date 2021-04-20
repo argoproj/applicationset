@@ -60,6 +60,9 @@ func TestMetrixGenerate(t *testing.T) {
 		},
 	}, nil)
 
+	mock.On("GetTemplate", &gitGeneratorSpec).
+		Return(&argoprojiov1alpha1.ApplicationSetTemplate{})
+
 	var metrixGenerator = NewMertixGenerator(
 		map[string]Generator{
 			"Git":  mock,

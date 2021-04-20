@@ -1,11 +1,10 @@
 package generators
 
 import (
-	"reflect"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	log "github.com/sirupsen/logrus"
+	"github.com/argoproj-labs/applicationset/pkg/utils"
 )
 
 var _ Generator = (*MetrixGenerator)(nil)
@@ -15,69 +14,31 @@ type MetrixGenerator struct {
 }
 
 func NewMertixGenerator(generators map[string]Generator) Generator {
-	g := &MetrixGenerator{
+	m := &MetrixGenerator{
 		generators: generators,
 	}
-	return g
-}
-
-func (m *MetrixGenerator) GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator) []Generator {
-	var res []Generator
-
-	v := reflect.Indirect(reflect.ValueOf(requestedGenerator))
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if !field.CanInterface() {
-			continue
-		}
-
-		if !reflect.ValueOf(field.Interface()).IsNil() {
-			res = append(res, m.generators[v.Type().Field(i).Name])
-		}
-	}
-
-	return res
-}
-
-func combineMaps(a map[string]string, b map[string]string) map[string]string {
-	res := map[string]string{}
-
-	for k, v := range a {
-		res[k] = v
-	}
-
-	for k, v := range b {
-		res[k] = v
-	}
-
-	return res
+	return m
 }
 
 func (m *MetrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 
+	// Log a warning if there are unrecognized generators
+	//utils.CheckInvalidGenerators(&applicationSetInfo)
+
 	allParams := [][]map[string]string{}
 
 	for _, requestedGenerator := range appSetGenerator.Metrix.Generators {
-		generator := m.GetRelevantGenerators(&requestedGenerator)[0]
 
-		params, err := generator.GenerateParams(&requestedGenerator)
-		if err != nil {
-			log.WithError(err).WithField("generator", generator).
-				Error("error generating params")
-			//if firstError == nil {
-			//	firstError = err
-			//}
-			continue
-		}
+		t, _ := Transform(requestedGenerator, m.generators, argoprojiov1alpha1.ApplicationSetTemplate{})
 
-		allParams = append(allParams, params)
+		allParams = append(allParams, t[0].Params)
 	}
 
 	res := []map[string]string{}
 
 	for _, a := range allParams[0] {
 		for _, b := range allParams[1] {
-			res = append(res, combineMaps(a, b))
+			res = append(res, utils.CombineStringMaps(a, b))
 		}
 	}
 
