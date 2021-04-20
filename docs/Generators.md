@@ -224,9 +224,9 @@ spec:
       repoURL: https://github.com/argoproj-labs/applicationset.git
       revision: HEAD
       directories:
-      - path: examples/git-generator-directory/cluster-addons/*
+      - path: examples/git-generator-directory/excludes/cluster-addons/*
       - exclude: true
-        path: examples/git-generator-directory/cluster-addons/exclude-helm-guestbook
+        path: examples/git-generator-directory/excludes/cluster-addons/exclude-helm-guestbook
   template:
     metadata:
       name: '{{path.basename}}'
@@ -239,6 +239,47 @@ spec:
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{path.basename}}'
+```
+(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-directory/excludes).*)
+
+- The exclude feature relies on the fact that everything by default in the path pattern is included, therefore every app matches to `exclude` pattern will always be excluded. **Exclude takes precedence over include.**
+
+- The exclude algorithm works regardless the order of entries in the `directories` list
+
+With these directories:
+
+```
+.
+└── d
+    ├── e
+    ├── f
+    └── g
+```
+Say if you want to include /d/e, but exclude /d/f and /d/g, this will not work:
+
+```yaml
+- path: /d/e
+  exclude: false
+- path: /d/*
+  exclude: true
+```
+
+You would instead need to do:
+
+```yaml
+- path: /d/*
+- path: /d/f
+  exclude: true
+- path: /d/g
+  exclude: true
+```
+
+A shorter way would be:
+
+```yaml
+- path: /d/*
+- path: /d/[f|g]
+  exclude: true
 ```
 
 ## Git Generator: Files
