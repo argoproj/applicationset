@@ -29,7 +29,13 @@ func (m *MetrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 
 	for _, requestedGenerator := range appSetGenerator.Metrix.Generators {
 
-		t, _ := Transform(requestedGenerator, m.generators, argoprojiov1alpha1.ApplicationSetTemplate{})
+		f := argoprojiov1alpha1.ApplicationSetGenerator{
+			List:     requestedGenerator.List,
+			Clusters: requestedGenerator.Clusters,
+			Git:      requestedGenerator.Git,
+		}
+
+		t, _ := Transform(f, m.generators, argoprojiov1alpha1.ApplicationSetTemplate{})
 
 		allParams = append(allParams, t[0].Params)
 	}

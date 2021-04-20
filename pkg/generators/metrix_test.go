@@ -12,12 +12,14 @@ import (
 
 func TestMetrixGenerate(t *testing.T) {
 
+	gitGenerator := &argoprojiov1alpha1.GitGenerator{
+		RepoURL:     "RepoURL",
+		Revision:    "Revision",
+		Directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
+	}
+
 	gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
-		Git: &argoprojiov1alpha1.GitGenerator{
-			RepoURL:     "RepoURL",
-			Revision:    "Revision",
-			Directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
-		},
+		Git: gitGenerator,
 	}
 
 	applicationSetInfo := argoprojiov1alpha1.ApplicationSet{
@@ -28,8 +30,10 @@ func TestMetrixGenerate(t *testing.T) {
 			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 				{
 					Metrix: &argoprojiov1alpha1.MetrixGenerator{
-						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
-							gitGeneratorSpec,
+						Generators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+							{
+								Git: gitGenerator,
+							},
 							{
 								List: &argoprojiov1alpha1.ListGenerator{
 									Elements: []argoprojiov1alpha1.ListGeneratorElement{

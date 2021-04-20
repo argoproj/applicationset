@@ -69,6 +69,15 @@ type ApplicationSetGenerator struct {
 	Metrix   *MetrixGenerator  `json:"metrix,omitempty"`
 }
 
+// ApplicationSetBaseGenerator include list item info
+// CRD dosn't support recursive types so we need a difffrent type for the metrix generator
+// https://github.com/kubernetes-sigs/controller-tools/issues/477
+type ApplicationSetBaseGenerator struct {
+	List     *ListGenerator    `json:"list,omitempty"`
+	Clusters *ClusterGenerator `json:"clusters,omitempty"`
+	Git      *GitGenerator     `json:"git,omitempty"`
+}
+
 // ListGenerator include items info
 type ListGenerator struct {
 	Elements []ListGeneratorElement `json:"elements"`
@@ -77,8 +86,8 @@ type ListGenerator struct {
 
 // MetrixGenerator include Other generators
 type MetrixGenerator struct {
-	Generators []ApplicationSetGenerator `json:"elements"`
-	Template   ApplicationSetTemplate    `json:"template,omitempty"`
+	Generators []ApplicationSetBaseGenerator `json:"generators"`
+	Template   ApplicationSetTemplate        `json:"template,omitempty"`
 }
 
 // ListGeneratorElement include cluster and url info
