@@ -211,7 +211,7 @@ As with other generators, clusters *must* already be defined within Argo CD, in 
 
 ### Exclude directories
 
-The generator also supports `exclude` option in order to exclude directories in the repository from being created by the applicationset:
+The Git directory generator also supports an `exclude` option in order to exclude directories in the repository from being scanned by the ApplicationSet controller:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -242,11 +242,15 @@ spec:
 ```
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-directory/excludes).*)
 
-- The exclude feature relies on the fact that everything by default in the path pattern is included, therefore every app matches to `exclude` pattern will always be excluded. **Exclude takes precedence over include.**
+This example excludes the `exclude-helm-guestbook` directory from the list of directories scanned for this `ApplictionSet` resource.
 
-- The exclude algorithm works regardless the order of entries in the `directories` list
+!!! note "Exclude rules have higher priority than include rules"
 
-With these directories:
+Every directory that matches at least one `exclude` pattern will always be excluded. Or, said another way, *exclude rules take precedence over include rules.*
+
+As a corollary, the order of `path`s in the `directories` field does not change which directories are included/excluded (because, as above, exclude rules always take precedence over include rules). 
+
+For example, with these directories:
 
 ```
 .
@@ -255,7 +259,7 @@ With these directories:
     ├── f
     └── g
 ```
-Say if you want to include /d/e, but exclude /d/f and /d/g, this will not work:
+Say you want to include `/d/e`, but exclude `/d/f` and `/d/g`. This will *not* work:
 
 ```yaml
 - path: /d/e
@@ -263,6 +267,7 @@ Say if you want to include /d/e, but exclude /d/f and /d/g, this will not work:
 - path: /d/*
   exclude: true
 ```
+Why? Because the exclude `/d/*` exclude rule will take precedence over the `/d/e` include rule. When the `/d/e` path in the Git repository is processed by the ApplicationSet controller, the controller detects that at least one exclude rule is matched, and thus that directory should not be scanned.
 
 You would instead need to do:
 
@@ -274,7 +279,7 @@ You would instead need to do:
   exclude: true
 ```
 
-A shorter way would be:
+Or, a shorter way (using [path.Match](https://golang.org/pkg/path/#Match) syntax) would be:
 
 ```yaml
 - path: /d/*
