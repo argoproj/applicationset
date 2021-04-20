@@ -209,6 +209,84 @@ Whenever a new Helm chart/Kustomize YAML/Application/plain subfolder is added to
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
 
+### Exclude directories
+
+The Git directory generator also supports an `exclude` option in order to exclude directories in the repository from being scanned by the ApplicationSet controller:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-addons
+spec:
+  generators:
+  - git:
+      repoURL: https://github.com/argoproj-labs/applicationset.git
+      revision: HEAD
+      directories:
+      - path: examples/git-generator-directory/excludes/cluster-addons/*
+      - exclude: true
+        path: examples/git-generator-directory/excludes/cluster-addons/exclude-helm-guestbook
+  template:
+    metadata:
+      name: '{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/argoproj-labs/applicationset.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+```
+(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-directory/excludes).*)
+
+This example excludes the `exclude-helm-guestbook` directory from the list of directories scanned for this `ApplictionSet` resource.
+
+!!! note "Exclude rules have higher priority than include rules"
+
+Every directory that matches at least one `exclude` pattern will always be excluded. Or, said another way, *exclude rules take precedence over include rules.*
+
+As a corollary, the order of `path`s in the `directories` field does not change which directories are included/excluded (because, as above, exclude rules always take precedence over include rules). 
+
+For example, with these directories:
+
+```
+.
+└── d
+    ├── e
+    ├── f
+    └── g
+```
+Say you want to include `/d/e`, but exclude `/d/f` and `/d/g`. This will *not* work:
+
+```yaml
+- path: /d/e
+  exclude: false
+- path: /d/*
+  exclude: true
+```
+Why? Because the exclude `/d/*` exclude rule will take precedence over the `/d/e` include rule. When the `/d/e` path in the Git repository is processed by the ApplicationSet controller, the controller detects that at least one exclude rule is matched, and thus that directory should not be scanned.
+
+You would instead need to do:
+
+```yaml
+- path: /d/*
+- path: /d/f
+  exclude: true
+- path: /d/g
+  exclude: true
+```
+
+Or, a shorter way (using [path.Match](https://golang.org/pkg/path/#Match) syntax) would be:
+
+```yaml
+- path: /d/*
+- path: /d/[f|g]
+  exclude: true
+```
+
 ## Git Generator: Files
 
 The Git file generator is the second subtype of the Git generator. The Git file generator generates parameters using the contents of JSON files found within a specified repository.
