@@ -7,27 +7,27 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 )
 
-var _ Generator = (*MetrixGenerator)(nil)
+var _ Generator = (*MatrixGenerator)(nil)
 
-type MetrixGenerator struct {
+type MatrixGenerator struct {
 	generators map[string]Generator
 }
 
-func NewMertixGenerator(generators map[string]Generator) Generator {
-	m := &MetrixGenerator{
+func NewMatrixGenerator(generators map[string]Generator) Generator {
+	m := &MatrixGenerator{
 		generators: generators,
 	}
 	return m
 }
 
-func (m *MetrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
+func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 
 	// Log a warning if there are unrecognized generators
 	//utils.CheckInvalidGenerators(&applicationSetInfo)
 
 	allParams := [][]map[string]string{}
 
-	for _, requestedGenerator := range appSetGenerator.Metrix.Generators {
+	for _, requestedGenerator := range appSetGenerator.Matrix.Generators {
 
 		f := argoprojiov1alpha1.ApplicationSetGenerator{
 			List:     requestedGenerator.List,
@@ -51,10 +51,10 @@ func (m *MetrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 	return res, nil
 }
 
-func (g *MetrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (g *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 	return NoRequeueAfter
 }
 
-func (g *MetrixGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
-	return &appSetGenerator.Metrix.Template
+func (g *MatrixGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+	return &appSetGenerator.Matrix.Template
 }

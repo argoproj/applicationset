@@ -10,7 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestMetrixGenerate(t *testing.T) {
+func TestMatrixGenerate(t *testing.T) {
 
 	gitGenerator := &argoprojiov1alpha1.GitGenerator{
 		RepoURL:     "RepoURL",
@@ -29,7 +29,7 @@ func TestMetrixGenerate(t *testing.T) {
 		Spec: argoprojiov1alpha1.ApplicationSetSpec{
 			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 				{
-					Metrix: &argoprojiov1alpha1.MetrixGenerator{
+					Matrix: &argoprojiov1alpha1.MatrixGenerator{
 						Generators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
 							{
 								Git: gitGenerator,
@@ -67,13 +67,13 @@ func TestMetrixGenerate(t *testing.T) {
 	mock.On("GetTemplate", &gitGeneratorSpec).
 		Return(&argoprojiov1alpha1.ApplicationSetTemplate{})
 
-	var metrixGenerator = NewMertixGenerator(
+	var matrixGenerator = NewMatrixGenerator(
 		map[string]Generator{
 			"Git":  mock,
 			"List": &ListGenerator{},
 		},
 	)
-	got, err := metrixGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0])
+	got, err := matrixGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0])
 
 	expected := []map[string]string{
 		{"path": "app1", "path.basename": "app1", "cluster": "Cluster", "url": "Url"},

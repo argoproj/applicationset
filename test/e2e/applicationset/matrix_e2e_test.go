@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestListMetrixGenerator(t *testing.T) {
+func TestListMatrixGenerator(t *testing.T) {
 	generateExpectedApp := func(cluster, name string) argov1alpha1.Application {
 		return argov1alpha1.Application{
 			TypeMeta: metav1.TypeMeta{
@@ -55,7 +55,7 @@ func TestListMetrixGenerator(t *testing.T) {
 		// Create a ClusterGenerator-based ApplicationSet
 		When().
 		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
-			Name: "metrix-generator",
+			Name: "matrix-generator",
 		},
 			Spec: v1alpha1.ApplicationSetSpec{
 				Template: v1alpha1.ApplicationSetTemplate{
@@ -75,7 +75,7 @@ func TestListMetrixGenerator(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						Metrix: &v1alpha1.MetrixGenerator{
+						Matrix: &v1alpha1.MatrixGenerator{
 							Generators: []v1alpha1.ApplicationSetBaseGenerator{
 								{
 									List: &v1alpha1.ListGenerator{
@@ -135,7 +135,7 @@ func TestListMetrixGenerator(t *testing.T) {
 		Delete().Then().Expect(ApplicationsDoNotExist(expectedAppsNewNamespace))
 }
 
-func TestClusterMetrixGenerator(t *testing.T) {
+func TestClusterMatrixGenerator(t *testing.T) {
 	generateExpectedApp := func(cluster, name string) argov1alpha1.Application {
 		return argov1alpha1.Application{
 			TypeMeta: metav1.TypeMeta{
@@ -181,7 +181,7 @@ func TestClusterMetrixGenerator(t *testing.T) {
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
 		CreateClusterSecret("my-secret2", "cluster2", "https://kubernetes.default.svc").
 		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
-			Name: "metrix-generator",
+			Name: "matrix-generator",
 		},
 			Spec: v1alpha1.ApplicationSetSpec{
 				Template: v1alpha1.ApplicationSetTemplate{
@@ -201,7 +201,7 @@ func TestClusterMetrixGenerator(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						Metrix: &v1alpha1.MetrixGenerator{
+						Matrix: &v1alpha1.MatrixGenerator{
 							Generators: []v1alpha1.ApplicationSetBaseGenerator{
 								{
 									Clusters: &v1alpha1.ClusterGenerator{

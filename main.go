@@ -141,7 +141,7 @@ func main() {
 	}
 
 	combineGenerators := map[string]generators.Generator{
-		"Metrix": generators.NewMertixGenerator(baseGenerators),
+		"Matrix": generators.NewMatrixGenerator(baseGenerators),
 	}
 
 	if err = (&controllers.ApplicationSetReconciler{

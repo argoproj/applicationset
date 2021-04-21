@@ -1344,14 +1344,14 @@ spec:
                       required:
                       - elements
                       type: object
-                    metrix:
-                      description: MetrixGenerator include Other generators
+                    matrix:
+                      description: MatrixGenerator include Other generators
                       properties:
                         generators:
                           items:
                             description: ApplicationSetBaseGenerator include list
                               item info CRD dosn't support recursive types so we need
-                              a difffrent type for the metrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
+                              a different type for the matrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
                             properties:
                               clusters:
                                 description: ClusterGenerator defines a generator

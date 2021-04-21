@@ -8,13 +8,13 @@ metadata:
   name: cluster-git
 spec:
   generators:
-  - metrix:
+  - matrix:
     generators:
       - git:
           name: cluster-deployments
           repoURL: https://github.com/argoproj-labs/applicationset.git
           directories:
-          - path: examples/proposal/metrix/cluster-addons/*
+          - path: examples/proposal/matrix/cluster-addons/*
       - clusters:
           dependsOn: cluster-deployments
           selector:
