@@ -52,10 +52,9 @@ func (m *MetrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 }
 
 func (g *MetrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
-	return 0
-
+	return NoRequeueAfter
 }
 
 func (g *MetrixGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
-	return nil
+	return &appSetGenerator.Metrix.Template
 }
