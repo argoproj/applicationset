@@ -292,7 +292,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 			repoPathsError:         nil,
 			repoFileContentsErrors: map[string]error{},
 			expected:               []map[string]string{},
-			expectedError:          fmt.Errorf("unable to process file 'cluster-config/production/config.json': unable to parse JSON file: invalid character 'i' looking for beginning of value"),
+			expectedError:          fmt.Errorf("unable to process file 'cluster-config/production/config.json': unable to parse file: error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]interface {}"),
 		},
 		{
 			name:  "test JSON array",
@@ -302,25 +302,25 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 			},
 			repoFileContents: map[string][]byte{
 				"cluster-config/production/config.json": []byte(`
-				[
-					{
-						"cluster": {
-							"owner": "john.doe@example.com",
-							"name": "production",
-							"address": "https://kubernetes.default.svc",
-							"inner": {
-								"one" : "two"
-							}
-						}
-					},
-					{
-						"cluster": {
-							"owner": "john.doe@example.com",
-							"name": "staging",
-							"address": "https://kubernetes.default.svc"
-						}
-					}
-				]`),
+[
+	{
+		"cluster": {
+			"owner": "john.doe@example.com",
+			"name": "production",
+			"address": "https://kubernetes.default.svc",
+			"inner": {
+				"one" : "two"
+			}
+		}
+	},
+	{
+		"cluster": {
+			"owner": "john.doe@example.com",
+			"name": "staging",
+			"address": "https://kubernetes.default.svc"
+		}
+	}
+]`),
 			},
 			repoPathsError:         nil,
 			repoFileContentsErrors: map[string]error{},
