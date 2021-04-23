@@ -310,3 +310,70 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 		When().
 		Delete().Then().Expect(ApplicationsDoNotExist(expectedAppsNewNamespace))
 }
+
+func TestSimpleRepoHostGenerator(t *testing.T) {
+	expectedApp := argov1alpha1.Application{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Application",
+			APIVersion: "argoproj.io/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "argocd-example-apps-guestbook",
+			Namespace:  utils.ArgoCDNamespace,
+			Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
+		},
+		Spec: argov1alpha1.ApplicationSpec{
+			Project: "default",
+			Source: argov1alpha1.ApplicationSource{
+				RepoURL:        "git@github.com:argoproj/argocd-example-apps.git",
+				TargetRevision: "master",
+				Path:           "guestbook",
+			},
+			Destination: argov1alpha1.ApplicationDestination{
+				Server:    "https://kubernetes.default.svc",
+				Namespace: "guestbook",
+			},
+		},
+	}
+
+	// Because you can't &"".
+	repoMatch := "example-apps"
+
+	Given(t).
+		// Create a RepoHostGenerator-based ApplicationSet
+		When().Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
+		Name: "simple-repo-host-generator",
+	},
+		Spec: v1alpha1.ApplicationSetSpec{
+			Template: v1alpha1.ApplicationSetTemplate{
+				ApplicationSetTemplateMeta: v1alpha1.ApplicationSetTemplateMeta{Name: "{{ repository }}-guestbook"},
+				Spec: argov1alpha1.ApplicationSpec{
+					Project: "default",
+					Source: argov1alpha1.ApplicationSource{
+						RepoURL:        "{{ url }}",
+						TargetRevision: "{{ branch }}",
+						Path:           "guestbook",
+					},
+					Destination: argov1alpha1.ApplicationDestination{
+						Server:    "https://kubernetes.default.svc",
+						Namespace: "guestbook",
+					},
+				},
+			},
+			Generators: []v1alpha1.ApplicationSetGenerator{
+				{
+					RepoHost: &v1alpha1.RepoHostGenerator{
+						Github: &v1alpha1.RepoHostGeneratorGithub{
+							Organization: "argoprod",
+						},
+						Filters: []v1alpha1.RepoHostGeneratorFilter{
+							{
+								RepositoryMatch: &repoMatch,
+							},
+						},
+					},
+				},
+			},
+		},
+	}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{expectedApp}))
+}
