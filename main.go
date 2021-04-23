@@ -139,6 +139,7 @@ func main() {
 			"List":     generators.NewListGenerator(),
 			"Clusters": generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
 			"Git":      generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
+			"RepoHost": generators.NewRepoHostGenerator(mgr.GetClient()),
 		},
 		Client:           mgr.GetClient(),
 		Log:              ctrl.Log.WithName("controllers").WithName("ApplicationSet"),

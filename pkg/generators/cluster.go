@@ -59,7 +59,7 @@ func (g *ClusterGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.Appli
 }
 
 func (g *ClusterGenerator) GenerateParams(
-	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
+	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
 	if appSetGenerator == nil {
 		return nil, EmptyAppSetGeneratorError

@@ -21,6 +21,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Utility struct for a reference to a secret key.
+type SecretRef struct {
+	Name string `json:"name"`
+	Key  string `json:"key"`
+}
+
 // ApplicationSet is a set of Application resources
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=applicationsets,shortName=appset;appsets
@@ -63,9 +69,10 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List     *ListGenerator    `json:"list,omitempty"`
-	Clusters *ClusterGenerator `json:"clusters,omitempty"`
-	Git      *GitGenerator     `json:"git,omitempty"`
+	List     *ListGenerator     `json:"list,omitempty"`
+	Clusters *ClusterGenerator  `json:"clusters,omitempty"`
+	Git      *GitGenerator      `json:"git,omitempty"`
+	RepoHost *RepoHostGenerator `json:"repoHost,omitempty"`
 }
 
 // ListGenerator include items info
@@ -110,6 +117,38 @@ type GitDirectoryGeneratorItem struct {
 
 type GitFileGeneratorItem struct {
 	Path string `json:"path"`
+}
+
+// RepoHostGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.
+type RepoHostGenerator struct {
+	// Which provider to use and config for it.
+	Github *RepoHostGeneratorGithub `json:"github,omitempty"`
+	// TODO other providers.
+	// Filters for which repos should be considered.
+	Filters []RepoHostGeneratorFilter `json:"filters,omitempty"`
+	// Standard parameters.
+	RequeueAfterSeconds *int64                 `json:"requeueAfterSeconds,omitempty"`
+	Template            ApplicationSetTemplate `json:"template,omitempty"`
+}
+
+// RepoHostGeneratorGithub defines a connection info specific to Github.
+type RepoHostGeneratorGithub struct {
+	// Github org to scan. Required.
+	Organization string `json:"organization"`
+	// The Github API URL to talk to. If blank, use https://api.github.com/.
+	API string `json:"api,omitempty"`
+	// Authentication token reference.
+	TokenRef *SecretRef `json:"tokenRef,omitempty"`
+}
+
+// RepoHostGeneratorFilter is a single repoisitory filter.
+type RepoHostGeneratorFilter struct {
+	// A regex for repo names.
+	RepositoryMatch *string `json:"repositoryMatch,omitempty"`
+	// A path which must exist.
+	PathExists *string `json:"pathExists,omitempty"`
+	// A regex which must match at least one label.
+	LabelMatch *string `json:"labelMatch,omitempty"`
 }
 
 // ApplicationSetStatus defines the observed state of ApplicationSet

@@ -164,7 +164,7 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 				},
 			}
 
-			got, err := gitGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0])
+			got, err := gitGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0], nil)
 
 			if c.expectedError != nil {
 				assert.EqualError(t, err, c.expectedError.Error())
@@ -370,7 +370,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 				},
 			}
 
-			got, err := gitGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0])
+			got, err := gitGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0], nil)
 			fmt.Println(got, err)
 
 			if c.expectedError != nil {
