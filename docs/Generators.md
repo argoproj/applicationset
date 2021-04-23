@@ -370,3 +370,97 @@ Any `config.json` files found under the `cluster-config` directory will be param
     Only JSON file parsing is currently supported. The work to add support for YAML files is [tracked here](https://github.com/argoproj-labs/applicationset/issues/106).
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
+
+## Repository Host Generator
+
+The RepoHost generator uses the API of an SCMaaS provider to discover repositories. This fits well with many repos following the same GitOps layout patterns such as microservices.
+
+### Github
+
+The Github mode uses the Github API to scan and organization in either github.com or Github Enterprise.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - repoHost:
+      github:
+        # The Github organization to scan.
+        organization: myorg
+        # For Github Enterprise:
+        api: https://git.example.com/
+        # Reference to a Secret containing an access token. (optional)
+        tokenRef:
+          name: github-token
+          key: token
+  template:
+  # ...
+```
+
+* `organization`: Required name of the Github organization to scan. If you have multiple orgs, use multiple generators.
+* `api`: If using Github Enterprise, the URL to access it.
+* `tokenRef`: A Secret name and key containing the Github access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit.
+
+For label filtering, the repository topics are used.
+
+### Filters
+
+Filters allow selecting which repositories to generate for. Filters are additive, specifying none will template every repository and each filter added will pare that down.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - repoHost:
+      github:
+        # ...
+      filters:
+      - repositoryMatch: ^myapp.*
+        pathExists: kubernetes/kustomization.yaml
+        labelMatch: deploy-ok
+  template:
+  # ...
+```
+
+* `repositoryMatch`: A regexp matched against the repository name.
+* `pathExists`: A path within the repository that must exist. Can be a file or directory, but do not include the trailing `/` for directories.
+* `labelMatch`: A regexp matched against repository labels. If any label matches, the repository is included.
+
+### Template
+
+As with all generators, several keys are available for replacement in the generated application.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - repoHost:
+    # ...
+  template:
+    metadata:
+      name: '{{ repository }}'
+    spec:
+      source:
+        repoURL: '{{ url }}'
+        targetRevision: '{{ branch }}'
+        path: kubernetes/
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: default
+```
+
+* `organization`: The name of the organization the repository is in.
+* `repository`: The name of the repository.
+* `url`: The clone URL for the repository.
+* `branch`: The default branch of the repository.
+
