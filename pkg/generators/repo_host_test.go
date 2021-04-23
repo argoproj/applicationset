@@ -20,7 +20,7 @@ func TestRepoHostGetSecretRef(t *testing.T) {
 			"my-token": []byte("secret"),
 		},
 	}
-	gen := &RepoHostGenerator{client: fake.NewFakeClient(secret)}
+	gen := &RepoHostGenerator{client: fake.NewClientBuilder().WithObjects(secret).Build()}
 	ctx := context.Background()
 
 	token, err := gen.getSecretRef(ctx, &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "my-token"}, "test")
