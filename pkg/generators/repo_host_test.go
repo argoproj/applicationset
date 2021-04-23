@@ -23,22 +23,60 @@ func TestRepoHostGetSecretRef(t *testing.T) {
 	gen := &RepoHostGenerator{client: fake.NewClientBuilder().WithObjects(secret).Build()}
 	ctx := context.Background()
 
-	token, err := gen.getSecretRef(ctx, &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "my-token"}, "test")
-	assert.Nil(t, err)
-	assert.Equal(t, "secret", token)
+	cases := []struct {
+		name, namespace, token string
+		ref                    *argoprojiov1alpha1.SecretRef
+		hasError               bool
+	}{
+		{
+			name:      "valid ref",
+			ref:       &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "my-token"},
+			namespace: "test",
+			token:     "secret",
+			hasError:  false,
+		},
+		{
+			name:      "nil ref",
+			ref:       nil,
+			namespace: "test",
+			token:     "",
+			hasError:  false,
+		},
+		{
+			name:      "wrong name",
+			ref:       &argoprojiov1alpha1.SecretRef{Name: "other", Key: "my-token"},
+			namespace: "test",
+			token:     "",
+			hasError:  true,
+		},
+		{
+			name:      "wrong key",
+			ref:       &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "other-token"},
+			namespace: "test",
+			token:     "",
+			hasError:  true,
+		},
+		{
+			name:      "wrong namespace",
+			ref:       &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "my-token"},
+			namespace: "other",
+			token:     "",
+			hasError:  true,
+		},
+	}
 
-	token, err = gen.getSecretRef(ctx, nil, "test")
-	assert.Nil(t, err)
-	assert.Equal(t, "", token)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			token, err := gen.getSecretRef(ctx, c.ref, c.namespace)
+			if c.hasError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+			assert.Equal(t, c.token, token)
 
-	_, err = gen.getSecretRef(ctx, &argoprojiov1alpha1.SecretRef{Name: "other", Key: "my-token"}, "test")
-	assert.NotNil(t, err)
-
-	_, err = gen.getSecretRef(ctx, &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "other-token"}, "test")
-	assert.NotNil(t, err)
-
-	_, err = gen.getSecretRef(ctx, &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "my-token"}, "other")
-	assert.NotNil(t, err)
+		})
+	}
 }
 
 func TestRepoHostGenerateParams(t *testing.T) {
