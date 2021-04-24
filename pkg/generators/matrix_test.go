@@ -7,7 +7,6 @@ import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestMatrixGenerate(t *testing.T) {
@@ -18,71 +17,138 @@ func TestMatrixGenerate(t *testing.T) {
 		Directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
 	}
 
-	gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
-		Git: gitGenerator,
-	}
-
-	applicationSetInfo := argoprojiov1alpha1.ApplicationSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "set",
-		},
-		Spec: argoprojiov1alpha1.ApplicationSetSpec{
-			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
-				{
-					Matrix: &argoprojiov1alpha1.MatrixGenerator{
-						Generators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
-							{
-								Git: gitGenerator,
-							},
-							{
-								List: &argoprojiov1alpha1.ListGenerator{
-									Elements: []argoprojiov1alpha1.ListGeneratorElement{
-										{
-											Cluster: "Cluster",
-											Url:     "Url",
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+	listGenerator := &argoprojiov1alpha1.ListGenerator{
+		Elements: []argoprojiov1alpha1.ListGeneratorElement{
+			{
+				Cluster: "Cluster",
+				Url:     "Url",
 			},
 		},
 	}
 
-	mock := &generatorMock{}
-
-	mock.On("GenerateParams", &gitGeneratorSpec).Return([]map[string]string{
+	testCases := []struct {
+		name           string
+		baseGenerators []argoprojiov1alpha1.ApplicationSetBaseGenerator
+		expectedErr    error
+		expected       []map[string]string
+	}{
 		{
-			"path":          "app1",
-			"path.basename": "app1",
+			name: "happy flow - generate params",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+				{
+					Git: gitGenerator,
+				},
+				{
+					List: listGenerator,
+				},
+			},
+			expected: []map[string]string{
+				{"path": "app1", "path.basename": "app1", "cluster": "Cluster", "url": "Url"},
+				{"path": "app2", "path.basename": "app2", "cluster": "Cluster", "url": "Url"},
+			},
 		},
 		{
-			"path":          "app2",
-			"path.basename": "app2",
+			name: "returns error if there is less than two base generators",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+				{
+					Git: gitGenerator,
+				},
+			},
+			expectedErr: LessThanTwoGenerators,
 		},
-	}, nil)
-
-	mock.On("GetTemplate", &gitGeneratorSpec).
-		Return(&argoprojiov1alpha1.ApplicationSetTemplate{})
-
-	var matrixGenerator = NewMatrixGenerator(
-		map[string]Generator{
-			"Git":  mock,
-			"List": &ListGenerator{},
+		{
+			name: "returns error if there is more than two base generators",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+				{
+					List: listGenerator,
+				},
+				{
+					List: listGenerator,
+				},
+				{
+					List: listGenerator,
+				},
+			},
+			expectedErr: MoreThanTwoGenerators,
 		},
-	)
-	got, err := matrixGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0])
-
-	expected := []map[string]string{
-		{"path": "app1", "path.basename": "app1", "cluster": "Cluster", "url": "Url"},
-		{"path": "app2", "path.basename": "app2", "cluster": "Cluster", "url": "Url"},
+		{
+			name: "returns error if there is more than one inner generator in the first base generator",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+				{
+					Git:  gitGenerator,
+					List: listGenerator,
+				},
+				{
+					Git: gitGenerator,
+				},
+			},
+			expectedErr: MoreThenOneInnerGenerators,
+		},
+		{
+			name: "returns error if there is more than one inner generator in the second base generator",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+				{
+					List: listGenerator,
+				},
+				{
+					Git:  gitGenerator,
+					List: listGenerator,
+				},
+			},
+			expectedErr: MoreThenOneInnerGenerators,
+		},
 	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, got)
+	for _, c := range testCases {
+		cc := c
 
+		t.Run(cc.name, func(t *testing.T) {
+			mock := &generatorMock{}
+
+			for _, g := range cc.baseGenerators {
+				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
+					Git:  g.Git,
+					List: g.List,
+				}
+				mock.On("GenerateParams", &gitGeneratorSpec).Return([]map[string]string{
+					{
+						"path":          "app1",
+						"path.basename": "app1",
+					},
+					{
+						"path":          "app2",
+						"path.basename": "app2",
+					},
+				}, nil)
+
+				mock.On("GetTemplate", &gitGeneratorSpec).
+					Return(&argoprojiov1alpha1.ApplicationSetTemplate{})
+			}
+
+			var matrixGenerator = NewMatrixGenerator(
+				map[string]Generator{
+					"Git":  mock,
+					"List": &ListGenerator{},
+				},
+			)
+
+			got, err := matrixGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
+				Matrix: &argoprojiov1alpha1.MatrixGenerator{
+					Generators: cc.baseGenerators,
+					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
+				},
+			})
+
+			if cc.expectedErr != nil {
+				assert.EqualError(t, err, cc.expectedErr.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, cc.expected, got)
+			}
+
+		})
+
+	}
 }
 
 type generatorMock struct {

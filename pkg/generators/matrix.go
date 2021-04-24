@@ -1,6 +1,7 @@
 package generators
 
 import (
+	"errors"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
@@ -8,6 +9,10 @@ import (
 )
 
 var _ Generator = (*MatrixGenerator)(nil)
+
+var MoreThanTwoGenerators = errors.New("found more than two generators, Matrix support only two")
+var LessThanTwoGenerators = errors.New("found less than two generators, Matrix support only two")
+var MoreThenOneInnerGenerators = errors.New("found more than one generator in matrix.Generators")
 
 type MatrixGenerator struct {
 	generators map[string]Generator
@@ -22,28 +27,27 @@ func NewMatrixGenerator(generators map[string]Generator) Generator {
 
 func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 
-	// Log a warning if there are unrecognized generators
-	//utils.CheckInvalidGenerators(&applicationSetInfo)
+	if len(appSetGenerator.Matrix.Generators) < 2 {
+		return nil, LessThanTwoGenerators
+	}
 
-	allParams := [][]map[string]string{}
-
-	for _, requestedGenerator := range appSetGenerator.Matrix.Generators {
-
-		f := argoprojiov1alpha1.ApplicationSetGenerator{
-			List:     requestedGenerator.List,
-			Clusters: requestedGenerator.Clusters,
-			Git:      requestedGenerator.Git,
-		}
-
-		t, _ := Transform(f, m.generators, argoprojiov1alpha1.ApplicationSetTemplate{})
-
-		allParams = append(allParams, t[0].Params)
+	if len(appSetGenerator.Matrix.Generators) > 2 {
+		return nil, MoreThanTwoGenerators
 	}
 
 	res := []map[string]string{}
 
-	for _, a := range allParams[0] {
-		for _, b := range allParams[1] {
+	g0, err := m.getParams(appSetGenerator.Matrix.Generators[0])
+	if err != nil {
+		return nil, err
+	}
+	g1, err := m.getParams(appSetGenerator.Matrix.Generators[1])
+	if err != nil {
+		return nil, err
+	}
+
+	for _, a := range g0 {
+		for _, b := range g1 {
 			res = append(res, utils.CombineStringMaps(a, b))
 		}
 	}
@@ -51,10 +55,28 @@ func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 	return res, nil
 }
 
-func (g *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetBaseGenerator) ([]map[string]string, error) {
+
+	t, _ := Transform(
+		argoprojiov1alpha1.ApplicationSetGenerator{
+			List:     appSetBaseGenerator.List,
+			Clusters: appSetBaseGenerator.Clusters,
+			Git:      appSetBaseGenerator.Git,
+		},
+		m.generators,
+		argoprojiov1alpha1.ApplicationSetTemplate{})
+
+	if len(t) > 1 {
+		return nil, MoreThenOneInnerGenerators
+	}
+
+	return t[0].Params, nil
+}
+
+func (m *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 	return NoRequeueAfter
 }
 
-func (g *MatrixGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (m *MatrixGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	return &appSetGenerator.Matrix.Template
 }

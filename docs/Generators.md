@@ -370,3 +370,63 @@ Any `config.json` files found under the `cluster-config` directory will be param
     Only JSON file parsing is currently supported. The work to add support for YAML files is [tracked here](https://github.com/argoproj-labs/applicationset/issues/106).
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
+
+
+
+
+## Matrix Generator
+The matrix generator combines two other generators by multiplying the parameters of them.
+For example, you can combine a git generator with a cluster generator to multiply the application for git to each cluster.
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-git
+spec:
+  generators:
+    - matrix:
+      generators:
+        - git:
+            name: cluster-deployments
+            repoURL: https://github.com/argoproj-labs/applicationset.git
+            directories:
+              - path: examples/proposal/matrix/cluster-addons/*
+        - clusters:
+            dependsOn: cluster-deployments
+            selector:
+              matchLabels:
+                argocd.argoproj.io/secret-type: cluster
+  template:
+    metadata:
+      name: '{{path.basename}}-{{name}}'
+    spec:
+      project: '{{metadata.labels.environment}}'
+      source:
+        repoURL: https://github.com/argoproj-labs/applicationset.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: '{{server}}'
+        namespace: '{{path.basename}}'
+```
+(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/matrix).*)
+
+### Limitations
+1. The matrix generator support only two inner generators
+2. The inner generators should only have one generator:
+   This is not a valid example:
+```yaml
+- matrix:
+    generators:
+     - list:...
+       git: ...
+```
+3. The matrix generator ignores templates of the inner generators
+```yaml
+- matrix:
+    generators:
+        - list:
+            elements: []
+            template: # Ignored
+       
+```
