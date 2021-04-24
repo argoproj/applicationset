@@ -364,7 +364,7 @@ func TestSimpleRepoHostGenerator(t *testing.T) {
 				{
 					RepoHost: &v1alpha1.RepoHostGenerator{
 						Github: &v1alpha1.RepoHostGeneratorGithub{
-							Organization: "argoprod",
+							Organization: "argoproj",
 						},
 						Filters: []v1alpha1.RepoHostGeneratorFilter{
 							{
