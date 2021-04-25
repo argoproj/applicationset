@@ -44,10 +44,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Regenerate the manifests, git diff should report no changes.
         run: |
-          # Use a fixed version of kustomize, rather than the version on the 'runs-on' image
-          wget https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.9.4/kustomize_v3.9.4_linux_amd64.tar.gz
-          tar xzf kustomize_v3.9.4_linux_amd64.tar.gz
-          KUSTOMIZE=${PWD}/kustomize make manifests
+          make manifests
           git diff --exit-code -- .
 
   build-go:
