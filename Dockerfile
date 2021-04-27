@@ -21,7 +21,7 @@ FROM ubuntu:20.10
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y && \
-  apt-get install -y git-all gpg && \
+  apt-get install -y git-all git-lfs gpg && \
   rm -r /var/lib/apt/lists /var/cache/apt/archives
 
 # Add Argo CD helper scripts that are required by 'github.com/argoproj/argo-cd/util/git' package
