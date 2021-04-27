@@ -67,7 +67,8 @@ func (a *Actions) CreateClusterSecret(secretName string, clusterName string, clu
 		},
 	}
 
-	_, err := utils.KubeClientset.CoreV1().Secrets(secret.Namespace).Create(context.Background(), secret, metav1.CreateOptions{})
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+	_, err := fixtureClient.KubeClientset.CoreV1().Secrets(secret.Namespace).Create(context.Background(), secret, metav1.CreateOptions{})
 
 	a.describeAction = fmt.Sprintf("creating cluster Secret '%s'", secretName)
 	a.lastOutput, a.lastError = "", err
@@ -83,7 +84,8 @@ func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 	appSet.APIVersion = "argoproj.io/v1alpha1"
 	appSet.Kind = "ApplicationSet"
 
-	newResource, err := utils.AppSetClientset.Create(context.Background(), utils.MustToUnstructured(&appSet), metav1.CreateOptions{})
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+	newResource, err := fixtureClient.AppSetClientset.Create(context.Background(), utils.MustToUnstructured(&appSet), metav1.CreateOptions{})
 
 	if err == nil {
 		a.context.name = newResource.GetName()
@@ -100,8 +102,10 @@ func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 func (a *Actions) Delete() *Actions {
 	a.context.t.Helper()
 
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+
 	deleteProp := metav1.DeletePropagationForeground
-	err := utils.AppSetClientset.Delete(context.Background(), a.context.name, metav1.DeleteOptions{PropagationPolicy: &deleteProp})
+	err := fixtureClient.AppSetClientset.Delete(context.Background(), a.context.name, metav1.DeleteOptions{PropagationPolicy: &deleteProp})
 	a.describeAction = fmt.Sprintf("Deleting ApplicationSet '%s' %v", a.context.name, err)
 	a.lastOutput, a.lastError = "", err
 	a.verifyAction()
@@ -113,7 +117,8 @@ func (a *Actions) Delete() *Actions {
 func (a *Actions) get() (*v1alpha1.ApplicationSet, error) {
 	appSet := v1alpha1.ApplicationSet{}
 
-	newResource, err := utils.AppSetClientset.Get(context.Background(), a.context.name, metav1.GetOptions{})
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+	newResource, err := fixtureClient.AppSetClientset.Get(context.Background(), a.context.name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +147,8 @@ func (a *Actions) Update(toUpdate func(*v1alpha1.ApplicationSet)) *Actions {
 		toUpdate(appSet)
 		a.describeAction = fmt.Sprintf("updating ApplicationSet '%s'", appSet.Name)
 
-		_, err = utils.AppSetClientset.Update(context.Background(), utils.MustToUnstructured(&appSet), metav1.UpdateOptions{})
+		fixtureClient := utils.GetE2EFixtureK8sClient()
+		_, err = fixtureClient.AppSetClientset.Update(context.Background(), utils.MustToUnstructured(&appSet), metav1.UpdateOptions{})
 	}
 	a.lastOutput, a.lastError = "", err
 	a.verifyAction()

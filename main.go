@@ -147,6 +147,7 @@ func main() {
 		Renderer:         &utils.Render{},
 		Policy:           policyObj,
 		ArgoAppClientset: appclientset,
+		KubeClientset:    k8s,
 		ArgoDB:           argoCDDB,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ApplicationSet")
