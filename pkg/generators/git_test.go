@@ -339,6 +339,87 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 			},
 			expectedError: nil,
 		},
+		{
+			name:  "Test YAML flow",
+			files: []argoprojiov1alpha1.GitFileGeneratorItem{{Path: "**/config.yaml"}},
+			repoPaths: []string{
+				"cluster-config/production/config.yaml",
+				"cluster-config/staging/config.yaml",
+			},
+			repoFileContents: map[string][]byte{
+				"cluster-config/production/config.yaml": []byte(`
+cluster:
+  owner: john.doe@example.com
+  name: production
+  address: https://kubernetes.default.svc
+key1: val1
+key2:
+  key2_1: val2_1
+  key2_2:
+    key2_2_1: val2_2_1
+`),
+				"cluster-config/staging/config.yaml": []byte(`
+cluster:
+  owner: foo.bar@example.com
+  name: staging
+  address: https://kubernetes.default.svc
+`),
+			},
+			repoPathsError:         nil,
+			repoFileContentsErrors: nil,
+			expected: []map[string]string{
+				{
+					"cluster.owner":        "john.doe@example.com",
+					"cluster.name":         "production",
+					"cluster.address":      "https://kubernetes.default.svc",
+					"key1":                 "val1",
+					"key2.key2_1":          "val2_1",
+					"key2.key2_2.key2_2_1": "val2_2_1",
+				},
+				{
+					"cluster.owner":   "foo.bar@example.com",
+					"cluster.name":    "staging",
+					"cluster.address": "https://kubernetes.default.svc",
+				},
+			},
+			expectedError: nil,
+		},
+		{
+			name:  "test YAML array",
+			files: []argoprojiov1alpha1.GitFileGeneratorItem{{Path: "**/config.yaml"}},
+			repoPaths: []string{
+				"cluster-config/production/config.yaml",
+			},
+			repoFileContents: map[string][]byte{
+				"cluster-config/production/config.yaml": []byte(`
+- cluster:
+    owner: john.doe@example.com
+    name: production
+    address: https://kubernetes.default.svc
+    inner:
+      one: two
+- cluster:
+    owner: john.doe@example.com
+    name: staging
+    address: https://kubernetes.default.svc`),
+			},
+			repoPathsError:         nil,
+			repoFileContentsErrors: map[string]error{},
+			expected: []map[string]string{
+				{
+					"cluster.owner":     "john.doe@example.com",
+					"cluster.name":      "production",
+					"cluster.address":   "https://kubernetes.default.svc",
+					"cluster.inner.one": "two",
+				},
+				{
+					"cluster.owner":   "john.doe@example.com",
+					"cluster.name":    "staging",
+					"cluster.address": "https://kubernetes.default.svc",
+				},
+			},
+			expectedError: nil,
+		},
 	}
 
 	for _, c := range cases {
