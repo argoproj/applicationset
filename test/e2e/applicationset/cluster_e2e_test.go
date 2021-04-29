@@ -304,7 +304,6 @@ func TestSimpleClusterGeneratorAddingCluster(t *testing.T) {
 }
 
 // There is a bug in ArgoCD that prevents this test from passing: https://github.com/argoproj/argo-cd/issues/5817
-/*
 func TestSimpleClusterGeneratorDeletingCluster(t *testing.T) {
 
 	expectedAppTemplate := argov1alpha1.Application{
@@ -313,8 +312,9 @@ func TestSimpleClusterGeneratorDeletingCluster(t *testing.T) {
 			APIVersion: "argoproj.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "{{name}}-guestbook",
-			Namespace: utils.ArgoCDNamespace,
+			Name:       "{{name}}-guestbook",
+			Namespace:  utils.ArgoCDNamespace,
+			Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
 		},
 		Spec: argov1alpha1.ApplicationSpec{
 			Project: "default",
@@ -387,4 +387,3 @@ func TestSimpleClusterGeneratorDeletingCluster(t *testing.T) {
 		When().
 		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{expectedAppCluster1}))
 }
-*/
