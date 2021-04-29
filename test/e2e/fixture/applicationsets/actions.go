@@ -77,6 +77,18 @@ func (a *Actions) CreateClusterSecret(secretName string, clusterName string, clu
 	return a
 }
 
+// DeleteClusterSecret deletes a faux cluster secret
+func (a *Actions) DeleteClusterSecret(secretName string) *Actions {
+
+	err := utils.GetE2EFixtureK8sClient().KubeClientset.CoreV1().Secrets(utils.ArgoCDNamespace).Delete(context.Background(), secretName, metav1.DeleteOptions{})
+
+	a.describeAction = fmt.Sprintf("deleting cluster Secret '%s'", secretName)
+	a.lastOutput, a.lastError = "", err
+	a.verifyAction()
+
+	return a
+}
+
 // Create creates an ApplicationSet using the provided value
 func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 	a.context.t.Helper()
