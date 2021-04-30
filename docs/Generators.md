@@ -375,9 +375,11 @@ As with other generators, clusters *must* already be defined within Argo CD, in 
 
 The RepoHost generator uses the API of an SCMaaS provider to discover repositories. This fits well with many repos following the same GitOps layout patterns such as microservices.
 
-### Github
+Support is currently limited to GitHub, PRs are welcome to add more SCM providers.
 
-The Github mode uses the Github API to scan and organization in either github.com or Github Enterprise.
+### GitHub
+
+The GitHub mode uses the GitHub API to scan and organization in either github.com or GitHub Enterprise.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -388,9 +390,9 @@ spec:
   generators:
   - repoHost:
       github:
-        # The Github organization to scan.
+        # The GitHub organization to scan.
         organization: myorg
-        # For Github Enterprise:
+        # For GitHub Enterprise:
         api: https://git.example.com/
         # Reference to a Secret containing an access token. (optional)
         tokenRef:
@@ -400,15 +402,15 @@ spec:
   # ...
 ```
 
-* `organization`: Required name of the Github organization to scan. If you have multiple orgs, use multiple generators.
-* `api`: If using Github Enterprise, the URL to access it.
-* `tokenRef`: A Secret name and key containing the Github access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit.
+* `organization`: Required name of the GitHub organization to scan. If you have multiple orgs, use multiple generators.
+* `api`: If using GitHub Enterprise, the URL to access it.
+* `tokenRef`: A Secret name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit.
 
-For label filtering, the repository topics are used.
+For label filtering, the repository topics are used. Currently only the default branch for the repository will be scanned.
 
 ### Filters
 
-Filters allow selecting which repositories to generate for. Filters are additive, specifying none will template every repository and each filter added will pare that down.
+Filters allow selecting which repositories to generate for. Filters are additive, specifying none will template every repository and each filter added will pare that down. If multiple filters are present, either in a single entry or multiple, the filter behavior is an AND of all. If at least one is NOT true, the repository will not be included.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1

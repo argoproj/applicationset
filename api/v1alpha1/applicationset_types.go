@@ -131,17 +131,19 @@ type RepoHostGenerator struct {
 	Template            ApplicationSetTemplate `json:"template,omitempty"`
 }
 
-// RepoHostGeneratorGithub defines a connection info specific to Github.
+// RepoHostGeneratorGithub defines a connection info specific to GitHub.
 type RepoHostGeneratorGithub struct {
-	// Github org to scan. Required.
+	// GitHub org to scan. Required.
 	Organization string `json:"organization"`
-	// The Github API URL to talk to. If blank, use https://api.github.com/.
+	// The GitHub API URL to talk to. If blank, use https://api.github.com/.
 	API string `json:"api,omitempty"`
 	// Authentication token reference.
 	TokenRef *SecretRef `json:"tokenRef,omitempty"`
 }
 
-// RepoHostGeneratorFilter is a single repoisitory filter.
+// RepoHostGeneratorFilter is a single repository filter.
+// If multiple filter types are set on a single struct, they will be AND'd together. All filters must
+// pass for a repo to be included.
 type RepoHostGeneratorFilter struct {
 	// A regex for repo names.
 	RepositoryMatch *string `json:"repositoryMatch,omitempty"`
