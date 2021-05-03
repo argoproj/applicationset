@@ -9,12 +9,14 @@ import (
 
 func TestGithubListRepos(t *testing.T) {
 	cases := []struct {
-		name, proto, url string
-		hasError         bool
+		name, proto, url      string
+		hasError, allBranches bool
+		branches              []string
 	}{
 		{
-			name: "blank protocol",
-			url:  "git@github.com:argoproj-labs/applicationset.git",
+			name:     "blank protocol",
+			url:      "git@github.com:argoproj-labs/applicationset.git",
+			branches: []string{"master"},
 		},
 		{
 			name:  "ssh protocol",
@@ -31,26 +33,36 @@ func TestGithubListRepos(t *testing.T) {
 			proto:    "other",
 			hasError: true,
 		},
+		{
+			name:        "all branches",
+			allBranches: true,
+			url:         "git@github.com:argoproj-labs/applicationset.git",
+			branches:    []string{"master", "release-0.1.0"},
+		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			host, _ := NewGithubRepoHost(context.Background(), "argoproj-labs", "", "", false)
-			repos, err := host.ListRepos(context.Background(), c.proto)
+			host, _ := NewGithubRepoHost(context.Background(), "argoproj-labs", "", "", c.allBranches)
+			rawRepos, err := host.ListRepos(context.Background(), c.proto)
 			if c.hasError {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
 				// Just check that this one project shows up. Not a great test but better thing nothing?
-				var repo *HostedRepo
-				for _, r := range repos {
+				repos := []*HostedRepo{}
+				branches := []string{}
+				for _, r := range rawRepos {
 					if r.Repository == "applicationset" {
-						repo = r
-						break
+						repos = append(repos, r)
+						branches = append(branches, r.Branch)
 					}
 				}
-				assert.NotNil(t, repo)
-				assert.Equal(t, c.url, repo.URL)
+				assert.NotEmpty(t, repos)
+				assert.Equal(t, c.url, repos[0].URL)
+				for _, b := range c.branches {
+					assert.Contains(t, branches, b)
+				}
 			}
 		})
 	}

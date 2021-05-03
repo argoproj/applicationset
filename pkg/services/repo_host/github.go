@@ -60,12 +60,12 @@ func (g *GithubRepoHost) ListRepos(ctx context.Context, cloneProtocol string) ([
 
 			branches, err := g.listBranches(ctx, githubRepo)
 			if err != nil {
-				return nil, fmt.Errorf("error listing branches for %s/%s: %q", githubRepo.Owner.GetName(), githubRepo.GetName(), err)
+				return nil, fmt.Errorf("error listing branches for %s/%s: %q", githubRepo.Owner.GetLogin(), githubRepo.GetName(), err)
 			}
 
 			for _, branch := range branches {
 				repos = append(repos, &HostedRepo{
-					Organization: githubRepo.Owner.GetName(),
+					Organization: githubRepo.Owner.GetLogin(),
 					Repository:   githubRepo.GetName(),
 					URL:          url,
 					Branch:       branch,
@@ -106,7 +106,7 @@ func (g *GithubRepoHost) listBranches(ctx context.Context, repo *github.Reposito
 	}
 	branches := []string{}
 	for {
-		githubBranches, resp, err := g.client.Repositories.ListBranches(ctx, repo.Owner.GetName(), repo.GetName(), opt)
+		githubBranches, resp, err := g.client.Repositories.ListBranches(ctx, repo.Owner.GetLogin(), repo.GetName(), opt)
 		if err != nil {
 			return nil, err
 		}
