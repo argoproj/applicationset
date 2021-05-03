@@ -66,7 +66,9 @@ func (c *Consequences) app(name string) *argov1alpha1.Application {
 }
 
 func (c *Consequences) apps() []argov1alpha1.Application {
-	list, err := utils.AppClientset.ArgoprojV1alpha1().Applications(utils.ArgoCDNamespace).List(context.Background(), v1.ListOptions{})
+
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+	list, err := fixtureClient.AppClientset.ArgoprojV1alpha1().Applications(utils.ArgoCDNamespace).List(context.Background(), v1.ListOptions{})
 	errors.CheckError(err)
 
 	if list == nil {

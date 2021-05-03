@@ -1,6 +1,4 @@
 /*
-
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -25,11 +23,11 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 	"github.com/argoproj/argo-cd/common"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
-	"github.com/argoproj/argo-cd/util/argo"
 	"github.com/argoproj/argo-cd/util/db"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -63,6 +61,7 @@ type ApplicationSetReconciler struct {
 	Generators       map[string]generators.Generator
 	ArgoDB           db.ArgoDB
 	ArgoAppClientset appclientset.Interface
+	KubeClientset    kubernetes.Interface
 	utils.Policy
 	utils.Renderer
 }
@@ -157,7 +156,7 @@ func (r *ApplicationSetReconciler) validateGeneratedApplications(ctx context.Con
 			return err
 		}
 
-		if err := argoutil.ValidateDestination(ctx, &app.Spec.Destination, r.ArgoDB); err != nil {
+		if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, namespace); err != nil {
 			return fmt.Errorf("application destination spec is invalid: %s", err.Error())
 		}
 
@@ -166,7 +165,7 @@ func (r *ApplicationSetReconciler) validateGeneratedApplications(ctx context.Con
 			return err
 		}
 		if len(conditions) > 0 {
-			return fmt.Errorf("application spec is invalid: %s", argo.FormatAppConditions(conditions))
+			return fmt.Errorf("application spec is invalid: %s", argoutil.FormatAppConditions(conditions))
 		}
 
 	}
@@ -443,7 +442,7 @@ func (r *ApplicationSetReconciler) removeFinalizerOnInvalidDestination(ctx conte
 
 	// If the destination is invalid (for example the cluster is no longer defined), then remove
 	// the application finalizers to avoid triggering Argo CD bug #5817
-	if err := argoutil.ValidateDestination(ctx, &app.Spec.Destination, r.ArgoDB); err != nil {
+	if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, applicationSet.Namespace); err != nil {
 
 		// Filter out the Argo CD finalizer from the finalizer list
 		newFinalizers := []string{}

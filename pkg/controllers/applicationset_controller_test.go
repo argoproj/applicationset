@@ -11,15 +11,14 @@ import (
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj/argo-cd/common"
-	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	crtclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -27,6 +26,7 @@ import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	appclientset "github.com/argoproj/argo-cd/pkg/client/clientset/versioned/fake"
 	dbmocks "github.com/argoproj/argo-cd/util/db/mocks"
+	kubefake "k8s.io/client-go/kubernetes/fake"
 )
 
 type generatorMock struct {
@@ -161,7 +161,8 @@ func TestExtractApplications(t *testing.T) {
 				Generators: map[string]generators.Generator{
 					"List": &generatorMock,
 				},
-				Renderer: &rendererMock,
+				Renderer:      &rendererMock,
+				KubeClientset: kubefake.NewSimpleClientset(),
 			}
 
 			got, err := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
@@ -272,7 +273,8 @@ func TestMergeTemplateApplications(t *testing.T) {
 				Generators: map[string]generators.Generator{
 					"List": &generatorMock,
 				},
-				Renderer: &rendererMock,
+				Renderer:      &rendererMock,
+				KubeClientset: kubefake.NewSimpleClientset(),
 			}
 
 			got, _ := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
@@ -804,7 +806,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 
 		t.Run(c.name, func(t *testing.T) {
 
-			initObjs := []client.Object{&c.appSet}
+			initObjs := []crtclient.Object{&c.appSet}
 
 			for _, a := range c.existingApps {
 				err = controllerutil.SetControllerReference(&c.appSet, &a, scheme)
@@ -847,18 +849,12 @@ func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
 	err = argov1alpha1.AddToScheme(scheme)
 	assert.Nil(t, err)
 
-	myCluster := argov1alpha1.Cluster{
-		Server: "https://kubernetes.default.svc",
-		Name:   "my-cluster2",
-	}
-
 	for _, c := range []struct {
 		// name is human-readable test name
 		name               string
 		existingFinalizers []string
 		expectedFinalizers []string
 	}{
-
 		{
 			name:               "no finalizers",
 			existingFinalizers: []string{},
@@ -869,7 +865,6 @@ func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
 			existingFinalizers: []string{common.ResourcesFinalizerName},
 			expectedFinalizers: nil,
 		},
-
 		{
 			name:               "contains only non-argo finalizer",
 			existingFinalizers: []string{"non-argo-finalizer"},
@@ -910,22 +905,34 @@ func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
 				},
 			}
 
-			initObjs := []client.Object{&app, &appSet}
+			initObjs := []crtclient.Object{&app, &appSet}
 
 			client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-secret",
+					Namespace: "namespace",
+					Labels: map[string]string{
+						generators.ArgoCDSecretTypeLabel: generators.ArgoCDSecretTypeCluster,
+					},
+				},
+				Data: map[string][]byte{
+					// Since this test requires the cluster to be an invalid destination, we
+					// always return a cluster named 'my-cluster2' (different from app 'my-cluster', above)
+					"name":   []byte("mycluster2"),
+					"server": []byte("https://kubernetes.default.svc"),
+					"config": []byte("{\"username\":\"foo\",\"password\":\"foo\"}"),
+				},
+			}
 
-			// Always return a cluster named 'my-cluster2' (different from app 'my-cluster')
-			dbMock := &dbmocks.ArgoDB{}
-			dbMock.On("GetCluster", mock.Anything, "https://kubernetes.default.svc").Return(&myCluster, nil)
-			dbMock.On("ListClusters", mock.Anything).Return(&v1alpha1.ClusterList{Items: []argov1alpha1.Cluster{
-				myCluster,
-			}}, nil)
+			objects := append([]runtime.Object{}, secret)
+			kubeclientset := kubefake.NewSimpleClientset(objects...)
 
 			r := ApplicationSetReconciler{
-				Client:   client,
-				Scheme:   scheme,
-				Recorder: record.NewFakeRecorder(10),
-				ArgoDB:   dbMock,
+				Client:        client,
+				Scheme:        scheme,
+				Recorder:      record.NewFakeRecorder(10),
+				KubeClientset: kubeclientset,
 			}
 
 			appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": ""})
@@ -1111,7 +1118,7 @@ func TestCreateApplications(t *testing.T) {
 			},
 		},
 	} {
-		initObjs := []client.Object{&c.appSet}
+		initObjs := []crtclient.Object{&c.appSet}
 		for _, a := range c.existsApps {
 			err = controllerutil.SetControllerReference(&c.appSet, &a, scheme)
 			assert.Nil(t, err)
@@ -1253,7 +1260,7 @@ func TestDeleteInCluster(t *testing.T) {
 			},
 		},
 	} {
-		initObjs := []client.Object{&c.appSet}
+		initObjs := []crtclient.Object{&c.appSet}
 		for _, a := range c.existingApps {
 			temp := a
 			err = controllerutil.SetControllerReference(&c.appSet, &temp, scheme)
@@ -1563,9 +1570,27 @@ func TestValidateGeneratedApplications(t *testing.T) {
 
 		t.Run(cc.name, func(t *testing.T) {
 
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-secret",
+					Namespace: "namespace",
+					Labels: map[string]string{
+						generators.ArgoCDSecretTypeLabel: generators.ArgoCDSecretTypeCluster,
+					},
+				},
+				Data: map[string][]byte{
+					"name":   []byte("my-cluster"),
+					"server": []byte("https://kubernetes.default.svc"),
+					"config": []byte("{\"username\":\"foo\",\"password\":\"foo\"}"),
+				},
+			}
+
+			objects := append([]runtime.Object{}, secret)
+			kubeclientset := kubefake.NewSimpleClientset(objects...)
+
 			argoDBMock := dbmocks.ArgoDB{}
 			argoDBMock.On("GetCluster", mock.Anything, "https://kubernetes.default.svc").Return(&myCluster, nil)
-			argoDBMock.On("ListClusters", mock.Anything).Return(&v1alpha1.ClusterList{Items: []argov1alpha1.Cluster{
+			argoDBMock.On("ListClusters", mock.Anything).Return(&argov1alpha1.ClusterList{Items: []argov1alpha1.Cluster{
 				myCluster,
 			}}, nil)
 
@@ -1581,6 +1606,7 @@ func TestValidateGeneratedApplications(t *testing.T) {
 				Generators:       map[string]generators.Generator{},
 				ArgoDB:           &argoDBMock,
 				ArgoAppClientset: appclientset.NewSimpleClientset(argoObjs...),
+				KubeClientset:    kubeclientset,
 			}
 
 			appSetInfo := argoprojiov1alpha1.ApplicationSet{}

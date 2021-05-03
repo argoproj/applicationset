@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/argoproj/argo-cd/util/db"
 	"github.com/argoproj/argo-cd/util/settings"
 	log "github.com/sirupsen/logrus"
 
@@ -15,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	"github.com/argoproj-labs/applicationset/pkg/utils"
 )
 
 const (
@@ -32,7 +32,6 @@ type ClusterGenerator struct {
 	// namespace is the Argo CD namespace
 	namespace       string
 	settingsManager *settings.SettingsManager
-	argoDB          db.ArgoDB
 }
 
 func NewClusterGenerator(c client.Client, ctx context.Context, clientset kubernetes.Interface, namespace string) Generator {
@@ -45,7 +44,6 @@ func NewClusterGenerator(c client.Client, ctx context.Context, clientset kuberne
 		clientset:       clientset,
 		namespace:       namespace,
 		settingsManager: settingsManager,
-		argoDB:          db.NewDB(namespace, settingsManager, clientset),
 	}
 	return g
 }
@@ -74,7 +72,7 @@ func (g *ClusterGenerator) GenerateParams(
 	ignoreLocalClusters := len(appSetGenerator.Clusters.Selector.MatchExpressions) > 0 || len(appSetGenerator.Clusters.Selector.MatchLabels) > 0
 
 	// ListCluster from Argo CD's util/db package will include the local cluster in the list of clusters
-	clustersFromArgoCD, err := g.argoDB.ListClusters(g.ctx)
+	clustersFromArgoCD, err := utils.ListClusters(g.ctx, g.clientset, g.namespace)
 	if err != nil {
 		return nil, err
 	}
