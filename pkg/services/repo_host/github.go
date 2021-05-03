@@ -2,6 +2,7 @@ package repo_host
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/go-github/v35/github"
 	"golang.org/x/oauth2"
@@ -10,11 +11,12 @@ import (
 type GithubRepoHost struct {
 	client       *github.Client
 	organization string
+	allBranches  bool
 }
 
 var _ RepoHostService = &GithubRepoHost{}
 
-func NewGithubRepoHost(ctx context.Context, organization string, token string, url string) (*GithubRepoHost, error) {
+func NewGithubRepoHost(ctx context.Context, organization string, token string, url string, allBranches bool) (*GithubRepoHost, error) {
 	var ts oauth2.TokenSource
 	if token != "" {
 		ts = oauth2.StaticTokenSource(
@@ -32,10 +34,10 @@ func NewGithubRepoHost(ctx context.Context, organization string, token string, u
 			return nil, err
 		}
 	}
-	return &GithubRepoHost{client: client, organization: organization}, nil
+	return &GithubRepoHost{client: client, organization: organization, allBranches: allBranches}, nil
 }
 
-func (g *GithubRepoHost) ListRepos(ctx context.Context) ([]*HostedRepo, error) {
+func (g *GithubRepoHost) ListRepos(ctx context.Context, cloneProtocol string) ([]*HostedRepo, error) {
 	opt := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
@@ -46,13 +48,30 @@ func (g *GithubRepoHost) ListRepos(ctx context.Context) ([]*HostedRepo, error) {
 			return nil, err
 		}
 		for _, githubRepo := range githubRepos {
-			repos = append(repos, &HostedRepo{
-				Organization: githubRepo.Owner.GetName(),
-				Repository:   githubRepo.GetName(),
-				URL:          githubRepo.GetSSHURL(), // TODO Config flag for CloneURL (i.e. https://)?
-				Branch:       githubRepo.GetDefaultBranch(),
-				Labels:       githubRepo.Topics,
-			})
+			var url string
+			switch cloneProtocol {
+			case "", "ssh":
+				url = githubRepo.GetSSHURL()
+			case "https":
+				url = githubRepo.GetCloneURL()
+			default:
+				return nil, fmt.Errorf("unknown clone protocol for GitHub %v", cloneProtocol)
+			}
+
+			branches, err := g.listBranches(ctx, githubRepo)
+			if err != nil {
+				return nil, fmt.Errorf("error listing branches for %s/%s: %q", githubRepo.Owner.GetName(), githubRepo.GetName(), err)
+			}
+
+			for _, branch := range branches {
+				repos = append(repos, &HostedRepo{
+					Organization: githubRepo.Owner.GetName(),
+					Repository:   githubRepo.GetName(),
+					URL:          url,
+					Branch:       branch,
+					Labels:       githubRepo.Topics,
+				})
+			}
 		}
 		if resp.NextPage == 0 {
 			break
@@ -74,4 +93,31 @@ func (g *GithubRepoHost) RepoHasPath(ctx context.Context, repo *HostedRepo, path
 		return false, err
 	}
 	return true, nil
+}
+
+func (g *GithubRepoHost) listBranches(ctx context.Context, repo *github.Repository) ([]string, error) {
+	// If we don't specifically want to query for all branches, just use the default branch and call it a day.
+	if !g.allBranches {
+		return []string{repo.GetDefaultBranch()}, nil
+	}
+	// Otherwise, scrape the ListBranches API.
+	opt := &github.BranchListOptions{
+		ListOptions: github.ListOptions{PerPage: 100},
+	}
+	branches := []string{}
+	for {
+		githubBranches, resp, err := g.client.Repositories.ListBranches(ctx, repo.Owner.GetName(), repo.GetName(), opt)
+		if err != nil {
+			return nil, err
+		}
+		for _, githubBranch := range githubBranches {
+			branches = append(branches, githubBranch.GetName())
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+	return branches, nil
 }

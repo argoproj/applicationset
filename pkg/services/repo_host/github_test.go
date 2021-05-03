@@ -8,23 +8,56 @@ import (
 )
 
 func TestGithubListRepos(t *testing.T) {
-	host, _ := NewGithubRepoHost(context.Background(), "argoproj-labs", "", "")
-	repos, err := host.ListRepos(context.Background())
-	assert.Nil(t, err)
-	// Just check that this one project shows up. Not a great test but better thing nothing?
-	var repo *HostedRepo
-	for _, r := range repos {
-		if r.Repository == "applicationset" {
-			repo = r
-			break
-		}
+	cases := []struct {
+		name, proto, url string
+		hasError         bool
+	}{
+		{
+			name: "blank protocol",
+			url:  "git@github.com:argoproj-labs/applicationset.git",
+		},
+		{
+			name:  "ssh protocol",
+			proto: "ssh",
+			url:   "git@github.com:argoproj-labs/applicationset.git",
+		},
+		{
+			name:  "https protocol",
+			proto: "https",
+			url:   "https://github.com/argoproj-labs/applicationset.git",
+		},
+		{
+			name:     "other protocol",
+			proto:    "other",
+			hasError: true,
+		},
 	}
-	assert.NotNil(t, repo)
-	assert.Equal(t, "git@github.com:argoproj-labs/applicationset.git", repo.URL)
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			host, _ := NewGithubRepoHost(context.Background(), "argoproj-labs", "", "", false)
+			repos, err := host.ListRepos(context.Background(), c.proto)
+			if c.hasError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+				// Just check that this one project shows up. Not a great test but better thing nothing?
+				var repo *HostedRepo
+				for _, r := range repos {
+					if r.Repository == "applicationset" {
+						repo = r
+						break
+					}
+				}
+				assert.NotNil(t, repo)
+				assert.Equal(t, c.url, repo.URL)
+			}
+		})
+	}
 }
 
 func TestGithubHasPath(t *testing.T) {
-	host, _ := NewGithubRepoHost(context.Background(), "argoproj-labs", "", "")
+	host, _ := NewGithubRepoHost(context.Background(), "argoproj-labs", "", "", false)
 	repo := &HostedRepo{
 		Organization: "argoproj-labs",
 		Repository:   "applicationset",

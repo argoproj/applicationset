@@ -8,7 +8,7 @@ type MockRepoHost struct {
 
 var _ RepoHostService = &MockRepoHost{}
 
-func (m *MockRepoHost) ListRepos(_ context.Context) ([]*HostedRepo, error) {
+func (m *MockRepoHost) ListRepos(_ context.Context, _ string) ([]*HostedRepo, error) {
 	return m.Repos, nil
 }
 

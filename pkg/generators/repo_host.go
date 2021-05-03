@@ -64,7 +64,7 @@ func (g *RepoHostGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 		if err != nil {
 			return nil, fmt.Errorf("error fetching Github token: %v", err)
 		}
-		host, err = repo_host.NewGithubRepoHost(ctx, hostConfig.Github.Organization, token, hostConfig.Github.API)
+		host, err = repo_host.NewGithubRepoHost(ctx, hostConfig.Github.Organization, token, hostConfig.Github.API, hostConfig.Github.AllBranches)
 		if err != nil {
 			return nil, fmt.Errorf("error initializing Github service: %v", err)
 		}
@@ -73,7 +73,7 @@ func (g *RepoHostGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	}
 
 	// Find all the available repos.
-	repos, err := repo_host.ListRepos(ctx, host, hostConfig.Filters)
+	repos, err := repo_host.ListRepos(ctx, host, hostConfig.Filters, hostConfig.CloneProtocol)
 	if err != nil {
 		return nil, fmt.Errorf("error listing repos: %v", err)
 	}

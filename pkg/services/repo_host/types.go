@@ -15,7 +15,7 @@ type HostedRepo struct {
 }
 
 type RepoHostService interface {
-	ListRepos(context.Context) ([]*HostedRepo, error)
+	ListRepos(context.Context, string) ([]*HostedRepo, error)
 	RepoHasPath(context.Context, *HostedRepo, string) (bool, error)
 }
 
@@ -24,4 +24,5 @@ type Filter struct {
 	RepositoryMatch *regexp.Regexp
 	PathExists      *string
 	LabelMatch      *regexp.Regexp
+	BranchMatch     *regexp.Regexp
 }

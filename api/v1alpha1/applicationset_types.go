@@ -126,6 +126,9 @@ type RepoHostGenerator struct {
 	// TODO other providers.
 	// Filters for which repos should be considered.
 	Filters []RepoHostGeneratorFilter `json:"filters,omitempty"`
+	// Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers
+	// necessarily support all protocols.
+	CloneProtocol string `json:"cloneProtocol,omitempty"`
 	// Standard parameters.
 	RequeueAfterSeconds *int64                 `json:"requeueAfterSeconds,omitempty"`
 	Template            ApplicationSetTemplate `json:"template,omitempty"`
@@ -139,6 +142,8 @@ type RepoHostGeneratorGithub struct {
 	API string `json:"api,omitempty"`
 	// Authentication token reference.
 	TokenRef *SecretRef `json:"tokenRef,omitempty"`
+	// Scan all branches instead of just the default branch.
+	AllBranches bool `json:"allBranches,omitempty"`
 }
 
 // RepoHostGeneratorFilter is a single repository filter.
@@ -151,6 +156,8 @@ type RepoHostGeneratorFilter struct {
 	PathExists *string `json:"pathExists,omitempty"`
 	// A regex which must match at least one label.
 	LabelMatch *string `json:"labelMatch,omitempty"`
+	// A regex which must match the branch name.
+	BranchMatch *string `json:"branchMatch,omitempty"`
 }
 
 // ApplicationSetStatus defines the observed state of ApplicationSet

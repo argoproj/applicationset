@@ -34,7 +34,7 @@ func TestFilterRepoMatch(t *testing.T) {
 			RepositoryMatch: strp("n|hr"),
 		},
 	}
-	repos, err := ListRepos(context.Background(), host, filters)
+	repos, err := ListRepos(context.Background(), host, filters, "")
 	assert.Nil(t, err)
 	assert.Len(t, repos, 2)
 	assert.Equal(t, "one", repos[0].Repository)
@@ -63,7 +63,7 @@ func TestFilterLabelMatch(t *testing.T) {
 			LabelMatch: strp("^prod-.*$"),
 		},
 	}
-	repos, err := ListRepos(context.Background(), host, filters)
+	repos, err := ListRepos(context.Background(), host, filters, "")
 	assert.Nil(t, err)
 	assert.Len(t, repos, 2)
 	assert.Equal(t, "one", repos[0].Repository)
@@ -89,7 +89,7 @@ func TestFilterPatchExists(t *testing.T) {
 			PathExists: strp("two"),
 		},
 	}
-	repos, err := ListRepos(context.Background(), host, filters)
+	repos, err := ListRepos(context.Background(), host, filters, "")
 	assert.Nil(t, err)
 	assert.Len(t, repos, 1)
 	assert.Equal(t, "two", repos[0].Repository)
@@ -108,7 +108,7 @@ func TestFilterRepoMatchBadRegexp(t *testing.T) {
 			RepositoryMatch: strp("("),
 		},
 	}
-	_, err := ListRepos(context.Background(), host, filters)
+	_, err := ListRepos(context.Background(), host, filters, "")
 	assert.NotNil(t, err)
 }
 
@@ -125,6 +125,45 @@ func TestFilterLabelMatchBadRegexp(t *testing.T) {
 			LabelMatch: strp("("),
 		},
 	}
-	_, err := ListRepos(context.Background(), host, filters)
+	_, err := ListRepos(context.Background(), host, filters, "")
 	assert.NotNil(t, err)
+}
+
+func TestFilterBranchMatch(t *testing.T) {
+	host := &MockRepoHost{
+		Repos: []*HostedRepo{
+			{
+				Repository: "one",
+				Branch:     "one",
+			},
+			{
+				Repository: "one",
+				Branch:     "two",
+			},
+			{
+				Repository: "two",
+				Branch:     "one",
+			},
+			{
+				Repository: "three",
+				Branch:     "one",
+			},
+			{
+				Repository: "three",
+				Branch:     "two",
+			},
+		},
+	}
+	filters := []argoprojiov1alpha1.RepoHostGeneratorFilter{
+		{
+			BranchMatch: strp("w"),
+		},
+	}
+	repos, err := ListRepos(context.Background(), host, filters, "")
+	assert.Nil(t, err)
+	assert.Len(t, repos, 2)
+	assert.Equal(t, "one", repos[0].Repository)
+	assert.Equal(t, "two", repos[0].Branch)
+	assert.Equal(t, "three", repos[1].Repository)
+	assert.Equal(t, "two", repos[1].Branch)
 }

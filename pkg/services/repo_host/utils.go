@@ -28,18 +28,24 @@ func compileFilters(filters []argoprojiov1alpha1.RepoHostGeneratorFilter) ([]*Fi
 		if filter.PathExists != nil {
 			outFilter.PathExists = filter.PathExists
 		}
+		if filter.BranchMatch != nil {
+			outFilter.BranchMatch, err = regexp.Compile(*filter.BranchMatch)
+			if err != nil {
+				return nil, fmt.Errorf("error compiling BranchMatch regexp %q: %v", *filter.LabelMatch, err)
+			}
+		}
 		outFilters = append(outFilters, outFilter)
 	}
 	return outFilters, nil
 }
 
-func ListRepos(ctx context.Context, host RepoHostService, filters []argoprojiov1alpha1.RepoHostGeneratorFilter) ([]*HostedRepo, error) {
+func ListRepos(ctx context.Context, host RepoHostService, filters []argoprojiov1alpha1.RepoHostGeneratorFilter, cloneProtocol string) ([]*HostedRepo, error) {
 	compiledFilters, err := compileFilters(filters)
 	if err != nil {
 		return nil, err
 	}
 
-	repos, err := host.ListRepos(ctx)
+	repos, err := host.ListRepos(ctx, cloneProtocol)
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +55,13 @@ func ListRepos(ctx context.Context, host RepoHostService, filters []argoprojiov1
 		for _, filter := range compiledFilters {
 			if filter.RepositoryMatch != nil {
 				if !filter.RepositoryMatch.MatchString(repo.Repository) {
+					matches = false
+					break
+				}
+			}
+
+			if filter.BranchMatch != nil {
+				if !filter.BranchMatch.MatchString(repo.Branch) {
 					matches = false
 					break
 				}

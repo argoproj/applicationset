@@ -1082,11 +1082,17 @@ spec:
                     repoHost:
                       description: RepoHostGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.
                       properties:
+                        cloneProtocol:
+                          description: Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers necessarily support all protocols.
+                          type: string
                         filters:
                           description: TODO other providers. Filters for which repos should be considered.
                           items:
-                            description: RepoHostGeneratorFilter is a single repoisitory filter.
+                            description: RepoHostGeneratorFilter is a single repository filter. If multiple filter types are set on a single struct, they will be AND'd together. All filters must pass for a repo to be included.
                             properties:
+                              branchMatch:
+                                description: A regex which must match the branch name.
+                                type: string
                               labelMatch:
                                 description: A regex which must match at least one label.
                                 type: string
@@ -1101,11 +1107,14 @@ spec:
                         github:
                           description: Which provider to use and config for it.
                           properties:
+                            allBranches:
+                              description: Scan all branches instead of just the default branch.
+                              type: boolean
                             api:
-                              description: The Github API URL to talk to. If blank, use https://api.github.com/.
+                              description: The GitHub API URL to talk to. If blank, use https://api.github.com/.
                               type: string
                             organization:
-                              description: Github org to scan. Required.
+                              description: GitHub org to scan. Required.
                               type: string
                             tokenRef:
                               description: Authentication token reference.

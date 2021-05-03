@@ -377,6 +377,23 @@ The RepoHost generator uses the API of an SCMaaS provider to discover repositori
 
 Support is currently limited to GitHub, PRs are welcome to add more SCM providers.
 
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - repoHost:
+      # Which protocol to clone using.
+      cloneProtocol: ssh
+      # See below for provider specific options.
+      github:
+        # ...
+```
+
+* `cloneProtocol`: Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers necessarily support all protocols, see provider documentation below for available options.
+
 ### GitHub
 
 The GitHub mode uses the GitHub API to scan and organization in either github.com or GitHub Enterprise.
@@ -394,6 +411,8 @@ spec:
         organization: myorg
         # For GitHub Enterprise:
         api: https://git.example.com/
+        # If true, scan every branch of every repository. If false, scan only the default branch. Defaults to false.
+        allBranches: true
         # Reference to a Secret containing an access token. (optional)
         tokenRef:
           name: github-token
@@ -404,9 +423,12 @@ spec:
 
 * `organization`: Required name of the GitHub organization to scan. If you have multiple orgs, use multiple generators.
 * `api`: If using GitHub Enterprise, the URL to access it.
+* `allBranches`: By default (false) the template will only be evaluated for the default branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
 * `tokenRef`: A Secret name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit.
 
 For label filtering, the repository topics are used. Currently only the default branch for the repository will be scanned.
+
+Available clone protocols are `ssh` and `https`.
 
 ### Filters
 
@@ -433,6 +455,7 @@ spec:
 * `repositoryMatch`: A regexp matched against the repository name.
 * `pathExists`: A path within the repository that must exist. Can be a file or directory, but do not include the trailing `/` for directories.
 * `labelMatch`: A regexp matched against repository labels. If any label matches, the repository is included.
+* `branchMatch`: A regexp matched against branch names.
 
 ### Template
 
