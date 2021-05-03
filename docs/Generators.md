@@ -426,7 +426,7 @@ spec:
 * `allBranches`: By default (false) the template will only be evaluated for the default branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
 * `tokenRef`: A Secret name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit.
 
-For label filtering, the repository topics are used. Currently only the default branch for the repository will be scanned.
+For label filtering, the repository topics are used.
 
 Available clone protocols are `ssh` and `https`.
 
