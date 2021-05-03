@@ -30,7 +30,7 @@ func TestRepoHostGetSecretRef(t *testing.T) {
 	}{
 		{
 			name:      "valid ref",
-			ref:       &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "my-token"},
+			ref:       &argoprojiov1alpha1.SecretRef{SecretName: "test-secret", Key: "my-token"},
 			namespace: "test",
 			token:     "secret",
 			hasError:  false,
@@ -44,21 +44,21 @@ func TestRepoHostGetSecretRef(t *testing.T) {
 		},
 		{
 			name:      "wrong name",
-			ref:       &argoprojiov1alpha1.SecretRef{Name: "other", Key: "my-token"},
+			ref:       &argoprojiov1alpha1.SecretRef{SecretName: "other", Key: "my-token"},
 			namespace: "test",
 			token:     "",
 			hasError:  true,
 		},
 		{
 			name:      "wrong key",
-			ref:       &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "other-token"},
+			ref:       &argoprojiov1alpha1.SecretRef{SecretName: "test-secret", Key: "other-token"},
 			namespace: "test",
 			token:     "",
 			hasError:  true,
 		},
 		{
 			name:      "wrong namespace",
-			ref:       &argoprojiov1alpha1.SecretRef{Name: "test-secret", Key: "my-token"},
+			ref:       &argoprojiov1alpha1.SecretRef{SecretName: "test-secret", Key: "my-token"},
 			namespace: "other",
 			token:     "",
 			hasError:  true,

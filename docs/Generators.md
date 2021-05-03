@@ -415,7 +415,7 @@ spec:
         allBranches: true
         # Reference to a Secret containing an access token. (optional)
         tokenRef:
-          name: github-token
+          secretName: github-token
           key: token
   template:
   # ...
@@ -424,7 +424,7 @@ spec:
 * `organization`: Required name of the GitHub organization to scan. If you have multiple orgs, use multiple generators.
 * `api`: If using GitHub Enterprise, the URL to access it.
 * `allBranches`: By default (false) the template will only be evaluated for the default branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
-* `tokenRef`: A Secret name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit.
+* `tokenRef`: A Secret name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit and can only see public repositories.
 
 For label filtering, the repository topics are used.
 

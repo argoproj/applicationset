@@ -99,16 +99,16 @@ func (g *RepoHostGenerator) getSecretRef(ctx context.Context, ref *argoprojiov1a
 	err := g.client.Get(
 		ctx,
 		client.ObjectKey{
-			Name:      ref.Name,
+			Name:      ref.SecretName,
 			Namespace: namespace,
 		},
 		secret)
 	if err != nil {
-		return "", fmt.Errorf("error fetching secret %s/%s: %v", namespace, ref.Name, err)
+		return "", fmt.Errorf("error fetching secret %s/%s: %v", namespace, ref.SecretName, err)
 	}
 	tokenBytes, ok := secret.Data[ref.Key]
 	if !ok {
-		return "", fmt.Errorf("key %q in secret %s/%s not found", ref.Key, namespace, ref.Name)
+		return "", fmt.Errorf("key %q in secret %s/%s not found", ref.Key, namespace, ref.SecretName)
 	}
 	return string(tokenBytes), nil
 }

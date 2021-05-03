@@ -23,8 +23,8 @@ import (
 
 // Utility struct for a reference to a secret key.
 type SecretRef struct {
-	Name string `json:"name"`
-	Key  string `json:"key"`
+	SecretName string `json:"secretName"`
+	Key        string `json:"key"`
 }
 
 // ApplicationSet is a set of Application resources
