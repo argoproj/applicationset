@@ -144,8 +144,14 @@ func main() {
 		"Matrix": generators.NewMatrixGenerator(baseGenerators),
 	}
 
+	all, err := generators.CombineMaps(baseGenerators, combineGenerators)
+	if err != nil {
+		setupLog.Error(err, "generators can't be combined")
+		os.Exit(1)
+	}
+
 	if err = (&controllers.ApplicationSetReconciler{
-		Generators:       generators.CombineMaps(baseGenerators, combineGenerators),
+		Generators:       all,
 		Client:           mgr.GetClient(),
 		Log:              ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
 		Scheme:           mgr.GetScheme(),

@@ -48,7 +48,11 @@ func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 
 	for _, a := range g0 {
 		for _, b := range g1 {
-			res = append(res, utils.CombineStringMaps(a, b))
+			val, err := utils.CombineStringMaps(a, b)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, val)
 		}
 	}
 
@@ -73,8 +77,35 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 	return t[0].Params, nil
 }
 
+const maxDuration time.Duration = 1<<63 - 1
+
 func (m *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
-	return NoRequeueAfter
+	res := maxDuration
+	var found bool
+
+	for _, r := range appSetGenerator.Matrix.Generators {
+		base := &argoprojiov1alpha1.ApplicationSetGenerator{
+			List:     r.List,
+			Clusters: r.Clusters,
+			Git:      r.Git,
+		}
+		generators := GetRelevantGenerators(base, m.generators)
+
+		for _, g := range generators {
+			temp := g.GetRequeueAfter(base)
+			if temp < res && temp != NoRequeueAfter {
+				found = true
+				res = temp
+			}
+		}
+	}
+
+	if found {
+		return res
+	} else {
+		return NoRequeueAfter
+	}
+
 }
 
 func (m *MatrixGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {

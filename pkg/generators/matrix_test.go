@@ -151,6 +151,92 @@ func TestMatrixGenerate(t *testing.T) {
 	}
 }
 
+func TestMatrixGetRequeueAfter(t *testing.T) {
+
+	gitGenerator := &argoprojiov1alpha1.GitGenerator{
+		RepoURL:     "RepoURL",
+		Revision:    "Revision",
+		Directories: []argoprojiov1alpha1.GitDirectoryGeneratorItem{{Path: "*"}},
+	}
+
+	listGenerator := &argoprojiov1alpha1.ListGenerator{
+		Elements: []argoprojiov1alpha1.ListGeneratorElement{
+			{
+				Cluster: "Cluster",
+				Url:     "Url",
+			},
+		},
+	}
+
+	testCases := []struct {
+		name               string
+		baseGenerators     []argoprojiov1alpha1.ApplicationSetBaseGenerator
+		gitGetRequeueAfter time.Duration
+		expected           time.Duration
+	}{
+		{
+			name: "return NoRequeueAfter if all the inner baseGenerators returns it",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+				{
+					Git: gitGenerator,
+				},
+				{
+					List: listGenerator,
+				},
+			},
+			gitGetRequeueAfter: NoRequeueAfter,
+			expected:           NoRequeueAfter,
+		},
+		{
+			name: "returns the minimal time",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+				{
+					Git: gitGenerator,
+				},
+				{
+					List: listGenerator,
+				},
+			},
+			gitGetRequeueAfter: time.Duration(1),
+			expected:           time.Duration(1),
+		},
+	}
+
+	for _, c := range testCases {
+		cc := c
+
+		t.Run(cc.name, func(t *testing.T) {
+			mock := &generatorMock{}
+
+			for _, g := range cc.baseGenerators {
+				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
+					Git:  g.Git,
+					List: g.List,
+				}
+				mock.On("GetRequeueAfter", &gitGeneratorSpec).Return(cc.gitGetRequeueAfter, nil)
+			}
+
+			var matrixGenerator = NewMatrixGenerator(
+				map[string]Generator{
+					"Git":  mock,
+					"List": &ListGenerator{},
+				},
+			)
+
+			got := matrixGenerator.GetRequeueAfter(&argoprojiov1alpha1.ApplicationSetGenerator{
+				Matrix: &argoprojiov1alpha1.MatrixGenerator{
+					Generators: cc.baseGenerators,
+					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
+				},
+			})
+
+			assert.Equal(t, cc.expected, got)
+
+		})
+
+	}
+}
+
 type generatorMock struct {
 	mock.Mock
 }
