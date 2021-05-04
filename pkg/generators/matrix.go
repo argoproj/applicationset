@@ -15,12 +15,13 @@ var LessThanTwoGenerators = errors.New("found less than two generators, Matrix s
 var MoreThenOneInnerGenerators = errors.New("found more than one generator in matrix.Generators")
 
 type MatrixGenerator struct {
-	generators map[string]Generator
+	// The inner generators supported by the matrix generator (cluster, git, list...)
+	supportedGenerators map[string]Generator
 }
 
-func NewMatrixGenerator(generators map[string]Generator) Generator {
+func NewMatrixGenerator(supportedGenerators map[string]Generator) Generator {
 	m := &MatrixGenerator{
-		generators: generators,
+		supportedGenerators: supportedGenerators,
 	}
 	return m
 }
@@ -67,7 +68,7 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 			Clusters: appSetBaseGenerator.Clusters,
 			Git:      appSetBaseGenerator.Git,
 		},
-		m.generators,
+		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{})
 
 	if len(t) > 1 {
@@ -89,7 +90,7 @@ func (m *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Ap
 			Clusters: r.Clusters,
 			Git:      r.Git,
 		}
-		generators := GetRelevantGenerators(base, m.generators)
+		generators := GetRelevantGenerators(base, m.supportedGenerators)
 
 		for _, g := range generators {
 			temp := g.GetRequeueAfter(base)

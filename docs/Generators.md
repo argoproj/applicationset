@@ -376,7 +376,18 @@ As with other generators, clusters *must* already be defined within Argo CD, in 
 
 ## Matrix Generator
 The matrix generator combines two other generators by multiplying the parameters of them.
-For example, you can combine a git generator with a cluster generator to multiply the application for git to each cluster.
+
+### Use Case Example
+Imagine we have two clusters: 
+* staging (@ https://1.2.3.4)
+* production (@ https://2.4.6.8)
+
+And our application yamls are defined in a git repository:
+* argo workflows controller (examples/git-generator-directory/cluster-addons/argo-workflows)
+* prometheus operator (/examples/git-generator-directory/cluster-addons/prometheus-operator)
+
+Our goal is to deploy both application in both clusters. 
+For that we will use the matrix generator, with the git and the cluster as inner generators:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -385,17 +396,16 @@ metadata:
 spec:
   generators:
     - matrix:
-      generators:
-        - git:
-            name: cluster-deployments
-            repoURL: https://github.com/argoproj-labs/applicationset.git
-            directories:
-              - path: examples/proposal/matrix/cluster-addons/*
-        - clusters:
-            dependsOn: cluster-deployments
-            selector:
-              matchLabels:
-                argocd.argoproj.io/secret-type: cluster
+        generators:
+            - git:
+                name: cluster-deployments
+                repoURL: https://github.com/argoproj-labs/applicationset.git
+                directories:
+                  - path: examples/proposal/matrix/cluster-addons/*
+            - clusters:
+                selector:
+                  matchLabels:
+                    argocd.argoproj.io/secret-type: cluster
   template:
     metadata:
       name: '{{path.basename}}-{{name}}'
@@ -409,10 +419,50 @@ spec:
         server: '{{server}}'
         namespace: '{{path.basename}}'
 ```
+
+First the git directory generator which will produce:
+```yaml
+    - path: /examples/git-generator-directory/cluster-addons/argo-workflows
+      path.basename: argo-workflows
+      
+    - path: /examples/git-generator-directory/cluster-addons/prometheus-operator
+      path.basename: prometheus-operator
+```
+Second the cluster generator which will produce:
+```yaml
+    - name: staging
+      server: https://1.2.3.4
+      
+    - name: production
+      server: https://2.4.6.8
+```
+The matrix generators will combine both output and produce:
+```yaml
+    - name: staging
+      server: https://1.2.3.4
+      path: /examples/git-generator-directory/cluster-addons/argo-workflows
+      path.basename: argo-workflows
+
+    - name: staging
+      server: https://1.2.3.4
+      path: /examples/git-generator-directory/cluster-addons/prometheus-operator
+      path.basename: prometheus-operator
+
+    - name: production
+      server: https://2.4.6.8
+      path: /examples/git-generator-directory/cluster-addons/argo-workflows
+      path.basename: argo-workflows
+
+    - name: production
+      server: https://2.4.6.8      
+      path: /examples/git-generator-directory/cluster-addons/prometheus-operator
+      path.basename: prometheus-operator
+
+```
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/matrix).*)
 
-### Limitations
-1. The matrix generator support only two inner generators
+### Restrictions
+1. The matrix generator currently supports only two inner generators.
 2. The inner generators should only have one generator:
    This is not a valid example:
 ```yaml
@@ -425,8 +475,8 @@ spec:
 ```yaml
 - matrix:
     generators:
-        - list:
-            elements: []
-            template: # Ignored
+      - list:
+          elements: []
+          template: # Ignored
        
 ```

@@ -1,5 +1,5 @@
-# This example demonstrates the combining of the git generator with a clusgter generator
-# The expected output would be an application per git directory and a clsuter (applicztions_count = git directory * clusters)
+# This example demonstrates the combining of the git generator with a cluster generator
+# The expected output would be an application per git directory and a cluster (application_count = git directory * clusters)
 #
 #
 apiVersion: argoproj.io/v1alpha1
@@ -9,17 +9,16 @@ metadata:
 spec:
   generators:
   - matrix:
-    generators:
-      - git:
-          name: cluster-deployments
-          repoURL: https://github.com/argoproj-labs/applicationset.git
-          directories:
-          - path: examples/proposal/matrix/cluster-addons/*
-      - clusters:
-          dependsOn: cluster-deployments
-          selector:
-            matchLabels:
-              argocd.argoproj.io/secret-type: cluster
+      generators:
+        - git:
+            name: cluster-deployments
+            repoURL: https://github.com/argoproj-labs/applicationset.git
+            directories:
+            - path: examples/proposal/matrix/cluster-addons/*
+        - clusters:
+            selector:
+              matchLabels:
+                argocd.argoproj.io/secret-type: cluster
   template:
     metadata:
       name: '{{path.basename}}-{{name}}'

@@ -1,5 +1,5 @@
 # This example demonstrates the combining of the git generator with a list generator
-# The expected output would be an application per git directory and a list entry (applicztions_count = git directory * list entries)
+# The expected output would be an application per git directory and a list entry (application_count = git directory * list entries)
 #
 #
 apiVersion: argoproj.io/v1alpha1
