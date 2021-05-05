@@ -44,6 +44,8 @@ type ApplicationSetSpec struct {
 type ApplicationSetSyncPolicy struct {
 	// SkipPrune will disable the default behavior which will delete Applications that are no longer being generated for the ApplicationSet which created them, or the ApplicationSet itself is deleted. If SkipPrune is set to true, these Applications will be orphaned but continue to exist.
 	SkipPrune bool `json:"skipPrune,omitempty"`
+	// PreserveResourcesOnDeletion will preserve resources on deletion. If PreserveResourcesOnDeletion is set to true, these Applications will not be deleted.
+	PreserveResourcesOnDeletion bool `json:"preserveResourcesOnDeletion,omitempty"`
 }
 
 // ApplicationSetTemplate represents argocd ApplicationSpec

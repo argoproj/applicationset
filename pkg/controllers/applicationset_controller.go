@@ -334,12 +334,12 @@ func mergeGeneratorTemplate(g generators.Generator, requestedGenerator *argoproj
 	return *dest, err
 }
 func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
-	res := []argov1alpha1.Application{}
+	var res []argov1alpha1.Application
 
 	var firstError error
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
-		generators := r.GetRelevantGenerators(&requestedGenerator)
-		for _, g := range generators {
+		relevantGenerators := r.GetRelevantGenerators(&requestedGenerator)
+		for _, g := range relevantGenerators {
 
 			// we call mergeGeneratorTemplate first because GenerateParams might be more costly so we want to fail fast if there is an error
 			mergedTemplate, err := mergeGeneratorTemplate(g, &requestedGenerator, applicationSetInfo.Spec.Template)
@@ -363,9 +363,8 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 			}
 
 			tmplApplication := getTempApplication(mergedTemplate)
-
 			for _, p := range params {
-				app, err := r.Renderer.RenderTemplateParams(tmplApplication, p)
+				app, err := r.Renderer.RenderTemplateParams(tmplApplication, applicationSetInfo.Spec.SyncPolicy, p)
 				if err != nil {
 					log.WithError(err).WithField("params", params).WithField("generator", g).
 						Error("error generating application from params")

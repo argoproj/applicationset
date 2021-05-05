@@ -7,19 +7,20 @@ import (
 	"strconv"
 	"strings"
 
+	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasttemplate"
 )
 
 type Renderer interface {
-	RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]string) (*argov1alpha1.Application, error)
+	RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, params map[string]string) (*argov1alpha1.Application, error)
 }
 
 type Render struct {
 }
 
-func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, params map[string]string) (*argov1alpha1.Application, error) {
+func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, params map[string]string) (*argov1alpha1.Application, error) {
 	if tmpl == nil {
 		return nil, fmt.Errorf("Application template is empty ")
 	}
@@ -45,10 +46,12 @@ func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, params map
 		return nil, err
 	}
 
-	if replacedTmpl.ObjectMeta.Finalizers == nil {
-		replacedTmpl.ObjectMeta.Finalizers = []string{}
+	if syncPolicy == nil || !syncPolicy.PreserveResourcesOnDeletion {
+		if replacedTmpl.ObjectMeta.Finalizers == nil {
+			replacedTmpl.ObjectMeta.Finalizers = []string{}
+		}
+		replacedTmpl.ObjectMeta.Finalizers = append(replacedTmpl.ObjectMeta.Finalizers, "resources-finalizer.argocd.argoproj.io")
 	}
-	replacedTmpl.ObjectMeta.Finalizers = append(replacedTmpl.ObjectMeta.Finalizers, "resources-finalizer.argocd.argoproj.io")
 
 	return &replacedTmpl, nil
 }
