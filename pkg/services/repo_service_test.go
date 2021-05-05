@@ -234,7 +234,7 @@ func TestGetPaths(t *testing.T) {
 				repositoriesDB: argocdRepositoryMock,
 			}
 
-			getPathsRes, err := argocd.GetPaths(context.Background(), cc.repoURL, cc.revision, cc.pattern)
+			getPathsRes, err := argocd.GetFilePaths(context.Background(), cc.repoURL, cc.revision, cc.pattern)
 
 			if cc.expectedError == nil {
 
