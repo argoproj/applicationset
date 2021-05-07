@@ -2,10 +2,25 @@ package scm_provider
 
 import (
 	"context"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func checkRateLimit(t *testing.T, err error) {
+	// Check if we've hit a rate limit, don't fail the test if so.
+	if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
+		allowRateLimitErrors := os.Getenv("CI") == ""
+		t.Logf("Got a rate limit error, consider setting $GITHUB_TOKEN to increase your GitHub API rate limit: %v\n", err)
+		if allowRateLimitErrors {
+			t.SkipNow()
+		} else {
+			t.FailNow()
+		}
+	}
+}
 
 func TestGithubListRepos(t *testing.T) {
 	cases := []struct {
@@ -48,6 +63,7 @@ func TestGithubListRepos(t *testing.T) {
 			if c.hasError {
 				assert.NotNil(t, err)
 			} else {
+				checkRateLimit(t, err)
 				assert.Nil(t, err)
 				// Just check that this one project shows up. Not a great test but better thing nothing?
 				repos := []*Repository{}
@@ -76,10 +92,12 @@ func TestGithubHasPath(t *testing.T) {
 		Branch:       "master",
 	}
 	ok, err := host.RepoHasPath(context.Background(), repo, "pkg/")
+	checkRateLimit(t, err)
 	assert.Nil(t, err)
 	assert.True(t, ok)
 
 	ok, err = host.RepoHasPath(context.Background(), repo, "notathing/")
+	checkRateLimit(t, err)
 	assert.Nil(t, err)
 	assert.False(t, ok)
 }

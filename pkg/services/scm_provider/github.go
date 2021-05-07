@@ -3,6 +3,7 @@ package scm_provider
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/google/go-github/v35/github"
 	"golang.org/x/oauth2"
@@ -18,6 +19,10 @@ var _ SCMProviderService = &GithubProvider{}
 
 func NewGithubProvider(ctx context.Context, organization string, token string, url string, allBranches bool) (*GithubProvider, error) {
 	var ts oauth2.TokenSource
+	// Undocumented environment variable to set a default token, to be used in testing to dodge anonymous rate limits.
+	if token == "" {
+		token = os.Getenv("GITHUB_TOKEN")
+	}
 	if token != "" {
 		ts = oauth2.StaticTokenSource(
 			&oauth2.Token{AccessToken: token},
@@ -45,7 +50,7 @@ func (g *GithubProvider) ListRepos(ctx context.Context, cloneProtocol string) ([
 	for {
 		githubRepos, resp, err := g.client.Repositories.ListByOrg(ctx, g.organization, opt)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error listing repositories for %s: %v", g.organization, err)
 		}
 		for _, githubRepo := range githubRepos {
 			var url string
@@ -61,7 +66,7 @@ func (g *GithubProvider) ListRepos(ctx context.Context, cloneProtocol string) ([
 
 			branches, err := g.listBranches(ctx, githubRepo)
 			if err != nil {
-				return nil, fmt.Errorf("error listing branches for %s/%s: %q", githubRepo.Owner.GetLogin(), githubRepo.GetName(), err)
+				return nil, fmt.Errorf("error listing branches for %s/%s: %v", githubRepo.Owner.GetLogin(), githubRepo.GetName(), err)
 			}
 
 			for _, branch := range branches {
