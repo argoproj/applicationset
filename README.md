@@ -10,7 +10,7 @@ The ApplicationSet controller provides the ability:
 
 Unlike with an Argo CD Application resource, which deploys resources from a single Git repository to a single destination cluster/namespace, ApplicationSet uses templated automation to create, modify, and manage multiple Argo CD applications at once. 
 
-If you are loving Argo CD and want to use ApplicationSet's automation and templating to take your usage to the next level, the ApplicationSet controller a shot!
+If you are loving Argo CD and want to use ApplicationSet's automation and templating to take your usage to the next level, give the ApplicationSet controller a shot!
 
 ## Example Spec:
 

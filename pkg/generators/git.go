@@ -2,7 +2,6 @@ package generators
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"path"
 	"sort"
@@ -12,6 +11,7 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	"github.com/jeremywohl/flatten"
 	log "github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
 )
 
 var _ Generator = (*GitGenerator)(nil)
@@ -120,7 +120,7 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 	res := []map[string]string{}
 	for _, path := range allPaths {
 
-		// A JSON file path can contain multiple sets of parameters (ie it is an array)
+		// A JSON / YAML file path can contain multiple sets of parameters (ie it is an array)
 		paramsArray, err := g.generateParamsFromGitFile(appSetGenerator, path)
 		if err != nil {
 			return nil, fmt.Errorf("unable to process file '%s': %v", path, err)
@@ -143,20 +143,20 @@ func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1al
 	objectsFound := []map[string]interface{}{}
 
 	// First, we attempt to parse as an array
-	err = json.Unmarshal(fileContent, &objectsFound)
+	err = yaml.Unmarshal(fileContent, &objectsFound)
 	if err != nil {
-		// If unable to parse as an array, attempt to parse as a single JSON object
-		singleJSONObj := make(map[string]interface{})
-		err = json.Unmarshal(fileContent, &singleJSONObj)
+		// If unable to parse as an array, attempt to parse as a single object
+		singleObj := make(map[string]interface{})
+		err = yaml.Unmarshal(fileContent, &singleObj)
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse JSON file: %v", err)
+			return nil, fmt.Errorf("unable to parse file: %v", err)
 		}
-		objectsFound = append(objectsFound, singleJSONObj)
+		objectsFound = append(objectsFound, singleObj)
 	}
 
 	res := []map[string]string{}
 
-	// Flatten all JSON objects found, and return them
+	// Flatten all objects found, and return them
 	for _, objectFound := range objectsFound {
 
 		flat, err := flatten.Flatten(objectFound, "", flatten.DotStyle)

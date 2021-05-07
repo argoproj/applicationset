@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,26 +31,59 @@ const (
 )
 
 var (
-	id               string
+	id string
+
+	// call GetClientVars() to retrieve the Kubernetes client data for E2E test fixtures
+	clientInitialized  sync.Once
+	internalClientVars *E2EFixtureK8sClient
+)
+
+// E2EFixtureK8sClient contains Kubernetes clients initialized from local k8s configuration
+type E2EFixtureK8sClient struct {
 	KubeClientset    kubernetes.Interface
 	DynamicClientset dynamic.Interface
 	AppClientset     appclientset.Interface
 	AppSetClientset  dynamic.ResourceInterface
-)
+}
 
+// GetE2EFixtureK8sClient initializes the Kubernetes clients (if needed), and returns the most recently initalized value.
+// Note: this requires a local Kubernetes configuration (for example, while running the E2E tests).
+func GetE2EFixtureK8sClient() *E2EFixtureK8sClient {
+
+	// Initialize the Kubernetes clients only on first use
+	clientInitialized.Do(func() {
+
+		// set-up variables
+		config := getKubeConfig("", clientcmd.ConfigOverrides{})
+
+		internalClientVars = &E2EFixtureK8sClient{
+			AppClientset:     appclientset.NewForConfigOrDie(config),
+			DynamicClientset: dynamic.NewForConfigOrDie(config),
+			KubeClientset:    kubernetes.NewForConfigOrDie(config),
+		}
+
+		internalClientVars.AppSetClientset = internalClientVars.DynamicClientset.Resource(v1alpha1.GroupVersion.WithResource("applicationsets")).Namespace(ArgoCDNamespace)
+
+	})
+	return internalClientVars
+}
+
+// EnsureCleanSlate ensures that the Kubernetes resources on the cluster are are in a 'clean' state, before a test is run.
 func EnsureCleanState(t *testing.T) {
 
 	start := time.Now()
 
-	policy := v1.DeletePropagationBackground
+	fixtureClient := GetE2EFixtureK8sClient()
+
+	policy := v1.DeletePropagationForeground
 	// delete resources
 	// kubectl delete applicationsets --all
-	CheckError(AppSetClientset.DeleteCollection(context.Background(), v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{}))
+	CheckError(fixtureClient.AppSetClientset.DeleteCollection(context.Background(), v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{}))
 	// kubectl delete apps --all
-	CheckError(AppClientset.ArgoprojV1alpha1().Applications(ArgoCDNamespace).DeleteCollection(context.Background(), v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{}))
+	CheckError(fixtureClient.AppClientset.ArgoprojV1alpha1().Applications(ArgoCDNamespace).DeleteCollection(context.Background(), v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{}))
 
 	// kubectl delete secrets -l e2e.argoproj.io=true
-	CheckError(KubeClientset.CoreV1().Secrets(ArgoCDNamespace).DeleteCollection(context.Background(),
+	CheckError(fixtureClient.KubeClientset.CoreV1().Secrets(ArgoCDNamespace).DeleteCollection(context.Background(),
 		v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{LabelSelector: TestingLabel + "=true"}))
 
 	// remove tmp dir
@@ -78,14 +112,6 @@ func init() {
 
 	// ensure we log all shell execs
 	log.SetLevel(log.DebugLevel)
-
-	// set-up variables
-	config := getKubeConfig("", clientcmd.ConfigOverrides{})
-	AppClientset = appclientset.NewForConfigOrDie(config)
-	KubeClientset = kubernetes.NewForConfigOrDie(config)
-	DynamicClientset = dynamic.NewForConfigOrDie(config)
-	AppSetClientset = DynamicClientset.Resource(v1alpha1.GroupVersion.WithResource("applicationsets")).Namespace(ArgoCDNamespace)
-
 }
 
 // PrettyPrintJson is a utility function for debugging purposes

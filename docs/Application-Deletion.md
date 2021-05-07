@@ -3,12 +3,12 @@
 All `Application` resources created by the ApplicationSet controller (from an ApplicationSet) will contain:
 
 - A `.metadata.ownerReferences` reference back to the *parent* `ApplicationSet` resource
-- An Argo CD `resources-finalizer.argocd.argoproj.io` finalizer in `.metadata.finalizers` of the Application. 
+- An Argo CD `resources-finalizer.argocd.argoproj.io` finalizer in `.metadata.finalizers` of the Application if `.syncPolicy.preserveResourcesOnDeletion` is set to false.
 
 The end result is that when an ApplicationSet is deleted, the following occurs (in rough order):
 
 - The `ApplicationSet` resource itself is deleted
-- Any `Application` resources that were created from this `ApplicationSet` (as identified by owner reference), will be deleted.
+- Any `Application` resources that were created from this `ApplicationSet` (as identified by owner reference), will be deleted if `.syncPolicy.preserveResourcesOnDeletion` is set to false
 - Any deployed resources (`Deployments`, `Services`, `ConfigMaps`, etc) on the managed cluster, that were created from that `Application` resource (by Argo CD), will be deleted.
     - Argo CD is responsible for handling this deletion, via [the deletion finalizer](https://argoproj.github.io/argo-cd/user-guide/app_deletion/#about-the-deletion-finalizer).
 
