@@ -18,11 +18,15 @@ type Consequences struct {
 }
 
 func (c *Consequences) Expect(e Expectation) *Consequences {
+	return c.ExpectWithDuration(e, time.Duration(30)*time.Second)
+}
+
+func (c *Consequences) ExpectWithDuration(e Expectation, timeout time.Duration) *Consequences {
+
 	// this invocation makes sure this func is not reported as the cause of the failure - we are a "test helper"
 	c.context.t.Helper()
 	var message string
 	var state state
-	timeout := time.Duration(60) * time.Second
 	for start := time.Now(); time.Since(start) < timeout; time.Sleep(3 * time.Second) {
 		state, message = e(c)
 		switch state {

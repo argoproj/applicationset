@@ -360,7 +360,8 @@ func TestSimpleGitFilesPreserveResourcesOnDeletion(t *testing.T) {
 					},
 				},
 			},
-		}).Then().Expect(Pod(func(p corev1.Pod) bool { return strings.Contains(p.Name, "guestbook-ui") })).
+			// We use an extra-long duration here, as we might need to wait for image pull.
+		}).Then().ExpectWithDuration(Pod(func(p corev1.Pod) bool { return strings.Contains(p.Name, "guestbook-ui") }), 6*time.Minute).
 		When().
 		Delete().
 		And(func() {
