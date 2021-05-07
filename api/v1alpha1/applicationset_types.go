@@ -152,8 +152,8 @@ type SCMProviderGeneratorGithub struct {
 type SCMProviderGeneratorFilter struct {
 	// A regex for repo names.
 	RepositoryMatch *string `json:"repositoryMatch,omitempty"`
-	// A path which must exist.
-	PathExists *string `json:"pathExists,omitempty"`
+	// An array of paths, all of which must exist.
+	PathsExist []string `json:"pathsExist,omitempty"`
 	// A regex which must match at least one label.
 	LabelMatch *string `json:"labelMatch,omitempty"`
 	// A regex which must match the branch name.

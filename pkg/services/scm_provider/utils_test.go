@@ -86,7 +86,7 @@ func TestFilterPatchExists(t *testing.T) {
 	}
 	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
 		{
-			PathExists: strp("two"),
+			PathsExist: []string{"two"},
 		},
 	}
 	repos, err := ListRepos(context.Background(), provider, filters, "")
@@ -166,4 +166,92 @@ func TestFilterBranchMatch(t *testing.T) {
 	assert.Equal(t, "two", repos[0].Branch)
 	assert.Equal(t, "three", repos[1].Repository)
 	assert.Equal(t, "two", repos[1].Branch)
+}
+
+func TestMultiFilterAnd(t *testing.T) {
+	provider := &MockProvider{
+		Repos: []*Repository{
+			{
+				Repository: "one",
+				Labels:     []string{"prod-one", "prod-two", "staging"},
+			},
+			{
+				Repository: "two",
+				Labels:     []string{"prod-two"},
+			},
+			{
+				Repository: "three",
+				Labels:     []string{"staging"},
+			},
+		},
+	}
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
+		{
+			RepositoryMatch: strp("w"),
+			LabelMatch:      strp("^prod-.*$"),
+		},
+	}
+	repos, err := ListRepos(context.Background(), provider, filters, "")
+	assert.Nil(t, err)
+	assert.Len(t, repos, 1)
+	assert.Equal(t, "two", repos[0].Repository)
+}
+
+func TestMultiFilterOr(t *testing.T) {
+	provider := &MockProvider{
+		Repos: []*Repository{
+			{
+				Repository: "one",
+				Labels:     []string{"prod-one", "prod-two", "staging"},
+			},
+			{
+				Repository: "two",
+				Labels:     []string{"prod-two"},
+			},
+			{
+				Repository: "three",
+				Labels:     []string{"staging"},
+			},
+		},
+	}
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
+		{
+			RepositoryMatch: strp("e"),
+		},
+		{
+			LabelMatch: strp("^prod-.*$"),
+		},
+	}
+	repos, err := ListRepos(context.Background(), provider, filters, "")
+	assert.Nil(t, err)
+	assert.Len(t, repos, 3)
+	assert.Equal(t, "one", repos[0].Repository)
+	assert.Equal(t, "two", repos[1].Repository)
+	assert.Equal(t, "three", repos[2].Repository)
+}
+
+func TestNoFilters(t *testing.T) {
+	provider := &MockProvider{
+		Repos: []*Repository{
+			{
+				Repository: "one",
+				Labels:     []string{"prod-one", "prod-two", "staging"},
+			},
+			{
+				Repository: "two",
+				Labels:     []string{"prod-two"},
+			},
+			{
+				Repository: "three",
+				Labels:     []string{"staging"},
+			},
+		},
+	}
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{}
+	repos, err := ListRepos(context.Background(), provider, filters, "")
+	assert.Nil(t, err)
+	assert.Len(t, repos, 3)
+	assert.Equal(t, "one", repos[0].Repository)
+	assert.Equal(t, "two", repos[1].Repository)
+	assert.Equal(t, "three", repos[2].Repository)
 }

@@ -25,8 +25,8 @@ func compileFilters(filters []argoprojiov1alpha1.SCMProviderGeneratorFilter) ([]
 				return nil, fmt.Errorf("error compiling LabelMatch regexp %q: %v", *filter.LabelMatch, err)
 			}
 		}
-		if filter.PathExists != nil {
-			outFilter.PathExists = filter.PathExists
+		if filter.PathsExist != nil {
+			outFilter.PathsExist = filter.PathsExist
 		}
 		if filter.BranchMatch != nil {
 			outFilter.BranchMatch, err = regexp.Compile(*filter.BranchMatch)
@@ -39,6 +39,43 @@ func compileFilters(filters []argoprojiov1alpha1.SCMProviderGeneratorFilter) ([]
 	return outFilters, nil
 }
 
+func matchFilter(ctx context.Context, provider SCMProviderService, repo *Repository, filter *Filter) (bool, error) {
+	if filter.RepositoryMatch != nil && !filter.RepositoryMatch.MatchString(repo.Repository) {
+		return false, nil
+	}
+
+	if filter.BranchMatch != nil && !filter.BranchMatch.MatchString(repo.Branch) {
+		return false, nil
+	}
+
+	if filter.LabelMatch != nil {
+		found := false
+		for _, label := range repo.Labels {
+			if filter.LabelMatch.MatchString(label) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false, nil
+		}
+	}
+
+	if len(filter.PathsExist) != 0 {
+		for _, path := range filter.PathsExist {
+			hasPath, err := provider.RepoHasPath(ctx, repo, path)
+			if err != nil {
+				return false, err
+			}
+			if !hasPath {
+				return false, nil
+			}
+		}
+	}
+
+	return true, nil
+}
+
 func ListRepos(ctx context.Context, provider SCMProviderService, filters []argoprojiov1alpha1.SCMProviderGeneratorFilter, cloneProtocol string) ([]*Repository, error) {
 	compiledFilters, err := compileFilters(filters)
 	if err != nil {
@@ -49,51 +86,23 @@ func ListRepos(ctx context.Context, provider SCMProviderService, filters []argop
 	if err != nil {
 		return nil, err
 	}
+
+	// Special case, if we have no filters, allow everything.
+	if len(compiledFilters) == 0 {
+		return repos, nil
+	}
+
 	filteredRepos := make([]*Repository, 0, len(repos))
 	for _, repo := range repos {
-		matches := true
 		for _, filter := range compiledFilters {
-			if filter.RepositoryMatch != nil {
-				if !filter.RepositoryMatch.MatchString(repo.Repository) {
-					matches = false
-					break
-				}
+			matches, err := matchFilter(ctx, provider, repo, filter)
+			if err != nil {
+				return nil, err
 			}
-
-			if filter.BranchMatch != nil {
-				if !filter.BranchMatch.MatchString(repo.Branch) {
-					matches = false
-					break
-				}
+			if matches {
+				filteredRepos = append(filteredRepos, repo)
+				break
 			}
-
-			if filter.LabelMatch != nil {
-				found := false
-				for _, label := range repo.Labels {
-					if filter.LabelMatch.MatchString(label) {
-						found = true
-						break
-					}
-				}
-				if !found {
-					matches = false
-					break
-				}
-			}
-
-			if filter.PathExists != nil {
-				hasPath, err := provider.RepoHasPath(ctx, repo, *filter.PathExists)
-				if err != nil {
-					return nil, err
-				}
-				if !hasPath {
-					matches = false
-					break
-				}
-			}
-		}
-		if matches {
-			filteredRepos = append(filteredRepos, repo)
 		}
 	}
 	return filteredRepos, nil

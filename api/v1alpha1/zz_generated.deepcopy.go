@@ -393,10 +393,10 @@ func (in *SCMProviderGeneratorFilter) DeepCopyInto(out *SCMProviderGeneratorFilt
 		*out = new(string)
 		**out = **in
 	}
-	if in.PathExists != nil {
-		in, out := &in.PathExists, &out.PathExists
-		*out = new(string)
-		**out = **in
+	if in.PathsExist != nil {
+		in, out := &in.PathsExist, &out.PathsExist
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
 	if in.LabelMatch != nil {
 		in, out := &in.LabelMatch, &out.LabelMatch

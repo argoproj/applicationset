@@ -432,7 +432,7 @@ Available clone protocols are `ssh` and `https`.
 
 ### Filters
 
-Filters allow selecting which repositories to generate for. Filters are additive, specifying none will template every repository and each filter added will pare that down. If multiple filters are present, either in a single entry or multiple, the filter behavior is an AND of all. If at least one is NOT true, the repository will not be included.
+Filters allow selecting which repositories to generate for. Each filter can declare one or more conditions, all of which must pass. If multiple filters are present, any can match for a repository to be included. If no filters are specified, all repositories will be processed.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -442,18 +442,20 @@ metadata:
 spec:
   generators:
   - scmProvider:
-      github:
-        # ...
       filters:
-      - repositoryMatch: ^myapp.*
-        pathExists: kubernetes/kustomization.yaml
+      # Include any repository starting with "myapp" AND including a Kustomize config AND labeled with "deploy-ok" ...
+      - repositoryMatch: ^myapp
+        pathsExist: [kubernetes/kustomization.yaml]
         labelMatch: deploy-ok
+      # ... OR any repository starting with "otherapp" AND a Helm folder.
+      - repositoryMatch: ^otherapp
+        pathsExist: [helm]
   template:
   # ...
 ```
 
 * `repositoryMatch`: A regexp matched against the repository name.
-* `pathExists`: A path within the repository that must exist. Can be a file or directory, but do not include the trailing `/` for directories.
+* `pathsExist`: An array of paths within the repository that must exist. Can be a file or directory, but do not include the trailing `/` for directories.
 * `labelMatch`: A regexp matched against repository labels. If any label matches, the repository is included.
 * `branchMatch`: A regexp matched against branch names.
 

@@ -1369,9 +1369,12 @@ spec:
                                 description: A regex which must match at least one
                                   label.
                                 type: string
-                              pathExists:
-                                description: A path which must exist.
-                                type: string
+                              pathsExist:
+                                description: An array of paths, all of which must
+                                  exist.
+                                items:
+                                  type: string
+                                type: array
                               repositoryMatch:
                                 description: A regex for repo names.
                                 type: string

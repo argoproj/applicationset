@@ -22,7 +22,7 @@ type SCMProviderService interface {
 // A compiled version of SCMProviderGeneratorFilter for performance.
 type Filter struct {
 	RepositoryMatch *regexp.Regexp
-	PathExists      *string
+	PathsExist      []string
 	LabelMatch      *regexp.Regexp
 	BranchMatch     *regexp.Regexp
 }
