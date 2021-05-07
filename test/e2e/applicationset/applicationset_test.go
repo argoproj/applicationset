@@ -311,7 +311,7 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 		Delete().Then().Expect(ApplicationsDoNotExist(expectedAppsNewNamespace))
 }
 
-func TestSimpleRepoHostGenerator(t *testing.T) {
+func TestSimpleSCMProviderGenerator(t *testing.T) {
 	expectedApp := argov1alpha1.Application{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Application",
@@ -340,9 +340,9 @@ func TestSimpleRepoHostGenerator(t *testing.T) {
 	repoMatch := "example-apps"
 
 	Given(t).
-		// Create a RepoHostGenerator-based ApplicationSet
+		// Create an SCMProviderGenerator-based ApplicationSet
 		When().Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
-		Name: "simple-repo-host-generator",
+		Name: "simple-scm-provider-generator",
 	},
 		Spec: v1alpha1.ApplicationSetSpec{
 			Template: v1alpha1.ApplicationSetTemplate{
@@ -362,11 +362,11 @@ func TestSimpleRepoHostGenerator(t *testing.T) {
 			},
 			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
-					RepoHost: &v1alpha1.RepoHostGenerator{
-						Github: &v1alpha1.RepoHostGeneratorGithub{
+					SCMProvider: &v1alpha1.SCMProviderGenerator{
+						Github: &v1alpha1.SCMProviderGeneratorGithub{
 							Organization: "argoproj",
 						},
-						Filters: []v1alpha1.RepoHostGeneratorFilter{
+						Filters: []v1alpha1.SCMProviderGeneratorFilter{
 							{
 								RepositoryMatch: &repoMatch,
 							},

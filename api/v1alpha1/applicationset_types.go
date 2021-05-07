@@ -69,10 +69,10 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List     *ListGenerator     `json:"list,omitempty"`
-	Clusters *ClusterGenerator  `json:"clusters,omitempty"`
-	Git      *GitGenerator      `json:"git,omitempty"`
-	RepoHost *RepoHostGenerator `json:"repoHost,omitempty"`
+	List        *ListGenerator        `json:"list,omitempty"`
+	Clusters    *ClusterGenerator     `json:"clusters,omitempty"`
+	Git         *GitGenerator         `json:"git,omitempty"`
+	SCMProvider *SCMProviderGenerator `json:"scmProvider,omitempty"`
 }
 
 // ListGenerator include items info
@@ -119,13 +119,13 @@ type GitFileGeneratorItem struct {
 	Path string `json:"path"`
 }
 
-// RepoHostGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.
-type RepoHostGenerator struct {
+// SCMProviderGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.
+type SCMProviderGenerator struct {
 	// Which provider to use and config for it.
-	Github *RepoHostGeneratorGithub `json:"github,omitempty"`
+	Github *SCMProviderGeneratorGithub `json:"github,omitempty"`
 	// TODO other providers.
 	// Filters for which repos should be considered.
-	Filters []RepoHostGeneratorFilter `json:"filters,omitempty"`
+	Filters []SCMProviderGeneratorFilter `json:"filters,omitempty"`
 	// Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers
 	// necessarily support all protocols.
 	CloneProtocol string `json:"cloneProtocol,omitempty"`
@@ -134,8 +134,8 @@ type RepoHostGenerator struct {
 	Template            ApplicationSetTemplate `json:"template,omitempty"`
 }
 
-// RepoHostGeneratorGithub defines a connection info specific to GitHub.
-type RepoHostGeneratorGithub struct {
+// SCMProviderGeneratorGithub defines a connection info specific to GitHub.
+type SCMProviderGeneratorGithub struct {
 	// GitHub org to scan. Required.
 	Organization string `json:"organization"`
 	// The GitHub API URL to talk to. If blank, use https://api.github.com/.
@@ -146,10 +146,10 @@ type RepoHostGeneratorGithub struct {
 	AllBranches bool `json:"allBranches,omitempty"`
 }
 
-// RepoHostGeneratorFilter is a single repository filter.
+// SCMProviderGeneratorFilter is a single repository filter.
 // If multiple filter types are set on a single struct, they will be AND'd together. All filters must
 // pass for a repo to be included.
-type RepoHostGeneratorFilter struct {
+type SCMProviderGeneratorFilter struct {
 	// A regex for repo names.
 	RepositoryMatch *string `json:"repositoryMatch,omitempty"`
 	// A path which must exist.

@@ -1,4 +1,4 @@
-package repo_host
+package scm_provider
 
 import (
 	"context"
@@ -13,8 +13,8 @@ func strp(s string) *string {
 }
 
 func TestFilterRepoMatch(t *testing.T) {
-	host := &MockRepoHost{
-		Repos: []*HostedRepo{
+	provider := &MockProvider{
+		Repos: []*Repository{
 			{
 				Repository: "one",
 			},
@@ -29,12 +29,12 @@ func TestFilterRepoMatch(t *testing.T) {
 			},
 		},
 	}
-	filters := []argoprojiov1alpha1.RepoHostGeneratorFilter{
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
 		{
 			RepositoryMatch: strp("n|hr"),
 		},
 	}
-	repos, err := ListRepos(context.Background(), host, filters, "")
+	repos, err := ListRepos(context.Background(), provider, filters, "")
 	assert.Nil(t, err)
 	assert.Len(t, repos, 2)
 	assert.Equal(t, "one", repos[0].Repository)
@@ -42,8 +42,8 @@ func TestFilterRepoMatch(t *testing.T) {
 }
 
 func TestFilterLabelMatch(t *testing.T) {
-	host := &MockRepoHost{
-		Repos: []*HostedRepo{
+	provider := &MockProvider{
+		Repos: []*Repository{
 			{
 				Repository: "one",
 				Labels:     []string{"prod-one", "prod-two", "staging"},
@@ -58,12 +58,12 @@ func TestFilterLabelMatch(t *testing.T) {
 			},
 		},
 	}
-	filters := []argoprojiov1alpha1.RepoHostGeneratorFilter{
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
 		{
 			LabelMatch: strp("^prod-.*$"),
 		},
 	}
-	repos, err := ListRepos(context.Background(), host, filters, "")
+	repos, err := ListRepos(context.Background(), provider, filters, "")
 	assert.Nil(t, err)
 	assert.Len(t, repos, 2)
 	assert.Equal(t, "one", repos[0].Repository)
@@ -71,8 +71,8 @@ func TestFilterLabelMatch(t *testing.T) {
 }
 
 func TestFilterPatchExists(t *testing.T) {
-	host := &MockRepoHost{
-		Repos: []*HostedRepo{
+	provider := &MockProvider{
+		Repos: []*Repository{
 			{
 				Repository: "one",
 			},
@@ -84,54 +84,54 @@ func TestFilterPatchExists(t *testing.T) {
 			},
 		},
 	}
-	filters := []argoprojiov1alpha1.RepoHostGeneratorFilter{
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
 		{
 			PathExists: strp("two"),
 		},
 	}
-	repos, err := ListRepos(context.Background(), host, filters, "")
+	repos, err := ListRepos(context.Background(), provider, filters, "")
 	assert.Nil(t, err)
 	assert.Len(t, repos, 1)
 	assert.Equal(t, "two", repos[0].Repository)
 }
 
 func TestFilterRepoMatchBadRegexp(t *testing.T) {
-	host := &MockRepoHost{
-		Repos: []*HostedRepo{
+	provider := &MockProvider{
+		Repos: []*Repository{
 			{
 				Repository: "one",
 			},
 		},
 	}
-	filters := []argoprojiov1alpha1.RepoHostGeneratorFilter{
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
 		{
 			RepositoryMatch: strp("("),
 		},
 	}
-	_, err := ListRepos(context.Background(), host, filters, "")
+	_, err := ListRepos(context.Background(), provider, filters, "")
 	assert.NotNil(t, err)
 }
 
 func TestFilterLabelMatchBadRegexp(t *testing.T) {
-	host := &MockRepoHost{
-		Repos: []*HostedRepo{
+	provider := &MockProvider{
+		Repos: []*Repository{
 			{
 				Repository: "one",
 			},
 		},
 	}
-	filters := []argoprojiov1alpha1.RepoHostGeneratorFilter{
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
 		{
 			LabelMatch: strp("("),
 		},
 	}
-	_, err := ListRepos(context.Background(), host, filters, "")
+	_, err := ListRepos(context.Background(), provider, filters, "")
 	assert.NotNil(t, err)
 }
 
 func TestFilterBranchMatch(t *testing.T) {
-	host := &MockRepoHost{
-		Repos: []*HostedRepo{
+	provider := &MockProvider{
+		Repos: []*Repository{
 			{
 				Repository: "one",
 				Branch:     "one",
@@ -154,12 +154,12 @@ func TestFilterBranchMatch(t *testing.T) {
 			},
 		},
 	}
-	filters := []argoprojiov1alpha1.RepoHostGeneratorFilter{
+	filters := []argoprojiov1alpha1.SCMProviderGeneratorFilter{
 		{
 			BranchMatch: strp("w"),
 		},
 	}
-	repos, err := ListRepos(context.Background(), host, filters, "")
+	repos, err := ListRepos(context.Background(), provider, filters, "")
 	assert.Nil(t, err)
 	assert.Len(t, repos, 2)
 	assert.Equal(t, "one", repos[0].Repository)

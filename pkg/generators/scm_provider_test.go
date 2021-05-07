@@ -10,17 +10,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/services/repo_host"
+	"github.com/argoproj-labs/applicationset/pkg/services/scm_provider"
 )
 
-func TestRepoHostGetSecretRef(t *testing.T) {
+func TestSCMProviderGetSecretRef(t *testing.T) {
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-secret", Namespace: "test"},
 		Data: map[string][]byte{
 			"my-token": []byte("secret"),
 		},
 	}
-	gen := &RepoHostGenerator{client: fake.NewClientBuilder().WithObjects(secret).Build()}
+	gen := &SCMProviderGenerator{client: fake.NewClientBuilder().WithObjects(secret).Build()}
 	ctx := context.Background()
 
 	cases := []struct {
@@ -79,9 +79,9 @@ func TestRepoHostGetSecretRef(t *testing.T) {
 	}
 }
 
-func TestRepoHostGenerateParams(t *testing.T) {
-	mockHost := &repo_host.MockRepoHost{
-		Repos: []*repo_host.HostedRepo{
+func TestSCMProviderGenerateParams(t *testing.T) {
+	mockProvider := &scm_provider.MockProvider{
+		Repos: []*scm_provider.Repository{
 			{
 				Organization: "myorg",
 				Repository:   "repo1",
@@ -97,9 +97,9 @@ func TestRepoHostGenerateParams(t *testing.T) {
 			},
 		},
 	}
-	gen := &RepoHostGenerator{overrideHost: mockHost}
+	gen := &SCMProviderGenerator{overrideProvider: mockProvider}
 	params, err := gen.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
-		RepoHost: &argoprojiov1alpha1.RepoHostGenerator{},
+		SCMProvider: &argoprojiov1alpha1.SCMProviderGenerator{},
 	}, nil)
 	assert.Nil(t, err)
 	assert.Len(t, params, 2)

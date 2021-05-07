@@ -1079,8 +1079,8 @@ spec:
                       required:
                       - elements
                       type: object
-                    repoHost:
-                      description: RepoHostGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.
+                    scmProvider:
+                      description: SCMProviderGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.
                       properties:
                         cloneProtocol:
                           description: Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers necessarily support all protocols.
@@ -1088,7 +1088,7 @@ spec:
                         filters:
                           description: TODO other providers. Filters for which repos should be considered.
                           items:
-                            description: RepoHostGeneratorFilter is a single repository filter. If multiple filter types are set on a single struct, they will be AND'd together. All filters must pass for a repo to be included.
+                            description: SCMProviderGeneratorFilter is a single repository filter. If multiple filter types are set on a single struct, they will be AND'd together. All filters must pass for a repo to be included.
                             properties:
                               branchMatch:
                                 description: A regex which must match the branch name.
@@ -1121,11 +1121,11 @@ spec:
                               properties:
                                 key:
                                   type: string
-                                name:
+                                secretName:
                                   type: string
                               required:
                               - key
-                              - name
+                              - secretName
                               type: object
                           required:
                           - organization

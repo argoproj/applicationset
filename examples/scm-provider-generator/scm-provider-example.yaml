@@ -4,7 +4,7 @@ metadata:
   name: guestbook
 spec:
   generators:
-  - repoHost:
+  - scmProvider:
       github:
         organization: argoproj
       filters:

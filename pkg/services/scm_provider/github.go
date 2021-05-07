@@ -1,4 +1,4 @@
-package repo_host
+package scm_provider
 
 import (
 	"context"
@@ -8,15 +8,15 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type GithubRepoHost struct {
+type GithubProvider struct {
 	client       *github.Client
 	organization string
 	allBranches  bool
 }
 
-var _ RepoHostService = &GithubRepoHost{}
+var _ SCMProviderService = &GithubProvider{}
 
-func NewGithubRepoHost(ctx context.Context, organization string, token string, url string, allBranches bool) (*GithubRepoHost, error) {
+func NewGithubProvider(ctx context.Context, organization string, token string, url string, allBranches bool) (*GithubProvider, error) {
 	var ts oauth2.TokenSource
 	if token != "" {
 		ts = oauth2.StaticTokenSource(
@@ -34,14 +34,14 @@ func NewGithubRepoHost(ctx context.Context, organization string, token string, u
 			return nil, err
 		}
 	}
-	return &GithubRepoHost{client: client, organization: organization, allBranches: allBranches}, nil
+	return &GithubProvider{client: client, organization: organization, allBranches: allBranches}, nil
 }
 
-func (g *GithubRepoHost) ListRepos(ctx context.Context, cloneProtocol string) ([]*HostedRepo, error) {
+func (g *GithubProvider) ListRepos(ctx context.Context, cloneProtocol string) ([]*Repository, error) {
 	opt := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
-	repos := []*HostedRepo{}
+	repos := []*Repository{}
 	for {
 		githubRepos, resp, err := g.client.Repositories.ListByOrg(ctx, g.organization, opt)
 		if err != nil {
@@ -50,6 +50,7 @@ func (g *GithubRepoHost) ListRepos(ctx context.Context, cloneProtocol string) ([
 		for _, githubRepo := range githubRepos {
 			var url string
 			switch cloneProtocol {
+			// Default to SSH if unspecified (i.e. if "").
 			case "", "ssh":
 				url = githubRepo.GetSSHURL()
 			case "https":
@@ -64,7 +65,7 @@ func (g *GithubRepoHost) ListRepos(ctx context.Context, cloneProtocol string) ([
 			}
 
 			for _, branch := range branches {
-				repos = append(repos, &HostedRepo{
+				repos = append(repos, &Repository{
 					Organization: githubRepo.Owner.GetLogin(),
 					Repository:   githubRepo.GetName(),
 					URL:          url,
@@ -81,7 +82,7 @@ func (g *GithubRepoHost) ListRepos(ctx context.Context, cloneProtocol string) ([
 	return repos, nil
 }
 
-func (g *GithubRepoHost) RepoHasPath(ctx context.Context, repo *HostedRepo, path string) (bool, error) {
+func (g *GithubProvider) RepoHasPath(ctx context.Context, repo *Repository, path string) (bool, error) {
 	_, _, resp, err := g.client.Repositories.GetContents(ctx, repo.Organization, repo.Repository, path, &github.RepositoryContentGetOptions{
 		Ref: repo.Branch,
 	})
@@ -95,7 +96,7 @@ func (g *GithubRepoHost) RepoHasPath(ctx context.Context, repo *HostedRepo, path
 	return true, nil
 }
 
-func (g *GithubRepoHost) listBranches(ctx context.Context, repo *github.Repository) ([]string, error) {
+func (g *GithubProvider) listBranches(ctx context.Context, repo *github.Repository) ([]string, error) {
 	// If we don't specifically want to query for all branches, just use the default branch and call it a day.
 	if !g.allBranches {
 		return []string{repo.GetDefaultBranch()}, nil

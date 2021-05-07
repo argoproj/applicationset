@@ -1,4 +1,4 @@
-package repo_host
+package scm_provider
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 )
 
-func compileFilters(filters []argoprojiov1alpha1.RepoHostGeneratorFilter) ([]*Filter, error) {
+func compileFilters(filters []argoprojiov1alpha1.SCMProviderGeneratorFilter) ([]*Filter, error) {
 	outFilters := make([]*Filter, 0, len(filters))
 	for _, filter := range filters {
 		outFilter := &Filter{}
@@ -39,17 +39,17 @@ func compileFilters(filters []argoprojiov1alpha1.RepoHostGeneratorFilter) ([]*Fi
 	return outFilters, nil
 }
 
-func ListRepos(ctx context.Context, host RepoHostService, filters []argoprojiov1alpha1.RepoHostGeneratorFilter, cloneProtocol string) ([]*HostedRepo, error) {
+func ListRepos(ctx context.Context, provider SCMProviderService, filters []argoprojiov1alpha1.SCMProviderGeneratorFilter, cloneProtocol string) ([]*Repository, error) {
 	compiledFilters, err := compileFilters(filters)
 	if err != nil {
 		return nil, err
 	}
 
-	repos, err := host.ListRepos(ctx, cloneProtocol)
+	repos, err := provider.ListRepos(ctx, cloneProtocol)
 	if err != nil {
 		return nil, err
 	}
-	filteredRepos := make([]*HostedRepo, 0, len(repos))
+	filteredRepos := make([]*Repository, 0, len(repos))
 	for _, repo := range repos {
 		matches := true
 		for _, filter := range compiledFilters {
@@ -82,7 +82,7 @@ func ListRepos(ctx context.Context, host RepoHostService, filters []argoprojiov1
 			}
 
 			if filter.PathExists != nil {
-				hasPath, err := host.RepoHasPath(ctx, repo, *filter.PathExists)
+				hasPath, err := provider.RepoHasPath(ctx, repo, *filter.PathExists)
 				if err != nil {
 					return nil, err
 				}

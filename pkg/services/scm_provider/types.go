@@ -1,4 +1,4 @@
-package repo_host
+package scm_provider
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 )
 
 // An abstract repository from an API provider.
-type HostedRepo struct {
+type Repository struct {
 	Organization string
 	Repository   string
 	URL          string
@@ -14,12 +14,12 @@ type HostedRepo struct {
 	Labels       []string
 }
 
-type RepoHostService interface {
-	ListRepos(context.Context, string) ([]*HostedRepo, error)
-	RepoHasPath(context.Context, *HostedRepo, string) (bool, error)
+type SCMProviderService interface {
+	ListRepos(context.Context, string) ([]*Repository, error)
+	RepoHasPath(context.Context, *Repository, string) (bool, error)
 }
 
-// A compiled version of RepoHostGeneratorFilter for performance.
+// A compiled version of SCMProviderGeneratorFilter for performance.
 type Filter struct {
 	RepositoryMatch *regexp.Regexp
 	PathExists      *string

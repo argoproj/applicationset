@@ -371,9 +371,9 @@ Any `config.json` files found under the `cluster-config` directory will be param
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
 
-## Repository Host Generator
+## SCM Provider Generator
 
-The RepoHost generator uses the API of an SCMaaS provider to discover repositories. This fits well with many repos following the same GitOps layout patterns such as microservices.
+The SCMProvider generator uses the API of an SCMaaS provider to discover repositories. This fits well with many repos following the same GitOps layout patterns such as microservices.
 
 Support is currently limited to GitHub, PRs are welcome to add more SCM providers.
 
@@ -384,7 +384,7 @@ metadata:
   name: myapps
 spec:
   generators:
-  - repoHost:
+  - scmProvider:
       # Which protocol to clone using.
       cloneProtocol: ssh
       # See below for provider specific options.
@@ -405,7 +405,7 @@ metadata:
   name: myapps
 spec:
   generators:
-  - repoHost:
+  - scmProvider:
       github:
         # The GitHub organization to scan.
         organization: myorg
@@ -441,7 +441,7 @@ metadata:
   name: myapps
 spec:
   generators:
-  - repoHost:
+  - scmProvider:
       github:
         # ...
       filters:
@@ -468,7 +468,7 @@ metadata:
   name: myapps
 spec:
   generators:
-  - repoHost:
+  - scmProvider:
     # ...
   template:
     metadata:

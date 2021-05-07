@@ -1,4 +1,4 @@
-package repo_host
+package scm_provider
 
 import (
 	"context"
@@ -43,14 +43,14 @@ func TestGithubListRepos(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			host, _ := NewGithubRepoHost(context.Background(), "argoproj-labs", "", "", c.allBranches)
-			rawRepos, err := host.ListRepos(context.Background(), c.proto)
+			provider, _ := NewGithubProvider(context.Background(), "argoproj-labs", "", "", c.allBranches)
+			rawRepos, err := provider.ListRepos(context.Background(), c.proto)
 			if c.hasError {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
 				// Just check that this one project shows up. Not a great test but better thing nothing?
-				repos := []*HostedRepo{}
+				repos := []*Repository{}
 				branches := []string{}
 				for _, r := range rawRepos {
 					if r.Repository == "applicationset" {
@@ -69,8 +69,8 @@ func TestGithubListRepos(t *testing.T) {
 }
 
 func TestGithubHasPath(t *testing.T) {
-	host, _ := NewGithubRepoHost(context.Background(), "argoproj-labs", "", "", false)
-	repo := &HostedRepo{
+	host, _ := NewGithubProvider(context.Background(), "argoproj-labs", "", "", false)
+	repo := &Repository{
 		Organization: "argoproj-labs",
 		Repository:   "applicationset",
 		Branch:       "master",
