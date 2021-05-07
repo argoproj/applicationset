@@ -1,12 +1,15 @@
 package applicationsets
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	. "github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets"
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -313,41 +316,9 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 
 func TestSimpleGitFilesPreserveResourcesOnDeletion(t *testing.T) {
 
-	generateExpectedApp := func(name string) argov1alpha1.Application {
-		return argov1alpha1.Application{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Application",
-				APIVersion: "argoproj.io/v1alpha1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: utils.ArgoCDNamespace,
-			},
-			Spec: argov1alpha1.ApplicationSpec{
-				Project: "default",
-				Source: argov1alpha1.ApplicationSource{
-					RepoURL:        "https://github.com/argoproj/argocd-example-apps.git",
-					TargetRevision: "HEAD",
-					Path:           "guestbook",
-				},
-				Destination: argov1alpha1.ApplicationDestination{
-					Server:    "https://kubernetes.default.svc",
-					Namespace: "guestbook",
-				},
-			},
-		}
-	}
-
-	expectedApps := []argov1alpha1.Application{
-		generateExpectedApp("engineering-dev-guestbook"),
-		generateExpectedApp("engineering-prod-guestbook"),
-	}
-
-	var expectedAppsNewNamespace []argov1alpha1.Application
-	var expectedAppsNewMetadata []argov1alpha1.Application
-
 	Given(t).
 		When().
+		CreateNamespace().
 		// Create a GitGenerator-based ApplicationSet
 		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
 			Name: "simple-git-generator",
@@ -364,7 +335,12 @@ func TestSimpleGitFilesPreserveResourcesOnDeletion(t *testing.T) {
 						},
 						Destination: argov1alpha1.ApplicationDestination{
 							Server:    "https://kubernetes.default.svc",
-							Namespace: "guestbook",
+							Namespace: utils.ApplicationSetNamespace,
+						},
+
+						// Automatically create resources
+						SyncPolicy: &argov1alpha1.SyncPolicy{
+							Automated: &argov1alpha1.SyncPolicyAutomated{},
 						},
 					},
 				},
@@ -384,37 +360,16 @@ func TestSimpleGitFilesPreserveResourcesOnDeletion(t *testing.T) {
 					},
 				},
 			},
-		}).Then().Expect(ApplicationsExist(expectedApps)).
-
-		// Update the ApplicationSet template namespace, and verify it updates the Applications
+		}).Then().Expect(Pod(func(p corev1.Pod) bool { return strings.Contains(p.Name, "guestbook-ui") })).
 		When().
+		Delete().
 		And(func() {
-			for _, expectedApp := range expectedApps {
-				newExpectedApp := expectedApp.DeepCopy()
-				newExpectedApp.Spec.Destination.Namespace = "guestbook2"
-				expectedAppsNewNamespace = append(expectedAppsNewNamespace, *newExpectedApp)
-			}
-		}).
-		Update(func(appset *v1alpha1.ApplicationSet) {
-			appset.Spec.Template.Spec.Destination.Namespace = "guestbook2"
-		}).Then().Expect(ApplicationsExist(expectedAppsNewNamespace)).
+			t.Log("Waiting 30 seconds to give the cluster a chance to delete the pods.")
+			// Wait 30 seconds to give the cluster a chance to deletes the pods, if it is going to do so.
+			// It should NOT delete the pods; to do so would be an ApplicationSet bug, and
+			// that is what we are testing here.
+			time.Sleep(30 * time.Second)
+			// The pod should continue to exist after 30 seconds.
+		}).Then().Expect(Pod(func(p corev1.Pod) bool { return strings.Contains(p.Name, "guestbook-ui") }))
 
-		// Update the metadata fields in the appset template, and make sure it propagates to the apps
-		When().
-		And(func() {
-			for _, expectedApp := range expectedAppsNewNamespace {
-				expectedAppNewMetadata := expectedApp.DeepCopy()
-				expectedAppNewMetadata.ObjectMeta.Annotations = map[string]string{"annotation-key": "annotation-value"}
-				expectedAppNewMetadata.ObjectMeta.Labels = map[string]string{"label-key": "label-value"}
-				expectedAppsNewMetadata = append(expectedAppsNewMetadata, *expectedAppNewMetadata)
-			}
-		}).
-		Update(func(appset *v1alpha1.ApplicationSet) {
-			appset.Spec.Template.Annotations = map[string]string{"annotation-key": "annotation-value"}
-			appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
-		}).Then().Expect(ApplicationsExist(expectedAppsNewMetadata)).
-
-		// Delete the ApplicationSet, and verify it does not delete the Applications
-		When().
-		Delete().Then().Expect(ApplicationsExist(expectedAppsNewMetadata))
 }
