@@ -123,6 +123,8 @@ metadata:
 # (...)
 ```
 
+The cluster selector also supports set-based requirements, as used by [several core Kubernetes resources](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#resources-that-support-set-based-requirements).
+
 ### Deploying to the local cluster
 
 In Argo CD, the 'local cluster' is the cluster upon which Argo CD (and the ApplicationSet controller) is installed. This is to distinguish it from 'remote clusters', which are those that are added to Argo CD [declaratively](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) or via the [Argo CD CLI](https://argoproj.github.io/argo-cd/getting_started/#5-register-a-cluster-to-deploy-apps-to-optional).
@@ -289,7 +291,7 @@ Or, a shorter way (using [path.Match](https://golang.org/pkg/path/#Match) syntax
 
 ## Git Generator: Files
 
-The Git file generator is the second subtype of the Git generator. The Git file generator generates parameters using the contents of JSON files found within a specified repository.
+The Git file generator is the second subtype of the Git generator. The Git file generator generates parameters using the contents of JSON/YAML files found within a specified repository.
 
 Suppose you have a Git repository with the following directory structure:
 ```
@@ -310,7 +312,7 @@ Suppose you have a Git repository with the following directory structure:
 The folders are:
 
 - `guestbook` contains the Kubernetes resources for a simple guestbook application
-- `cluster-config` contains JSON files describing the individual engineering clusters: one for `dev` and one for `prod`.
+- `cluster-config` contains JSON/YAML files describing the individual engineering clusters: one for `dev` and one for `prod`.
 - `git-generator-files.yaml` is the example `ApplicationSet` resource that deploys `guestbook` to the specified clusters.
 
 The `config.json` files contain information describing the cluster (along with extra sample data):
@@ -365,9 +367,6 @@ spec:
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-files-discovery).*)
 
 Any `config.json` files found under the `cluster-config` directory will be parameterized based on the `path` wildcard pattern specified. Within each file JSON fields are flattened into key/value pairs, with this ApplicationSet example using the `cluster.address` as `cluster.name` parameters in the template.
-
-!!! note "Supported file formats"
-    Only JSON file parsing is currently supported. The work to add support for YAML files is [tracked here](https://github.com/argoproj-labs/applicationset/issues/106).
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
 

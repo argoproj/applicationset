@@ -216,7 +216,7 @@ func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSet
 }
 
 func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argoprojiov1alpha1.ApplicationSet) ([]argov1alpha1.Application, error) {
-	res := []argov1alpha1.Application{}
+	var res []argov1alpha1.Application
 
 	var firstError error
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
@@ -234,7 +234,7 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 			tmplApplication := getTempApplication(a.Template)
 
 			for _, p := range a.Params {
-				app, err := r.Renderer.RenderTemplateParams(tmplApplication, p)
+				app, err := r.Renderer.RenderTemplateParams(tmplApplication, applicationSetInfo.Spec.SyncPolicy, p)
 				if err != nil {
 					log.WithError(err).WithField("params", a.Params).WithField("generator", requestedGenerator).
 						Error("error generating application from params")

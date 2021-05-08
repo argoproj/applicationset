@@ -153,7 +153,7 @@ func TestRenderTemplateParams(t *testing.T) {
 
 				// Render the cloned application, into a new application
 				render := Render{}
-				newApplication, err := render.RenderTemplateParams(application, test.params)
+				newApplication, err := render.RenderTemplateParams(application, nil, test.params)
 
 				// Retrieve the value of the target field from the newApplication, then verify that
 				// the target field has been templated into the expected value
