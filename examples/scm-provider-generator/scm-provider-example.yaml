@@ -7,6 +7,7 @@ spec:
   - scmProvider:
       github:
         organization: argoproj
+      cloneProtocol: https
       filters:
       - repositoryMatch: example-apps
   template:
