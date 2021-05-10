@@ -21,6 +21,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Utility struct for a reference to a secret key.
+type SecretRef struct {
+	SecretName string `json:"secretName"`
+	Key        string `json:"key"`
+}
+
 // ApplicationSet is a set of Application resources
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=applicationsets,shortName=appset;appsets
@@ -65,9 +71,10 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List     *ListGenerator    `json:"list,omitempty"`
-	Clusters *ClusterGenerator `json:"clusters,omitempty"`
-	Git      *GitGenerator     `json:"git,omitempty"`
+	List        *ListGenerator        `json:"list,omitempty"`
+	Clusters    *ClusterGenerator     `json:"clusters,omitempty"`
+	Git         *GitGenerator         `json:"git,omitempty"`
+	SCMProvider *SCMProviderGenerator `json:"scmProvider,omitempty"`
 }
 
 // ListGenerator include items info
@@ -112,6 +119,47 @@ type GitDirectoryGeneratorItem struct {
 
 type GitFileGeneratorItem struct {
 	Path string `json:"path"`
+}
+
+// SCMProviderGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.
+type SCMProviderGenerator struct {
+	// Which provider to use and config for it.
+	Github *SCMProviderGeneratorGithub `json:"github,omitempty"`
+	// TODO other providers.
+	// Filters for which repos should be considered.
+	Filters []SCMProviderGeneratorFilter `json:"filters,omitempty"`
+	// Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers
+	// necessarily support all protocols.
+	CloneProtocol string `json:"cloneProtocol,omitempty"`
+	// Standard parameters.
+	RequeueAfterSeconds *int64                 `json:"requeueAfterSeconds,omitempty"`
+	Template            ApplicationSetTemplate `json:"template,omitempty"`
+}
+
+// SCMProviderGeneratorGithub defines a connection info specific to GitHub.
+type SCMProviderGeneratorGithub struct {
+	// GitHub org to scan. Required.
+	Organization string `json:"organization"`
+	// The GitHub API URL to talk to. If blank, use https://api.github.com/.
+	API string `json:"api,omitempty"`
+	// Authentication token reference.
+	TokenRef *SecretRef `json:"tokenRef,omitempty"`
+	// Scan all branches instead of just the default branch.
+	AllBranches bool `json:"allBranches,omitempty"`
+}
+
+// SCMProviderGeneratorFilter is a single repository filter.
+// If multiple filter types are set on a single struct, they will be AND'd together. All filters must
+// pass for a repo to be included.
+type SCMProviderGeneratorFilter struct {
+	// A regex for repo names.
+	RepositoryMatch *string `json:"repositoryMatch,omitempty"`
+	// An array of paths, all of which must exist.
+	PathsExist []string `json:"pathsExist,omitempty"`
+	// A regex which must match at least one label.
+	LabelMatch *string `json:"labelMatch,omitempty"`
+	// A regex which must match the branch name.
+	BranchMatch *string `json:"branchMatch,omitempty"`
 }
 
 // ApplicationSetStatus defines the observed state of ApplicationSet

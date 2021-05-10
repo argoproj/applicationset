@@ -40,7 +40,7 @@ func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.Applicat
 	return args.Get(0).(*argoprojiov1alpha1.ApplicationSetTemplate)
 }
 
-func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
+func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	args := g.Called(appSetGenerator)
 
 	return args.Get(0).([]map[string]string), args.Error(1)

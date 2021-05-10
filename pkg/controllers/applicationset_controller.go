@@ -352,7 +352,7 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 				continue
 			}
 
-			params, err := g.GenerateParams(&requestedGenerator)
+			params, err := g.GenerateParams(&requestedGenerator, &applicationSetInfo)
 			if err != nil {
 				log.WithError(err).WithField("generator", g).
 					Error("error generating params")
