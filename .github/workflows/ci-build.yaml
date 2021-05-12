@@ -169,6 +169,10 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: '1.14.12'
+      # Add same workaround for port 8084 as argoproj/argo-cd #5658
+      - name: GH actions workaround - Kill XSP4 process
+        run: |
+          sudo pkill mono || true
       - name: Install K3S
         env:
           INSTALL_K3S_VERSION: ${{ matrix.k3s-version }}+k3s1
@@ -215,9 +219,6 @@ jobs:
         timeout-minutes: 30
         run: |
           set -x
-          # Add 8081 as an exposed port to Argo CD test container, to allow us to access repo server for git generators
-          # (this should be upstreamed, to prevent it from breaking here)
-          sed -i 's/4000:4000/4000:4000 -p 8081:8081/' Makefile
           # Something is weird in GH runners -- there's a phantom listener for
           # port 8080 which is not visible in netstat -tulpen, but still there
           # with a HTTP listener. We have API server listening on port 8088
@@ -243,6 +244,8 @@ jobs:
           kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml
           make build
           make start-e2e 2>&1 | tee /tmp/appset-e2e-server.log &
+          # Uncomment this to see the Argo CD output alongside test output: 
+          # tail -f /tmp/e2e-server.log &
           make test-e2e
       - name: Upload e2e-server logs
         uses: actions/upload-artifact@v2
@@ -250,3 +253,11 @@ jobs:
           name: appset-e2e-server-k8s${{ matrix.k3s-version }}.log
           path: /tmp/appset-e2e-server.log
         if: ${{ failure() }}
+      - name: Upload other Argo CD server log
+        uses: actions/upload-artifact@v2
+        with:
+          name: argocd-e2e-server-k8s${{ matrix.k3s-version }}.log
+          path: /tmp/e2e-server.log
+        if: ${{ failure() }}
+
+        

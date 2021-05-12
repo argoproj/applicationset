@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
@@ -25,9 +27,17 @@ import (
 )
 
 const (
+	// ArgoCDNamespace is the namespace into which Argo CD and ApplicationSet controller are deployed,
+	// and in which Application resources should be created.
 	ArgoCDNamespace = "argocd-e2e"
-	TmpDir          = "/tmp/applicationset-e2e"
-	TestingLabel    = "e2e.argoproj.io"
+
+	// ApplicationSetNamespace is the namespace into which temporary resources (such as Deployments/Pods/etc)
+	// can be deployed, such as using it as the target namespace in an Application resource.
+	// Note: this is NOT the namespace the ApplicationSet controller is deployed to; see ArgoCDNamespace.
+	ApplicationSetNamespace = "applicationset-e2e"
+
+	TmpDir       = "/tmp/applicationset-e2e"
+	TestingLabel = "e2e.argoproj.io"
 )
 
 var (
@@ -76,6 +86,13 @@ func EnsureCleanState(t *testing.T) {
 	fixtureClient := GetE2EFixtureK8sClient()
 
 	policy := v1.DeletePropagationForeground
+
+	// Delete the applicationset-e2e namespace, if it exists
+	err := fixtureClient.KubeClientset.CoreV1().Namespaces().Delete(context.Background(), ApplicationSetNamespace, v1.DeleteOptions{PropagationPolicy: &policy})
+	if err != nil && !strings.Contains(err.Error(), "not found") { // 'not found' error is expected
+		CheckError(err)
+	}
+
 	// delete resources
 	// kubectl delete applicationsets --all
 	CheckError(fixtureClient.AppSetClientset.DeleteCollection(context.Background(), v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{}))
@@ -86,6 +103,8 @@ func EnsureCleanState(t *testing.T) {
 	CheckError(fixtureClient.KubeClientset.CoreV1().Secrets(ArgoCDNamespace).DeleteCollection(context.Background(),
 		v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{LabelSelector: TestingLabel + "=true"}))
 
+	CheckError(waitForExpectedClusterState())
+
 	// remove tmp dir
 	CheckError(os.RemoveAll(TmpDir))
 
@@ -93,6 +112,101 @@ func EnsureCleanState(t *testing.T) {
 	FailOnErr(Run("", "mkdir", "-p", TmpDir))
 
 	log.WithFields(log.Fields{"duration": time.Since(start), "name": t.Name(), "id": id, "username": "admin", "password": "password"}).Info("clean state")
+}
+
+func waitForExpectedClusterState() error {
+
+	fixtureClient := GetE2EFixtureK8sClient()
+	// Wait up to 60 seconds for all the ApplicationSets to delete
+	if err := waitForSuccess(func() error {
+		list, err := fixtureClient.AppSetClientset.List(context.Background(), v1.ListOptions{})
+		if err != nil {
+			return err
+		}
+		if list != nil && len(list.Items) > 0 {
+			// Fail
+			msg := fmt.Sprintf("Waiting for list of ApplicationSets to be size zero: %d", len(list.Items))
+			// Intentionally not making this an Errorf, so it can be printf-ed for debugging purposes.
+			return errors.New(msg)
+		}
+
+		return nil // Pass
+	}, time.Now().Add(60*time.Second)); err != nil {
+		return err
+	}
+
+	// Wait up to 60 seconds for all the Applications to delete
+	if err := waitForSuccess(func() error {
+		appList, err := fixtureClient.AppClientset.ArgoprojV1alpha1().Applications(ArgoCDNamespace).List(context.Background(), v1.ListOptions{})
+		if err != nil {
+			return err
+		}
+		if appList != nil && len(appList.Items) > 0 {
+			// Fail
+			msg := fmt.Sprintf("Waiting for list of Applications to be size zero: %d", len(appList.Items))
+			return errors.New(msg)
+		}
+		return nil // Pass
+
+	}, time.Now().Add(60*time.Second)); err != nil {
+		return err
+	}
+
+	// Wait up to 120 seconds for namespace to not exist
+	if err := waitForSuccess(func() error {
+		_, err := fixtureClient.KubeClientset.CoreV1().Namespaces().Get(context.Background(), ApplicationSetNamespace, v1.GetOptions{})
+
+		msg := ""
+
+		if err == nil {
+			msg = fmt.Sprintf("namespace '%s' still exists, after delete", ApplicationSetNamespace)
+		}
+
+		if msg == "" && err != nil && strings.Contains(err.Error(), "not found") {
+			// Success is an error containing 'applicationset-e2e' not found.
+			return nil
+		}
+
+		if msg == "" {
+			msg = err.Error()
+		}
+
+		return errors.New(msg)
+
+	}, time.Now().Add(120*time.Second)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// waitForSuccess waits for the condition to return a non-error value.
+// Returns if condition returns nil, or the expireTime has elapsed (in which
+// case the last error will be returned)
+func waitForSuccess(condition func() error, expireTime time.Time) error {
+
+	var mostRecentError error
+
+	for {
+		if time.Now().After(expireTime) {
+			break
+		}
+
+		conditionErr := condition()
+		if conditionErr != nil {
+			// Fail!
+			mostRecentError = conditionErr
+		} else {
+			// Pass!
+			mostRecentError = nil
+			break
+		}
+
+		// Wait 0.5 seconds on fail
+		time.Sleep(500 * time.Millisecond)
+	}
+	return mostRecentError
+
 }
 
 // getKubeConfig creates new kubernetes client config using specified config path and config overrides variables

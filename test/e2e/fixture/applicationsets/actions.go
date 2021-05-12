@@ -89,6 +89,23 @@ func (a *Actions) DeleteClusterSecret(secretName string) *Actions {
 	return a
 }
 
+// Create a temporary namespace, from utils.ApplicationSet, for use by the test.
+// This namespace will be deleted on subsequent tests.
+func (a *Actions) CreateNamespace() *Actions {
+	a.context.t.Helper()
+
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+
+	_, err := fixtureClient.KubeClientset.CoreV1().Namespaces().Create(context.Background(),
+		&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: utils.ApplicationSetNamespace}}, metav1.CreateOptions{})
+
+	a.describeAction = fmt.Sprintf("creating namespace '%s'", utils.ApplicationSetNamespace)
+	a.lastOutput, a.lastError = "", err
+	a.verifyAction()
+
+	return a
+}
+
 // Create creates an ApplicationSet using the provided value
 func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 	a.context.t.Helper()
