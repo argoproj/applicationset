@@ -1,0 +1,8 @@
+apiVersion: cluster.open-cluster-management.io/v1alpha1
+kind: PlacementDecision
+metadata:
+  name: all-clusters
+spec: {}
+status:
+  decisions:
+  - clusterName: cluster-01

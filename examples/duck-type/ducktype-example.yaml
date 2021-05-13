@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: book-import
+spec:
+  generators:
+    - duckType:
+        apiVersion: cluster.open-cluster-management.io/v1alpha1
+        kind: placementdecisions
+        name: all-clusters
+        requeueAfterSeconds: 30
+  template:
+    metadata:
+      name: '{{name}}-book-import'
+    spec:
+      project: "default"
+      source:
+        repoURL: https://github.com/open-cluster-management/application-samples.git
+        targetRevision: HEAD
+        path: book-import
+      destination:
+        server: '{{server}}'
+        namespace: bookimport
+      syncPolicy:
+        automated:
+          prune: true
+        syncOptions:
+          - CreateNamespace=true

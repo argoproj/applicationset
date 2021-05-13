@@ -35,6 +35,7 @@ import (
 	"github.com/argoproj/argo-cd/util/db"
 	argosettings "github.com/argoproj/argo-cd/util/settings"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -129,6 +130,7 @@ func main() {
 	}
 
 	k8s := kubernetes.NewForConfigOrDie(mgr.GetConfig())
+	dynClient := dynamic.NewForConfigOrDie(mgr.GetConfig())
 	argoSettingsMgr := argosettings.NewSettingsManager(context.Background(), k8s, namespace)
 	appclientset := appclientset.NewForConfigOrDie(mgr.GetConfig())
 
@@ -139,6 +141,7 @@ func main() {
 			"List":     generators.NewListGenerator(),
 			"Clusters": generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
 			"Git":      generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
+			"DuckType": generators.NewDuckTypeGenerator(context.Background(), dynClient, k8s, namespace),
 		},
 		Client:           mgr.GetClient(),
 		Log:              ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
