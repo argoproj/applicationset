@@ -490,3 +490,49 @@ spec:
 * `url`: The clone URL for the repository.
 * `branch`: The default branch of the repository.
 
+## Duck Type Resource Generator
+
+The duck type generates parameters based on a defined list of name values. In this example, we're targeting the duck type on the resource `quak`:
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+ name: guestbook
+spec:
+ generators:
+ - duckType:
+    apiVersion: mallard.io/v1beta1
+    kind: duck
+    name: quak
+    requeueAfterSeconds: 60 # Checks for changes every 60sec
+ template:
+   metadata:
+     name: '{{name}}-guestbook'
+   spec:
+      project: "default"
+      source:
+        repoURL: https://github.com/argoproj/argocd-example-apps/
+        targetRevision: HEAD
+        path: guestbook
+      destination:
+        server: '{{server}}' # 'server' field of the secret
+        namespace: guestbook
+```
+The `quak` resource might look like this:
+```yaml
+apiVerion: mallard.io/v1beta1
+kind: duck
+metadata:
+  name: quak
+spec: {}
+status:
+  decisions:                # Duck Type that is expected on the referenced resource
+  - clusterName: cluster-01
+```
+
+(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/duck-type).*)
+
+The duck type generator passes the 'server' field as parameters into the template. In this example, if the decision array contained additional `clusterNames`, then additional applications would be created for the additional clusters in the `Status.Decisions` array.
+
+!!! note "Clusters listed as `Status.Decisions` must be predefined in Argo CD"
+    The cluster names listed in the `Status.Decisions` *must* be defined within Argo CD, in order to generate applications for these values. The ApplicationSet controller does not create clusters within Argo CD.

@@ -75,6 +75,7 @@ type ApplicationSetGenerator struct {
 	Clusters    *ClusterGenerator     `json:"clusters,omitempty"`
 	Git         *GitGenerator         `json:"git,omitempty"`
 	SCMProvider *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	DuckType    *DuckTypeGenerator    `json:"duckType,omitempty"`
 }
 
 // ListGenerator include items info
@@ -99,6 +100,23 @@ type ClusterGenerator struct {
 	Selector metav1.LabelSelector   `json:"selector,omitempty"`
 	Template ApplicationSetTemplate `json:"template,omitempty"`
 
+	// Values contains key/value pairs which are passed directly as parameters to the template
+	Values map[string]string `json:"values,omitempty"`
+}
+
+// DuckType defines a generator to match against clusters registered with ArgoCD.
+type DuckTypeGenerator struct {
+	// Resource is the API resource kind that will provide the Status.Decisions
+	// Group is the API group for the resource kind being used.
+	// Version is the API version for the resource kind being used.
+	// Name is the resource name of the kind, group and version specified.
+	// RequeueAfterSeconds is how long before the duckType will be rechecked for a change
+	Kind                string `json:"kind"`
+	ApiVersion          string `json:"apiVersion"`
+	Name                string `json:"name"`
+	RequeueAfterSeconds *int64 `json:"requeueAfterSeconds,omitempty"`
+
+	Template ApplicationSetTemplate `json:"template,omitempty"`
 	// Values contains key/value pairs which are passed directly as parameters to the template
 	Values map[string]string `json:"values,omitempty"`
 }
