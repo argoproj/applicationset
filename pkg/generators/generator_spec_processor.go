@@ -32,7 +32,7 @@ type TransformResult struct {
 }
 
 //Transform a spec generator to list of params and a template
-func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, allGenerators map[string]Generator, baseTemplate argoprojiov1alpha1.ApplicationSetTemplate) ([]TransformResult, error) {
+func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, allGenerators map[string]Generator, baseTemplate argoprojiov1alpha1.ApplicationSetTemplate, appSet *argoprojiov1alpha1.ApplicationSet) ([]TransformResult, error) {
 	res := []TransformResult{}
 	var firstError error
 
@@ -49,7 +49,7 @@ func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, al
 			continue
 		}
 
-		params, err := g.GenerateParams(&requestedGenerator)
+		params, err := g.GenerateParams(&requestedGenerator, appSet)
 		if err != nil {
 			log.WithError(err).WithField("generator", g).
 				Error("error generating params")

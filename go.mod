@@ -7,12 +7,14 @@ require (
 	github.com/argoproj/gitops-engine v0.2.1
 	github.com/argoproj/pkg v0.2.0
 	github.com/go-logr/logr v0.3.0
+	github.com/google/go-github/v35 v35.0.0
 	github.com/imdario/mergo v0.3.10
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasttemplate v1.2.1
+	golang.org/x/oauth2 v0.0.0-20210413134643-5e61552d6c78
 	k8s.io/api v0.19.2
 	k8s.io/apimachinery v0.19.2
 	k8s.io/client-go v11.0.1-0.20190816222228-6d55c1b1f1ca+incompatible

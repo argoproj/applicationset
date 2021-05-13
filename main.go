@@ -135,9 +135,10 @@ func main() {
 	argoCDDB := db.NewDB(namespace, argoSettingsMgr, k8s)
 
 	baseGenerators := map[string]generators.Generator{
-		"List":     generators.NewListGenerator(),
-		"Clusters": generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
-		"Git":      generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
+		"List":        generators.NewListGenerator(),
+		"Clusters":    generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
+		"Git":         generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
+		"SCMProvider": generators.NewSCMProviderGenerator(mgr.GetClient()),
 	}
 
 	combineGenerators := map[string]generators.Generator{

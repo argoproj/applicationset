@@ -104,13 +104,15 @@ func TestMatrixGenerate(t *testing.T) {
 
 		t.Run(cc.name, func(t *testing.T) {
 			mock := &generatorMock{}
+			appSet := &argoprojiov1alpha1.ApplicationSet{}
 
 			for _, g := range cc.baseGenerators {
+
 				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
 					Git:  g.Git,
 					List: g.List,
 				}
-				mock.On("GenerateParams", &gitGeneratorSpec).Return([]map[string]string{
+				mock.On("GenerateParams", &gitGeneratorSpec, appSet).Return([]map[string]string{
 					{
 						"path":          "app1",
 						"path.basename": "app1",
@@ -137,7 +139,7 @@ func TestMatrixGenerate(t *testing.T) {
 					Generators: cc.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
-			})
+			}, appSet)
 
 			if cc.expectedErr != nil {
 				assert.EqualError(t, err, cc.expectedErr.Error())
@@ -247,8 +249,8 @@ func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.Applicat
 	return args.Get(0).(*argoprojiov1alpha1.ApplicationSetTemplate)
 }
 
-func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
-	args := g.Called(appSetGenerator)
+func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+	args := g.Called(appSetGenerator, appSet)
 
 	return args.Get(0).([]map[string]string), args.Error(1)
 }

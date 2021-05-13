@@ -1,12 +1,15 @@
 package applicationsets
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
 
+	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/gitops-engine/pkg/diff"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -92,6 +95,29 @@ func ApplicationsDoNotExist(expectedApps []argov1alpha1.Application) Expectation
 
 		return succeeded, "all apps do not exist"
 	}
+}
+
+// Pod checks whether a specified condition is true for any of the pods in the namespace
+func Pod(predicate func(p corev1.Pod) bool) Expectation {
+	return func(c *Consequences) (state, string) {
+		pods, err := pods(utils.ApplicationSetNamespace)
+		if err != nil {
+			return failed, err.Error()
+		}
+		for _, pod := range pods.Items {
+			if predicate(pod) {
+				return succeeded, fmt.Sprintf("pod predicate matched pod named '%s'", pod.GetName())
+			}
+		}
+		return pending, "pod predicate does not match pods"
+	}
+}
+
+func pods(namespace string) (*corev1.PodList, error) {
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+
+	pods, err := fixtureClient.KubeClientset.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
+	return pods, err
 }
 
 // getDiff returns a string containing a comparison result of two applications (for test output/debug purposes)

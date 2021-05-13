@@ -229,7 +229,7 @@ func TestGenerateParams(t *testing.T) {
 					Selector: testCase.selector,
 					Values:   testCase.values,
 				},
-			})
+			}, nil)
 
 			if testCase.expectedError != nil {
 				assert.Error(t, testCase.expectedError, err)
