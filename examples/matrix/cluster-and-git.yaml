@@ -11,10 +11,10 @@ spec:
   - matrix:
       generators:
         - git:
-            name: cluster-deployments
             repoURL: https://github.com/argoproj-labs/applicationset.git
+            revision: HEAD
             directories:
-            - path: examples/proposal/matrix/cluster-addons/*
+            - path: examples/matrix/cluster-addons/*
         - clusters:
             selector:
               matchLabels:
