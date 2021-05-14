@@ -10,7 +10,7 @@ MKDOCS_RUN_ARGS?=
 CURRENT_DIR=$(shell pwd)
 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
-
+CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 
 ifdef IMAGE_NAMESPACE
 
@@ -110,25 +110,11 @@ lint-docs:
 	find docs -name '*.md' -exec grep -l http {} + | xargs docker run --rm -v $(PWD):/mnt:ro dkhamsing/awesome_bot -t 3 --allow-dupe --allow-redirect --white-list `cat docs/assets/broken-link-ignore-list.txt | grep -v "#" | tr "\n" ','` --skip-save-results --
 
 
+controller-gen: ## Download controller-gen to '(project root)/bin', if not already present.
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0)
 
-# find or download controller-gen
-# download controller-gen if necessary
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
 
-kustomize: ## Download kustomize locally if necessary.
+kustomize: ## Download kustomize to '(project root)/bin', if not already present.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.9.4)
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
