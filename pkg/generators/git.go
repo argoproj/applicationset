@@ -165,7 +165,7 @@ func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1al
 		}
 		params := map[string]string{}
 		for k, v := range flat {
-			params[k] = v.(string)
+			params[k] = fmt.Sprintf("%v", v)
 		}
 		res = append(res, params)
 	}
