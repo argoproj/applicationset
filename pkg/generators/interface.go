@@ -25,3 +25,8 @@ type Generator interface {
 
 var EmptyAppSetGeneratorError = errors.New("ApplicationSet is empty")
 var NoRequeueAfter time.Duration
+
+// DefaultRequeueAfterSeconds is used when GetRequeueAfter is not specified, it is the default time to wait before the next reconcile loop
+const (
+	DefaultRequeueAfterSeconds = 3 * time.Minute
+)
