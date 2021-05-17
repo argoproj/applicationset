@@ -58,9 +58,7 @@ func (g *DuckTypeGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.Appl
 	return &appSetGenerator.DuckType.Template
 }
 
-func (g *DuckTypeGenerator) GenerateParams(
-	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator,
-	_ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
 	if appSetGenerator == nil {
 		return nil, EmptyAppSetGeneratorError
