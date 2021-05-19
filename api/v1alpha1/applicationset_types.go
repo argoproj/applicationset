@@ -76,6 +76,7 @@ type ApplicationSetGenerator struct {
 	Git         *GitGenerator         `json:"git,omitempty"`
 	Matrix      *MatrixGenerator      `json:"matrix,omitempty"`
 	SCMProvider *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	DuckType    *DuckTypeGenerator    `json:"duckType,omitempty"`
 }
 
 // ApplicationSetBaseGenerator include list item info
