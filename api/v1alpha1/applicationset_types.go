@@ -74,6 +74,17 @@ type ApplicationSetGenerator struct {
 	List        *ListGenerator        `json:"list,omitempty"`
 	Clusters    *ClusterGenerator     `json:"clusters,omitempty"`
 	Git         *GitGenerator         `json:"git,omitempty"`
+	Matrix      *MatrixGenerator      `json:"matrix,omitempty"`
+	SCMProvider *SCMProviderGenerator `json:"scmProvider,omitempty"`
+}
+
+// ApplicationSetBaseGenerator include list item info
+// CRD dosn't support recursive types so we need a different type for the matrix generator
+// https://github.com/kubernetes-sigs/controller-tools/issues/477
+type ApplicationSetBaseGenerator struct {
+	List        *ListGenerator        `json:"list,omitempty"`
+	Clusters    *ClusterGenerator     `json:"clusters,omitempty"`
+	Git         *GitGenerator         `json:"git,omitempty"`
 	SCMProvider *SCMProviderGenerator `json:"scmProvider,omitempty"`
 	DuckType    *DuckTypeGenerator    `json:"duckType,omitempty"`
 }
@@ -82,6 +93,12 @@ type ApplicationSetGenerator struct {
 type ListGenerator struct {
 	Elements []ListGeneratorElement `json:"elements"`
 	Template ApplicationSetTemplate `json:"template,omitempty"`
+}
+
+// MatrixGenerator include Other generators
+type MatrixGenerator struct {
+	Generators []ApplicationSetBaseGenerator `json:"generators"`
+	Template   ApplicationSetTemplate        `json:"template,omitempty"`
 }
 
 // ListGeneratorElement include cluster and url info

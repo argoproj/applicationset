@@ -216,7 +216,8 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
        "key2_2": {
            "key2_2_1": "val2_2_1"
        }
-   }
+   },
+   "key3": 123
 }`),
 				"cluster-config/staging/config.json": []byte(`{
    "cluster": {
@@ -236,6 +237,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 					"key1":                 "val1",
 					"key2.key2_1":          "val2_1",
 					"key2.key2_2.key2_2_1": "val2_2_1",
+					"key3":                 "123",
 				},
 				{
 					"cluster.owner":   "foo.bar@example.com",

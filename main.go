@@ -136,14 +136,26 @@ func main() {
 
 	argoCDDB := db.NewDB(namespace, argoSettingsMgr, k8s)
 
+	baseGenerators := map[string]generators.Generator{
+		"List":        generators.NewListGenerator(),
+		"Clusters":    generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
+		"Git":         generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
+		"SCMProvider": generators.NewSCMProviderGenerator(mgr.GetClient()),
+		"DuckType":    generators.NewDuckTypeGenerator(context.Background(), dynClient, k8s, namespace),
+	}
+
+	combineGenerators := map[string]generators.Generator{
+		"Matrix": generators.NewMatrixGenerator(baseGenerators),
+	}
+
+	all, err := generators.CombineMaps(baseGenerators, combineGenerators)
+	if err != nil {
+		setupLog.Error(err, "generators can't be combined")
+		os.Exit(1)
+	}
+
 	if err = (&controllers.ApplicationSetReconciler{
-		Generators: map[string]generators.Generator{
-			"List":        generators.NewListGenerator(),
-			"Clusters":    generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
-			"Git":         generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
-			"SCMProvider": generators.NewSCMProviderGenerator(mgr.GetClient()),
-			"DuckType":    generators.NewDuckTypeGenerator(context.Background(), dynClient, k8s, namespace),
-		},
+		Generators:       all,
 		Client:           mgr.GetClient(),
 		Log:              ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
 		Scheme:           mgr.GetScheme(),
