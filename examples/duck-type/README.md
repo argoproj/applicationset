@@ -1,15 +1,39 @@
 # How the duck type generator works
-1. The Duck type generator reads the following status format:
+1. The Duck type generator reads a configurable status format:
+```yaml
+status:
+  clusters:
+  - name: cluster-01
+  - name: cluster-02
+```
+This is a common status format.  Another format that could be read looks like this:
 ```yaml
 status:
   decisions:
   - clusterName: cluster-01
+    namespace: cluster-01
   - clusterName: cluster-02
+    namespace: cluster-02
 ```
-2. Any resource containing this list of clusterNames can be referenced by the ApplicationSet Duck Type Generator.
-3. The names must match the cluster names define in Argo CD
+2. Any resource that has a list of key / value pairs, where the value matches ArgoCD cluster names can be used.
+3. The key / value pairs found in each element of the list will be available to the template. As well, `name` and `server` will still be available to the template.
 4. The Service Account used by the ApplicationSet controller must have access to `Get` the resource you want to retrieve the duck type definition from
-5. Any cluster name in the `Status.Decisions` list will be matched to an Argo CD known cluster and then an application will be created from the ApplicationSet template
+5. A configMap is used to identify the resource to read status of generated ArgoCD clusters from. You can use multiple resources by creating a ConfigMap for each one in the ArgoCD namespace.
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+data:
+  apiVersion: group.io/v1
+  kind: mykinds
+  statusListKey: clusters
+  matchKey: name
+```
+  * `apiVersion`    - This is the apiVerion of your duck resource
+  * `kind`          - This is the plural kind of your duck resource
+  * `statusListKey` - Default is 'clusters', this is the key found in your resource's status that is a list of ArgoCD clusters.
+  * `matchKey`      - Is the key name found in the cluster list, `name` and `clusterName` are the keys in the examples above.
 
 # Applying the example
 1. Connect to a cluster with the ApplicationSet controller running
@@ -22,13 +46,12 @@ status:
   verbs:
   - get
 ```
-3. Apply the following CRD to allow creating of placementdecision custom resources:
-```bash
-kubectl apply -f https://raw.githubusercontent.com/open-cluster-management/api/main/cluster/v1alpha1/0000_04_clusters.open-cluster-management.io_placementdecisions.crd.yaml
-```
+3. Apply the following controller and associated ManagedCluster CRD's:
+https://github.com/open-cluster-management/placement
 4. Now apply the PlacementDecision and an ApplicationSet:
 ```bash
 kubectl apply -f ./placementdecision.yaml
+kubectl apply -f ./configMap.yaml
 kubectl apply -f ./ducktype-example.yaml
 ```
 5. For now this won't do anything until you create a controller that populates the `Status.Decisions` array.
