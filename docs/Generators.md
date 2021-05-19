@@ -627,7 +627,7 @@ spec:
 ```
 The `quak` resource might look like this:
 ```yaml
-apiVerion: mallard.io/v1beta1
+apiVersion: mallard.io/v1beta1
 kind: Duck
 metadata:
   name: quak
@@ -645,9 +645,9 @@ metadata:
   name: acm-placement
 data:
   apiVersion: mallard.io/v1beta1  # apiVersion of the target resource
-  kind: ducks              # kind of the target resource
-  statusListKey: decisions                        # status key name that holds the list of ArgoCD clusters
-  matchKey: clusterName                           # The key in the status list whose value is the cluster name found in ArgoCD
+  kind: ducks                     # kind of the target resource
+  statusListKey: decisions        # status key name that holds the list of ArgoCD clusters
+  matchKey: clusterName           # The key in the status list whose value is the cluster name found in ArgoCD
 ```
 ### How it works
 The ApplicationSet needs to be created in the ArgoCD namespace, placing the ConfigMap in the same namespace allows the DuckType generator to read it. The ConfigMap stores the GVK information as well as the status key definitions.  In the example ConfigMap above, the ApplicationSet generator will read the kind `Duck` with an apiVersion of `mallard.io/v1beta1`. It will attempt to extract the list of clusters from the key `decisions`. It then validates the actual cluster name as defined in ArgoCD against the value from the key `clusterName` in each element of the list.

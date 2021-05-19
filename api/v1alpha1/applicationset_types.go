@@ -125,7 +125,7 @@ type ClusterGenerator struct {
 // DuckType defines a generator to match against clusters registered with ArgoCD.
 type DuckTypeGenerator struct {
 	// ConfigMapRef is a ConfigMap with the duck type definitions needed to retreive the data
-	//              this includes apiVerion(group/version), kind, matchKey and validation settings
+	//              this includes apiVersion(group/version), kind, matchKey and validation settings
 	// Name is the resource name of the kind, group and version, defined in the ConfigMapRef
 	// RequeueAfterSeconds is how long before the duckType will be rechecked for a change
 	ConfigMapRef        string `json:"configMapRef"`

@@ -504,7 +504,7 @@ spec:
                         configMapRef:
                           description: ConfigMapRef is a ConfigMap with the duck type
                             definitions needed to retreive the data              this
-                            includes apiVerion(group/version), kind, matchKey and
+                            includes apiVersion(group/version), kind, matchKey and
                             validation settings Name is the resource name of the kind,
                             group and version, defined in the ConfigMapRef RequeueAfterSeconds
                             is how long before the duckType will be rechecked for
@@ -2274,7 +2274,7 @@ spec:
                                   configMapRef:
                                     description: ConfigMapRef is a ConfigMap with
                                       the duck type definitions needed to retreive
-                                      the data              this includes apiVerion(group/version),
+                                      the data              this includes apiVersion(group/version),
                                       kind, matchKey and validation settings Name
                                       is the resource name of the kind, group and
                                       version, defined in the ConfigMapRef RequeueAfterSeconds
