@@ -79,27 +79,36 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 		return nil, nil
 	}
 
-	// Read the duck resource, so the status can be examined
-	versionIdx := strings.Index(appSetGenerator.DuckType.ApiVersion, "/")
-	kind := appSetGenerator.DuckType.Kind
+	// Read the configMapRef
+	cm, err := g.clientset.CoreV1().ConfigMaps(g.namespace).Get(g.ctx, appSetGenerator.DuckType.ConfigMapRef, metav1.GetOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract GVK data for the dynamic client to use
+	versionIdx := strings.Index(cm.Data["apiVersion"], "/")
+	kind := cm.Data["kind"]
 	resourceName := appSetGenerator.DuckType.Name
 
 	log.WithField("resourcename.kind.apiVersion", resourceName+"."+kind+"."+
-		appSetGenerator.DuckType.ApiVersion).Info("ResourcenameGroupVersionKind Reference")
+		cm.Data["apiVersion"]).Info("ResourceName.Kind.Group/Version Reference")
 
 	if kind == "" || resourceName == "" || versionIdx < 1 {
-		return nil, errors.New("Invalid resource reference")
+		log.Warningf("kind=%v, resourceName=%v, versionIdx=%v", kind, resourceName, versionIdx)
+		return nil, errors.New("There is a problem with the apiVersion, kind or resourceName provided")
 	}
 
 	// Split up the apiVersion
-	group := appSetGenerator.DuckType.ApiVersion[0:versionIdx]
-	version := appSetGenerator.DuckType.ApiVersion[versionIdx+1:]
-	log.WithField("resourceName.kind.group.version", kind+"."+group+"/"+version).Debug("decoded Ref")
+	group := cm.Data["apiVersion"][0:versionIdx]
+	version := cm.Data["apiVersion"][versionIdx+1:]
+	log.WithField("kind.group.version", kind+"."+group+"/"+version).Debug("decoded Ref")
 
 	duckGVR := schema.GroupVersionResource{Group: group, Version: version, Resource: kind}
 	duckResource, err := g.dynClient.Resource(duckGVR).Namespace(g.namespace).Get(g.ctx, resourceName, metav1.GetOptions{})
 
 	if err != nil {
+		log.WithField("GVK", duckGVR).Warningf("resource was not found with name=%v", resourceName)
 		return nil, err
 	}
 
@@ -108,45 +117,70 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 		return nil, nil
 	}
 
-	log.WithField("duckResourceName", duckResource.GetName()).Debug("found duck resource")
+	log.WithField("duckResourceName", duckResource.GetName()).Debug("found duck status on resource")
 
-	// We will use a map to detect if a cluster is in the Status.Decisions array from the Duck Type,
-	// this gives us a X+n cost, where n is the number of clusters and X is the number of decisions
-	clusterDecisionMap := map[string]bool{}
+	// Override the duck type in the status of the resource
+	statusListKey := "clusters"
 
-	if duckResource.Object["status"].(map[string]interface{})["decisions"] != nil {
-		for _, cluster := range duckResource.Object["status"].(map[string]interface{})["decisions"].([]interface{}) {
+	matchKey := cm.Data["matchKey"]
 
-			clusterName := cluster.(map[string]interface{})["clusterName"].(string)
-			log.WithField("cluster", clusterName).Debug("found cluster")
+	if cm.Data["statusListKey"] != "" {
+		statusListKey = cm.Data["statusListKey"]
+	}
+	if matchKey == "" {
+		log.WithField("matchKey", matchKey).Warning("matchKey not found in " + cm.Name)
+		return nil, nil
 
-			clusterDecisionMap[clusterName] = true
-		}
-	} else {
-		log.Warning("duck type status.decisions missing")
 	}
 
 	res := []map[string]string{}
 
-	for _, cluster := range clustersFromArgoCD.Items {
-		if clusterDecisionMap[cluster.Name] {
+	if duckResource.Object["status"].(map[string]interface{})[statusListKey] != nil {
+		for _, cluster := range duckResource.Object["status"].(map[string]interface{})[statusListKey].([]interface{}) {
 
+			// generated instance of cluster params
 			params := map[string]string{}
-			params["name"] = cluster.Name
-			params["server"] = cluster.Server
+
+			matchValue := cluster.(map[string]interface{})[matchKey]
+			if matchValue == nil || matchValue.(string) == "" {
+				log.Warningf("matchKey=%v not found in \"%v\" list: %v\n", matchKey, statusListKey, cluster.(map[string]interface{}))
+				continue
+			}
+
+			strMatchValue := matchValue.(string)
+			log.WithField(matchKey, strMatchValue).Debug("validate against ArgoCD")
+
+			found := false
+
+			for _, argoCluster := range clustersFromArgoCD.Items {
+				if argoCluster.Name == strMatchValue {
+
+					log.WithField(matchKey, argoCluster.Name).Info("matched cluster in ArgoCD")
+					params["name"] = argoCluster.Name
+					params["server"] = argoCluster.Server
+
+					found = true
+				}
+
+			}
+
+			if !found {
+				log.WithField(matchKey, strMatchValue).Warning("unmatched cluster in ArgoCD")
+				continue
+			}
+
+			for key, value := range cluster.(map[string]interface{}) {
+				params[key] = value.(string)
+			}
 
 			for key, value := range appSetGenerator.DuckType.Values {
 				params[fmt.Sprintf("values.%s", key)] = value
 			}
 
-			log.WithField("cluster", cluster.Name).Info("matched cluster")
-
 			res = append(res, params)
 		}
-	}
-
-	if len(clusterDecisionMap) < len(res) {
-		log.Infof("Decisions list of %v, only matched %v ArgoCD clusters", len(clusterDecisionMap), len(res))
+	} else {
+		return nil, errors.New("duck type status." + statusListKey + " missing")
 	}
 
 	return res, nil

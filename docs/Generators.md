@@ -501,10 +501,9 @@ metadata:
 spec:
  generators:
  - duckType:
-    apiVersion: mallard.io/v1beta1
-    kind: duck
-    name: quak
-    requeueAfterSeconds: 60 # Checks for changes every 60sec
+    configMapRef: my-configmap  # ConfigMap with GVK information for the duck type resource
+    name: quak                  # The name of the resource
+    requeueAfterSeconds: 60     # Checks for changes every 60sec
  template:
    metadata:
      name: '{{name}}-guestbook'
@@ -515,24 +514,42 @@ spec:
         targetRevision: HEAD
         path: guestbook
       destination:
-        server: '{{server}}' # 'server' field of the secret
+        server: '{{clusterName}}' # 'server' field of the secret
         namespace: guestbook
 ```
 The `quak` resource might look like this:
 ```yaml
 apiVerion: mallard.io/v1beta1
-kind: duck
+kind: Duck
 metadata:
   name: quak
 spec: {}
 status:
   decisions:                # Duck Type that is expected on the referenced resource
   - clusterName: cluster-01
+  - clusterName: cluster-02
 ```
+ConfigMap defining the duck type resource, this only needs to be created once per resource GVK in the ArgoCD directory.
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: acm-placement
+  namespace: openshift-gitops
+data:
+  apiVersion: mallard.io/v1beta1  # apiVersion of the target resource
+  kind: ducks              # kind of the target resource
+  statusListKey: decisions                        # status key name that holds the list of ArgoCD clusters
+  matchKey: clusterName                           # The key in the status list whose value is the cluster name found in ArgoCD
+```
+### How it works
+The ApplicationSet needs to be created in the ArgoCD namespace, placing the ConfigMap in the same namespace allows the DuckType generator to read it. The ConfigMap stores the GVK information as well as the status key definitions.  In the example ConfigMap above, the ApplicationSet generator will read the kind `Duck` with an apiVersion of `mallard.io/v1beta1`. It will attempt to extract the list of clusters from the key `decisions`. It then validates the actual cluster name as defined in ArgoCD against the value from the key `clusterName` in each element of the list.
 
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/duck-type).*)
 
-The duck type generator passes the 'server' field as parameters into the template. In this example, if the decision array contained additional `clusterNames`, then additional applications would be created for the additional clusters in the `Status.Decisions` array.
+The duck type generator passes the 'name', 'server' and any other key/value in the resources status list as parameters into the template. In this example, the decision array contained an additional key `clusterName`, which is now available to the ApplicationSet template.
 
 !!! note "Clusters listed as `Status.Decisions` must be predefined in Argo CD"
     The cluster names listed in the `Status.Decisions` *must* be defined within Argo CD, in order to generate applications for these values. The ApplicationSet controller does not create clusters within Argo CD.
+
+    The Default Cluster list key is `clusters`.

@@ -2,16 +2,16 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: book-import
+  namespace: argocd
 spec:
   generators:
     - duckType:
-        apiVersion: cluster.open-cluster-management.io/v1alpha1
-        kind: placementdecisions
-        name: all-clusters
+        configMapRef: ocm-placement
+        name: test-placement
         requeueAfterSeconds: 30
   template:
     metadata:
-      name: '{{name}}-book-import'
+      name: '{{clusterName}}-book-import'
     spec:
       project: "default"
       source:
@@ -19,7 +19,7 @@ spec:
         targetRevision: HEAD
         path: book-import
       destination:
-        server: '{{server}}'
+        name: '{{clusterName}}'
         namespace: bookimport
       syncPolicy:
         automated:

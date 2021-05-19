@@ -124,10 +124,22 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 		},
 	}
 
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-configmap",
+			Namespace: "namespace",
+		},
+		Data: map[string]string{
+			"apiVersion":    resourceApiVersion,
+			"kind":          resourceKind,
+			"statusListKey": "decisions",
+			"matchKey":      "clusterName",
+		},
+	}
+
 	testCases := []struct {
 		name         string
-		apiVersion   string
-		kind         string
+		configMapRef string
 		resourceName string
 		resource     *unstructured.Unstructured
 		values       map[string]string
@@ -138,8 +150,6 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 	}{
 		{
 			name:          "no duck resource",
-			apiVersion:    "",
-			kind:          "",
 			resourceName:  "",
 			resource:      duckType,
 			values:        nil,
@@ -149,8 +159,6 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 		},
 		{
 			name:          "invalid params for duck resource",
-			apiVersion:    resourceApiVersion,
-			kind:          "badvalue",
 			resourceName:  resourceName,
 			resource:      duckType,
 			values:        nil,
@@ -160,49 +168,41 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 		},
 		{
 			name:         "duck type generator",
-			apiVersion:   resourceApiVersion,
-			kind:         resourceKind,
 			resourceName: resourceName,
 			resource:     duckType,
 			values:       nil,
 			expected: []map[string]string{
-				{"name": "production-01", "server": "https://production-01.example.com"},
+				{"clusterName": "production-01", "name": "production-01", "server": "https://production-01.example.com"},
 
-				{"name": "staging-01", "server": "https://staging-01.example.com"},
+				{"clusterName": "staging-01", "name": "staging-01", "server": "https://staging-01.example.com"},
 			},
 			clientError:   false,
 			expectedError: nil,
 		},
 		{
 			name:         "production-only",
-			apiVersion:   resourceApiVersion,
-			kind:         resourceKind,
 			resourceName: resourceName,
 			resource:     duckTypeProdOnly,
 			values: map[string]string{
 				"foo": "bar",
 			},
 			expected: []map[string]string{
-				{"values.foo": "bar", "name": "production-01", "server": "https://production-01.example.com"},
+				{"clusterName": "production-01", "values.foo": "bar", "name": "production-01", "server": "https://production-01.example.com"},
 			},
 			clientError:   false,
 			expectedError: nil,
 		},
 		{
 			name:          "duck type empty status",
-			apiVersion:    resourceApiVersion,
-			kind:          resourceKind,
 			resourceName:  resourceName,
 			resource:      duckTypeEmpty,
 			values:        nil,
 			expected:      nil,
 			clientError:   false,
-			expectedError: nil,
+			expectedError: errors.New("duck type status.decisions missing"),
 		},
 		{
 			name:          "simulate client error",
-			apiVersion:    resourceApiVersion,
-			kind:          resourceKind,
 			resourceName:  resourceName,
 			resource:      duckType,
 			values:        nil,
@@ -222,7 +222,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 
 		t.Run(testCase.name, func(t *testing.T) {
 
-			appClientset := kubefake.NewSimpleClientset(runtimeClusters...)
+			appClientset := kubefake.NewSimpleClientset(append(runtimeClusters, configMap)...)
 
 			fakeDynClient := dynfake.NewSimpleDynamicClient(runtime.NewScheme(), testCase.resource)
 
@@ -230,10 +230,9 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 
 			got, err := duckTypeGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
 				DuckType: &argoprojiov1alpha1.DuckTypeGenerator{
-					ApiVersion: testCase.apiVersion,
-					Kind:       testCase.kind,
-					Name:       testCase.resourceName,
-					Values:     testCase.values,
+					ConfigMapRef: "my-configmap",
+					Name:         testCase.resourceName,
+					Values:       testCase.values,
 				},
 			}, nil)
 
