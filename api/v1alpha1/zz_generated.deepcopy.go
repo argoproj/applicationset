@@ -74,8 +74,8 @@ func (in *ApplicationSetBaseGenerator) DeepCopyInto(out *ApplicationSetBaseGener
 		*out = new(SCMProviderGenerator)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.DuckType != nil {
-		in, out := &in.DuckType, &out.DuckType
+	if in.ClusterListResource != nil {
+		in, out := &in.ClusterListResource, &out.ClusterListResource
 		*out = new(DuckTypeGenerator)
 		(*in).DeepCopyInto(*out)
 	}
@@ -119,8 +119,8 @@ func (in *ApplicationSetGenerator) DeepCopyInto(out *ApplicationSetGenerator) {
 		*out = new(SCMProviderGenerator)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.DuckType != nil {
-		in, out := &in.DuckType, &out.DuckType
+	if in.ClusterListResource != nil {
+		in, out := &in.ClusterListResource, &out.ClusterListResource
 		*out = new(DuckTypeGenerator)
 		(*in).DeepCopyInto(*out)
 	}

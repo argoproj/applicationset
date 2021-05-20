@@ -2,10 +2,9 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: book-import
-  namespace: argocd
 spec:
   generators:
-    - duckType:
+    - clusterListResource:
         configMapRef: ocm-placement
         name: test-placement
         requeueAfterSeconds: 30

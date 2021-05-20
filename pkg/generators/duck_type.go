@@ -47,15 +47,15 @@ func (g *DuckTypeGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.
 
 	// Return a requeue default of 3 minutes, if no override is specified.
 
-	if appSetGenerator.DuckType.RequeueAfterSeconds != nil {
-		return time.Duration(*appSetGenerator.DuckType.RequeueAfterSeconds) * time.Second
+	if appSetGenerator.ClusterListResource.RequeueAfterSeconds != nil {
+		return time.Duration(*appSetGenerator.ClusterListResource.RequeueAfterSeconds) * time.Second
 	}
 
 	return DefaultRequeueAfterSeconds
 }
 
 func (g *DuckTypeGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
-	return &appSetGenerator.DuckType.Template
+	return &appSetGenerator.ClusterListResource.Template
 }
 
 func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
@@ -65,7 +65,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	}
 
 	// Not likely to happen
-	if appSetGenerator.DuckType == nil {
+	if appSetGenerator.ClusterListResource == nil {
 		return nil, nil
 	}
 
@@ -80,7 +80,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	}
 
 	// Read the configMapRef
-	cm, err := g.clientset.CoreV1().ConfigMaps(g.namespace).Get(g.ctx, appSetGenerator.DuckType.ConfigMapRef, metav1.GetOptions{})
+	cm, err := g.clientset.CoreV1().ConfigMaps(g.namespace).Get(g.ctx, appSetGenerator.ClusterListResource.ConfigMapRef, metav1.GetOptions{})
 
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	// Extract GVK data for the dynamic client to use
 	versionIdx := strings.Index(cm.Data["apiVersion"], "/")
 	kind := cm.Data["kind"]
-	resourceName := appSetGenerator.DuckType.Name
+	resourceName := appSetGenerator.ClusterListResource.Name
 
 	log.WithField("resourcename.kind.apiVersion", resourceName+"."+kind+"."+
 		cm.Data["apiVersion"]).Info("ResourceName.Kind.Group/Version Reference")
@@ -173,7 +173,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 				params[key] = value.(string)
 			}
 
-			for key, value := range appSetGenerator.DuckType.Values {
+			for key, value := range appSetGenerator.ClusterListResource.Values {
 				params[fmt.Sprintf("values.%s", key)] = value
 			}
 
