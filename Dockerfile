@@ -11,11 +11,9 @@ COPY go.sum .
 RUN go mod download
 
 # Copy the go source
-COPY main.go .
-COPY api/ api/
-COPY pkg/ pkg/
+COPY . .
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -a -o applicationset-controller main.go
+RUN make build
 
 FROM ubuntu:20.10
 
@@ -41,4 +39,4 @@ RUN mkdir -p /app/config/gpg/source && \
 #    chmod 0700 /app/config/gpg/keys
 
 WORKDIR /
-COPY --from=builder /workspace/applicationset-controller /usr/local/bin/
+COPY --from=builder /workspace/dist/argocd-applicationset /usr/local/bin/applicationset-controller
