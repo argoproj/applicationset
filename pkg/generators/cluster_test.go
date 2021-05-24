@@ -241,3 +241,13 @@ func TestGenerateParams(t *testing.T) {
 		})
 	}
 }
+
+func TestSanitizeClusterName(t *testing.T) {
+	t.Run("valid DNS-1123 subdomain name", func(t *testing.T) {
+		assert.Equal(t, "cluster-name", sanitizeName("cluster-name"))
+	})
+	t.Run("invalid DNS-1123 subdomain name", func(t *testing.T) {
+		invalidName := "-.--CLUSTER/name  -./.-"
+		assert.Equal(t, "cluster-name", sanitizeName(invalidName))
+	})
+}

@@ -3,6 +3,8 @@ package generators
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/argoproj/argo-cd/util/settings"
@@ -116,7 +118,7 @@ func (g *ClusterGenerator) GenerateParams(
 	// For each matching cluster secret (non-local clusters only)
 	for _, cluster := range secretsFound {
 		params := map[string]string{}
-		params["name"] = string(cluster.Data["name"])
+		params["name"] = sanitizeName(string(cluster.Data["name"]))
 		params["server"] = string(cluster.Data["server"])
 		for key, value := range cluster.ObjectMeta.Annotations {
 			params[fmt.Sprintf("metadata.annotations.%s", key)] = value
@@ -160,4 +162,21 @@ func (g *ClusterGenerator) getSecretsByClusterName(appSetGenerator *argoprojiov1
 
 	return res, nil
 
+}
+
+// santize the name in accordance with the below rules
+// 1. contain no more than 253 characters
+// 2. contain only lowercase alphanumeric characters, '-' or '.'
+// 3. start and end with an alphanumeric character
+func sanitizeName(name string) string {
+	invalidDNSNameChars := regexp.MustCompile("[^-a-z0-9.]")
+	maxDNSNameLength := 253
+
+	name = strings.ToLower(name)
+	name = invalidDNSNameChars.ReplaceAllString(name, "-")
+	if len(name) > maxDNSNameLength {
+		name = name[:maxDNSNameLength]
+	}
+
+	return strings.Trim(name, "-.")
 }
