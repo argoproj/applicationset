@@ -11,6 +11,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // this implements the "when" part of given/when/then
@@ -23,6 +25,12 @@ type Actions struct {
 	lastError      error
 	describeAction string
 	ignoreErrors   bool
+}
+
+var pdGVR = schema.GroupVersionResource{
+	Group:    "cluster.open-cluster-management.io",
+	Version:  "v1alpha1",
+	Resource: "placementdecisions",
 }
 
 // IgnoreErrors sets whether to ignore
@@ -89,6 +97,30 @@ func (a *Actions) DeleteClusterSecret(secretName string) *Actions {
 	return a
 }
 
+// DeleteConfigMap deletes a faux cluster secret
+func (a *Actions) DeleteConfigMap(configMapName string) *Actions {
+
+	err := utils.GetE2EFixtureK8sClient().KubeClientset.CoreV1().ConfigMaps(utils.ArgoCDNamespace).Delete(context.Background(), configMapName, metav1.DeleteOptions{})
+
+	a.describeAction = fmt.Sprintf("deleting configMap '%s'", configMapName)
+	a.lastOutput, a.lastError = "", err
+	a.verifyAction()
+
+	return a
+}
+
+// DeletePlacementDecision deletes a faux cluster secret
+func (a *Actions) DeletePlacementDecision(placementDecisionName string) *Actions {
+
+	err := utils.GetE2EFixtureK8sClient().DynamicClientset.Resource(pdGVR).Namespace(utils.ArgoCDNamespace).Delete(context.Background(), placementDecisionName, metav1.DeleteOptions{})
+
+	a.describeAction = fmt.Sprintf("deleting placement decision '%s'", placementDecisionName)
+	a.lastOutput, a.lastError = "", err
+	a.verifyAction()
+
+	return a
+}
+
 // Create a temporary namespace, from utils.ApplicationSet, for use by the test.
 // This namespace will be deleted on subsequent tests.
 func (a *Actions) CreateNamespace() *Actions {
@@ -121,6 +153,103 @@ func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 	}
 
 	a.describeAction = fmt.Sprintf("creating ApplicationSet '%s'", appSet.Name)
+	a.lastOutput, a.lastError = "", err
+	a.verifyAction()
+
+	return a
+}
+
+// Create a ConfigMap for the ClusterResourceList generator
+func (a *Actions) CreateConfigMap(configMapName string) *Actions {
+	a.context.t.Helper()
+
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+
+	_, err := fixtureClient.KubeClientset.CoreV1().ConfigMaps(utils.ArgoCDNamespace).Get(context.Background(), configMapName, metav1.GetOptions{})
+
+	// Don't do anything if it exists
+	if err == nil {
+		return a
+	}
+
+	_, err = fixtureClient.KubeClientset.CoreV1().ConfigMaps(utils.ArgoCDNamespace).Create(context.Background(),
+		&corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: configMapName,
+			},
+			Data: map[string]string{
+				"apiVersion":    "cluster.open-cluster-management.io/v1alpha1",
+				"kind":          "placementdecisions",
+				"statusListKey": "decisions",
+				"matchKey":      "clusterName",
+			},
+		}, metav1.CreateOptions{})
+
+	a.describeAction = fmt.Sprintf("creating configmap '%s'", configMapName)
+	a.lastOutput, a.lastError = "", err
+	a.verifyAction()
+
+	return a
+}
+
+func (a *Actions) CreatePlacementDecision(placementDecisionName string) *Actions {
+	a.context.t.Helper()
+
+	fixtureClient := utils.GetE2EFixtureK8sClient().DynamicClientset
+
+	_, err := fixtureClient.Resource(pdGVR).Namespace(utils.ArgoCDNamespace).Get(
+		context.Background(),
+		placementDecisionName,
+		metav1.GetOptions{})
+	// If already exists
+	if err == nil {
+		return a
+	}
+
+	placementDecision := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"metadata": map[string]interface{}{
+				"name":      placementDecisionName,
+				"namespace": utils.ArgoCDNamespace,
+			},
+			"kind":       "PlacementDecision",
+			"apiVersion": "cluster.open-cluster-management.io/v1alpha1",
+			"status":     map[string]interface{}{},
+		},
+	}
+
+	_, err = fixtureClient.Resource(pdGVR).Namespace(utils.ArgoCDNamespace).Create(
+		context.Background(),
+		placementDecision,
+		metav1.CreateOptions{})
+
+	a.describeAction = fmt.Sprintf("creating placementDecision '%v'", placementDecisionName)
+	a.lastOutput, a.lastError = "", err
+	a.verifyAction()
+
+	return a
+}
+
+func (a *Actions) StatusUpdatePlacementDecision(placementDecisionName string, clusterList []interface{}) *Actions {
+	a.context.t.Helper()
+
+	fixtureClient := utils.GetE2EFixtureK8sClient().DynamicClientset
+	placementDecision, err := fixtureClient.Resource(pdGVR).Namespace(utils.ArgoCDNamespace).Get(
+		context.Background(),
+		placementDecisionName,
+		metav1.GetOptions{})
+
+	placementDecision.Object["status"] = map[string]interface{}{
+		"decisions": clusterList,
+	}
+
+	if err == nil {
+		_, err = fixtureClient.Resource(pdGVR).Namespace(utils.ArgoCDNamespace).UpdateStatus(
+			context.Background(),
+			placementDecision,
+			metav1.UpdateOptions{})
+	}
+	a.describeAction = fmt.Sprintf("status update placementDecision for '%v'", clusterList)
 	a.lastOutput, a.lastError = "", err
 	a.verifyAction()
 
