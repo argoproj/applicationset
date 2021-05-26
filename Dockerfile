@@ -40,7 +40,5 @@ RUN mkdir -p /app/config/gpg/source && \
 #    chown argocd /app/config/gpg/keys && \
 #    chmod 0700 /app/config/gpg/keys
 
-LABEL org.opencontainers.image.source https://github.com/lorislab/applicationset
-
 WORKDIR /
 COPY --from=builder /workspace/applicationset-controller /usr/local/bin/
