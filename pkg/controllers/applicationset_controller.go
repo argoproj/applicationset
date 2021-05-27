@@ -188,9 +188,9 @@ func (r *ApplicationSetReconciler) getMinRequeueAfter(applicationSetInfo *argopr
 	var res time.Duration
 	for _, requestedGenerator := range applicationSetInfo.Spec.Generators {
 
-		generators := generators.GetRelevantGenerators(&requestedGenerator, r.Generators)
+		relevantGenerators := generators.GetRelevantGenerators(&requestedGenerator, r.Generators)
 
-		for _, g := range generators {
+		for _, g := range relevantGenerators {
 			t := g.GetRequeueAfter(&requestedGenerator)
 
 			if res == 0 {
@@ -445,7 +445,7 @@ func (r *ApplicationSetReconciler) removeFinalizerOnInvalidDestination(ctx conte
 	if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, applicationSet.Namespace); err != nil {
 
 		// Filter out the Argo CD finalizer from the finalizer list
-		newFinalizers := []string{}
+		var newFinalizers []string
 		for _, existingFinalizer := range app.Finalizers {
 			if existingFinalizer != common.ResourcesFinalizerName { // only remove this one
 				newFinalizers = append(newFinalizers, existingFinalizer)
