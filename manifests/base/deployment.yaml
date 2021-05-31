@@ -18,7 +18,7 @@ spec:
       containers:
         - command:
             - applicationset-controller
-          image: argoprojlabs/argocd-applicationset:latest
+          image: quay.io/argoproj/argocd-applicationset:latest
           imagePullPolicy: Always
           name: argocd-applicationset-controller
           env:
