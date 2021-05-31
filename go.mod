@@ -1,6 +1,6 @@
 module github.com/argoproj-labs/applicationset
 
-go 1.14
+go 1.16
 
 require (
 	github.com/argoproj/argo-cd v1.8.1
