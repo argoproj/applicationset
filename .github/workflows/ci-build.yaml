@@ -25,7 +25,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup Golang
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: '1.16.2'
       - name: Download all Go modules
@@ -54,7 +54,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup Golang
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: '1.16.2'
       - name: Restore go build cache
@@ -93,7 +93,7 @@ jobs:
       - name: Create symlink in GOPATH
         run: ln -s $(pwd) ~/go/src/github.com/argoproj-labs
       - name: Setup Golang
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: '1.16.2'
       - name: Install required packages
@@ -166,7 +166,7 @@ jobs:
           ref: v2.0.0
           # END-ARGO-CD-VERSION
       - name: Setup Golang
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: '1.16.2'
       # Add same workaround for port 8084 as argoproj/argo-cd #5658
