@@ -14,6 +14,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Setup Golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.4'
       - name: Build Docker image
         run: |
           DOCKER_PUSH=false make image
@@ -27,7 +31,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16.2'
+          go-version: '1.16.4'
       - name: Download all Go modules
         run: |
           go mod download
@@ -56,7 +60,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16.2'
+          go-version: '1.16.4'
       - name: Restore go build cache
         uses: actions/cache@v1
         with:
@@ -95,7 +99,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16.2'
+          go-version: '1.16.4'
       - name: Install required packages
         run: |
           sudo apt-get install git -y
@@ -168,7 +172,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@v2
         with:
-          go-version: '1.16.2'
+          go-version: '1.16.4'
       # Add same workaround for port 8084 as argoproj/argo-cd #5658
       - name: GH actions workaround - Kill XSP4 process
         run: |
