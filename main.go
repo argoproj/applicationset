@@ -185,7 +185,10 @@ func setLoggingLevel(debug bool, logLevel string) {
 		log.SetLevel(log.DebugLevel)
 	} else {
 		level, err := log.ParseLevel(logLevel)
-		setupLog.Error(err, "unable to parse loglevel", "loglevel", logLevel)
+		if err != nil {
+			setupLog.Error(err, "unable to parse loglevel", "loglevel", logLevel)
+			os.Exit(1)
+		}
 		log.SetLevel(level)
 	}
 }
