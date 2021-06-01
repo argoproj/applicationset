@@ -1,8 +1,8 @@
 VERSION?=$(shell cat VERSION)
-IMAGE_NAMESPACE?=argoprojlabs
+IMAGE_NAMESPACE?=argoproj
 IMAGE_NAME?=argocd-applicationset
 IMAGE_TAG?=latest
-CONTAINER_REGISTRY?=
+CONTAINER_REGISTRY?=quay.io
 
 MKDOCS_DOCKER_IMAGE?=squidfunk/mkdocs-material:4.1.1
 MKDOCS_RUN_ARGS?=
@@ -57,7 +57,7 @@ deploy: kustomize manifests
 .PHONY: manifests
 manifests: kustomize generate
 	$(CONTROLLER_GEN) crd:crdVersions=v1 paths="./..." output:crd:artifacts:config=./manifests/crds/
-	KUSTOMIZE=${KUSTOMIZE} hack/generate-manifests.sh
+	KUSTOMIZE=${KUSTOMIZE} CONTAINER_REGISTRY=${CONTAINER_REGISTRY} hack/generate-manifests.sh
 
 .PHONY: lint
 lint:
