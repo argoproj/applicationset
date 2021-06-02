@@ -1,0 +1,33 @@
+name: Build image on commit to master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GOPATH: /home/runner/work/applicationset
+    steps:
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '1.16.2'
+      - uses: actions/checkout@master
+        with:
+          path: src/applicationset
+
+      # Build the image
+      - run: |
+          docker images -a --format "{{.ID}}" | xargs -I {} docker rmi {}
+          CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=argoproj IMAGE_TAG=latest make image
+        working-directory: ./src/applicationset
+
+      # Publish the image
+      - run: |
+          docker login quay.io --username $USERNAME --password $PASSWORD
+          docker push quay.io/argoproj/argocd-applicationset:latest
+        env:
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.TOKEN }}
