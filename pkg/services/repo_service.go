@@ -142,7 +142,7 @@ func (a *argoCDService) GetFileContent(ctx context.Context, repoURL string, revi
 
 	bytes, err := os.ReadFile(filepath.Join(gitRepoClient.Root(), path))
 	if err != nil {
-		return nil, err.(*os.PathError).Err
+		return nil, err
 	}
 
 	return bytes, nil
