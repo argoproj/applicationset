@@ -70,6 +70,8 @@ func main() {
 	var policy string
 	var debugLog bool
 	var dryRun bool
+	var logLevel string
+
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeBindAddr, "probe-addr", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
@@ -78,7 +80,8 @@ func main() {
 	flag.StringVar(&namespace, "namespace", "", "Argo CD repo namespace (default: argocd)")
 	flag.StringVar(&argocdRepoServer, "argocd-repo-server", "argocd-repo-server:8081", "Argo CD repo server address")
 	flag.StringVar(&policy, "policy", "sync", "Modify how application is synced between the generator and the cluster. Default is 'sync' (create & update & delete), options: 'create-only', 'create-update' (no deletion)")
-	flag.BoolVar(&debugLog, "debug", false, "Print debug logs")
+	flag.BoolVar(&debugLog, "debug", false, "Print debug logs. Takes precedence over loglevel")
+	flag.StringVar(&logLevel, "loglevel", "info", "Set the logging level. One of: debug|info|warn|error")
 	flag.BoolVar(&dryRun, "dry-run", false, "Enable dry run mode")
 	flag.Parse()
 
@@ -90,9 +93,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if debugLog {
-		log.SetLevel(log.DebugLevel)
-	}
+	setLoggingLevel(debugLog, logLevel)
 
 	// If user has not specified a namespace on the CLI, then use the value from NAMESPACE env var
 	if len(namespace) == 0 {
@@ -130,7 +131,7 @@ func main() {
 
 	k8s := kubernetes.NewForConfigOrDie(mgr.GetConfig())
 	argoSettingsMgr := argosettings.NewSettingsManager(context.Background(), k8s, namespace)
-	appclientset := appclientset.NewForConfigOrDie(mgr.GetConfig())
+	appSetConfig := appclientset.NewForConfigOrDie(mgr.GetConfig())
 
 	argoCDDB := db.NewDB(namespace, argoSettingsMgr, k8s)
 
@@ -159,7 +160,7 @@ func main() {
 		Recorder:         mgr.GetEventRecorderFor("applicationset-controller"),
 		Renderer:         &utils.Render{},
 		Policy:           policyObj,
-		ArgoAppClientset: appclientset,
+		ArgoAppClientset: appSetConfig,
 		KubeClientset:    k8s,
 		ArgoDB:           argoCDDB,
 	}).SetupWithManager(mgr); err != nil {
@@ -175,5 +176,19 @@ func main() {
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
+	}
+}
+
+func setLoggingLevel(debug bool, logLevel string) {
+	// the debug flag takes precedence over the loglevel flag
+	if debug {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		level, err := log.ParseLevel(logLevel)
+		if err != nil {
+			setupLog.Error(err, "unable to parse loglevel", "loglevel", logLevel)
+			os.Exit(1)
+		}
+		log.SetLevel(level)
 	}
 }
