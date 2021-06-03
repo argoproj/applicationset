@@ -1,5 +1,5 @@
 run:
-  timeout: 2m
+  timeout: 5m
   skip-files:
   skip-dirs:
 linters:
@@ -12,3 +12,9 @@ linters:
     - ineffassign
     - unconvert
     - unparam
+output:
+  format: github-actions
+issues:
+  exclude:
+    - SA5011
+    - S1005

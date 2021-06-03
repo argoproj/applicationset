@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -320,7 +321,7 @@ func TestGetFileContent(t *testing.T) {
 			repoURL:       "https://github.com/argoproj/argocd-example-apps/",
 			revision:      commitID,
 			path:          "/this-file-does-not-exist.md",
-			expectedError: errors.New("open " + os.TempDir() + "/https:__github.com_argoproj_argocd-example-apps_/this-file-does-not-exist.md: no such file or directory"),
+			expectedError: errors.New("open " + filepath.Join(os.TempDir()+"/https:__github.com_argoproj_argocd-example-apps_/this-file-does-not-exist.md"+": no such file or directory")),
 		},
 	}
 

@@ -14,6 +14,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Setup Golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.4'
       - name: Build Docker image
         run: |
           DOCKER_PUSH=false make image
@@ -25,9 +29,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup Golang
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
-          go-version: '1.14.12'
+          go-version: '1.16.4'
       - name: Download all Go modules
         run: |
           go mod download
@@ -54,9 +58,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup Golang
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
-          go-version: '1.14.12'
+          go-version: '1.16.4'
       - name: Restore go build cache
         uses: actions/cache@v1
         with:
@@ -78,7 +82,6 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: v1.29
-          args: --timeout 5m --exclude SA5011,S1005
 
   test-go:
     name: Run unit tests for Go packages
@@ -93,9 +96,9 @@ jobs:
       - name: Create symlink in GOPATH
         run: ln -s $(pwd) ~/go/src/github.com/argoproj-labs
       - name: Setup Golang
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
-          go-version: '1.14.12'
+          go-version: '1.16.4'
       - name: Install required packages
         run: |
           sudo apt-get install git -y
@@ -160,15 +163,15 @@ jobs:
         with:
           repository: argoproj/argo-cd
           # Pin a specific commit to prevent Argo CD regressions from impacting us:
-          # This version is verified to match a version consistent with the kustomize install yaml, 
+          # This version is verified to match a version consistent with the kustomize install yaml,
           # by 'hack/verify-argo-cd-versions.sh'.
           # BEGIN-ARGO-CD-VERSION
           ref: v2.0.0
           # END-ARGO-CD-VERSION
       - name: Setup Golang
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
-          go-version: '1.14.12'
+          go-version: '1.16.4'
       # Add same workaround for port 8084 as argoproj/argo-cd #5658
       - name: GH actions workaround - Kill XSP4 process
         run: |
@@ -244,7 +247,7 @@ jobs:
           kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml
           make build
           make start-e2e 2>&1 | tee /tmp/appset-e2e-server.log &
-          # Uncomment this to see the Argo CD output alongside test output: 
+          # Uncomment this to see the Argo CD output alongside test output:
           # tail -f /tmp/e2e-server.log &
           make test-e2e
       - name: Upload e2e-server logs
@@ -259,5 +262,3 @@ jobs:
           name: argocd-e2e-server-k8s${{ matrix.k3s-version }}.log
           path: /tmp/e2e-server.log
         if: ${{ failure() }}
-
-        
