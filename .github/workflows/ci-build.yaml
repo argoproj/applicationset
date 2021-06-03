@@ -82,7 +82,6 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: v1.29
-          args: --timeout 5m --exclude SA5011,S1005
 
   test-go:
     name: Run unit tests for Go packages
@@ -164,7 +163,7 @@ jobs:
         with:
           repository: argoproj/argo-cd
           # Pin a specific commit to prevent Argo CD regressions from impacting us:
-          # This version is verified to match a version consistent with the kustomize install yaml, 
+          # This version is verified to match a version consistent with the kustomize install yaml,
           # by 'hack/verify-argo-cd-versions.sh'.
           # BEGIN-ARGO-CD-VERSION
           ref: v2.0.0
@@ -248,7 +247,7 @@ jobs:
           kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml
           make build
           make start-e2e 2>&1 | tee /tmp/appset-e2e-server.log &
-          # Uncomment this to see the Argo CD output alongside test output: 
+          # Uncomment this to see the Argo CD output alongside test output:
           # tail -f /tmp/e2e-server.log &
           make test-e2e
       - name: Upload e2e-server logs
