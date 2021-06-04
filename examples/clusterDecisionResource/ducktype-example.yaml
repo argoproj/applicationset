@@ -4,7 +4,7 @@ metadata:
   name: book-import
 spec:
   generators:
-    - clusterListResource:
+    - clusterDecisionResource:
         configMapRef: ocm-placement
         name: test-placement
         requeueAfterSeconds: 30

@@ -77,7 +77,7 @@ func TestSimpleClusterResourceListGenerator(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ClusterListResource: &v1alpha1.DuckTypeGenerator{
+						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
 							ConfigMapRef: "my-configmap",
 							Name:         "my-placementdecision",
 						},
@@ -187,7 +187,7 @@ func TestSimpleClusterResourceListGeneratorAddingCluster(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ClusterListResource: &v1alpha1.DuckTypeGenerator{
+						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
 							ConfigMapRef:        "my-configmap",
 							Name:                "my-placementdecision",
 							RequeueAfterSeconds: &tenSec,
@@ -282,7 +282,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterSecret(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ClusterListResource: &v1alpha1.DuckTypeGenerator{
+						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
 							ConfigMapRef:        "my-configmap",
 							Name:                "my-placementdecision",
 							RequeueAfterSeconds: &tenSec,
@@ -385,7 +385,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterFromResource(t *testin
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ClusterListResource: &v1alpha1.DuckTypeGenerator{
+						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
 							ConfigMapRef:        "my-configmap",
 							Name:                "my-placementdecision",
 							RequeueAfterSeconds: &tenSec,

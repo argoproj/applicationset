@@ -1,4 +1,4 @@
-# How the duck type generator works
+# How the duck type generator works for clusterDecisionResource
 1. The Duck type generator reads a configurable status format:
 ```yaml
 status:

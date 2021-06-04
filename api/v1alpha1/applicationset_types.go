@@ -71,23 +71,23 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List                *ListGenerator        `json:"list,omitempty"`
-	Clusters            *ClusterGenerator     `json:"clusters,omitempty"`
-	Git                 *GitGenerator         `json:"git,omitempty"`
-	Matrix              *MatrixGenerator      `json:"matrix,omitempty"`
-	SCMProvider         *SCMProviderGenerator `json:"scmProvider,omitempty"`
-	ClusterListResource *DuckTypeGenerator    `json:"clusterListResource,omitempty"`
+	List                    *ListGenerator        `json:"list,omitempty"`
+	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
+	Git                     *GitGenerator         `json:"git,omitempty"`
+	Matrix                  *MatrixGenerator      `json:"matrix,omitempty"`
+	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
 }
 
 // ApplicationSetBaseGenerator include list item info
 // CRD dosn't support recursive types so we need a different type for the matrix generator
 // https://github.com/kubernetes-sigs/controller-tools/issues/477
 type ApplicationSetBaseGenerator struct {
-	List                *ListGenerator        `json:"list,omitempty"`
-	Clusters            *ClusterGenerator     `json:"clusters,omitempty"`
-	Git                 *GitGenerator         `json:"git,omitempty"`
-	SCMProvider         *SCMProviderGenerator `json:"scmProvider,omitempty"`
-	ClusterListResource *DuckTypeGenerator    `json:"clusterListResource,omitempty"`
+	List                    *ListGenerator        `json:"list,omitempty"`
+	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
+	Git                     *GitGenerator         `json:"git,omitempty"`
+	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
 }
 
 // ListGenerator include items info

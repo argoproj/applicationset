@@ -38,7 +38,7 @@ spec:
                 items:
                   description: ApplicationSetGenerator include list item info
                   properties:
-                    clusterListResource:
+                    clusterDecisionResource:
                       description: DuckType defines a generator to match against clusters registered with ArgoCD.
                       properties:
                         configMapRef:
@@ -1421,7 +1421,7 @@ spec:
                           items:
                             description: ApplicationSetBaseGenerator include list item info CRD dosn't support recursive types so we need a different type for the matrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
                             properties:
-                              clusterListResource:
+                              clusterDecisionResource:
                                 description: DuckType defines a generator to match against clusters registered with ArgoCD.
                                 properties:
                                   configMapRef:
