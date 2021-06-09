@@ -52,7 +52,7 @@ func TestSimpleClusterResourceListGenerator(t *testing.T) {
 		// Create a ClusterGenerator-based ApplicationSet
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
-		CreateConfigMap("my-configmap").
+		CreatePlacementDecisionConfigMap("my-configmap").
 		CreatePlacementDecision("my-placementdecision").
 		StatusUpdatePlacementDecision("my-placementdecision", clusterList).
 		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
@@ -162,7 +162,7 @@ func TestSimpleClusterResourceListGeneratorAddingCluster(t *testing.T) {
 		// Create a ClusterGenerator-based ApplicationSet
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
-		CreateConfigMap("my-configmap").
+		CreatePlacementDecisionConfigMap("my-configmap").
 		CreatePlacementDecision("my-placementdecision").
 		StatusUpdatePlacementDecision("my-placementdecision", clusterList).
 		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
@@ -257,7 +257,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterSecret(t *testing.T) {
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
 		CreateClusterSecret("my-secret2", "cluster2", "https://kubernetes.default.svc").
-		CreateConfigMap("my-configmap").
+		CreatePlacementDecisionConfigMap("my-configmap").
 		CreatePlacementDecision("my-placementdecision").
 		StatusUpdatePlacementDecision("my-placementdecision", clusterList).
 		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
@@ -360,7 +360,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterFromResource(t *testin
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
 		CreateClusterSecret("my-secret2", "cluster2", "https://kubernetes.default.svc").
-		CreateConfigMap("my-configmap").
+		CreatePlacementDecisionConfigMap("my-configmap").
 		CreatePlacementDecision("my-placementdecision").
 		StatusUpdatePlacementDecision("my-placementdecision", clusterList).
 		Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{

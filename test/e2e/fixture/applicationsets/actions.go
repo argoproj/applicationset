@@ -160,7 +160,7 @@ func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 }
 
 // Create a ConfigMap for the ClusterResourceList generator
-func (a *Actions) CreateConfigMap(configMapName string) *Actions {
+func (a *Actions) CreatePlacementDecisionConfigMap(configMapName string) *Actions {
 	a.context.t.Helper()
 
 	fixtureClient := utils.GetE2EFixtureK8sClient()

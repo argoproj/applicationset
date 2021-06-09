@@ -135,8 +135,10 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 
 	res := []map[string]string{}
 
-	if duckResource.Object["status"].(map[string]interface{})[statusListKey] != nil {
-		for _, cluster := range duckResource.Object["status"].(map[string]interface{})[statusListKey].([]interface{}) {
+	clusterDecisions := duckResource.Object["status"].(map[string]interface{})[statusListKey]
+
+	if clusterDecisions != nil {
+		for _, cluster := range clusterDecisions.([]interface{}) {
 
 			// generated instance of cluster params
 			params := map[string]string{}

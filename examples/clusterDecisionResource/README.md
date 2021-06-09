@@ -1,5 +1,5 @@
-# How the duck type generator works for clusterDecisionResource
-1. The Duck type generator reads a configurable status format:
+# How the Cluster Decision Resource generator works for clusterDecisionResource
+1. The Cluster Decision Resource generator reads a configurable status format:
 ```yaml
 status:
   clusters:
@@ -30,8 +30,8 @@ data:
   statusListKey: clusters
   matchKey: name
 ```
-  * `apiVersion`    - This is the apiVersion of your duck resource
-  * `kind`          - This is the plural kind of your duck resource
+  * `apiVersion`    - This is the apiVersion of your resource
+  * `kind`          - This is the plural kind of your resource
   * `statusListKey` - Default is 'clusters', this is the key found in your resource's status that is a list of ArgoCD clusters.
   * `matchKey`      - Is the key name found in the cluster list, `name` and `clusterName` are the keys in the examples above.
 
