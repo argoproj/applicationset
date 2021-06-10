@@ -71,21 +71,23 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator include list item info
 type ApplicationSetGenerator struct {
-	List        *ListGenerator        `json:"list,omitempty"`
-	Clusters    *ClusterGenerator     `json:"clusters,omitempty"`
-	Git         *GitGenerator         `json:"git,omitempty"`
-	Matrix      *MatrixGenerator      `json:"matrix,omitempty"`
-	SCMProvider *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	List                    *ListGenerator        `json:"list,omitempty"`
+	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
+	Git                     *GitGenerator         `json:"git,omitempty"`
+	Matrix                  *MatrixGenerator      `json:"matrix,omitempty"`
+	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
 }
 
 // ApplicationSetBaseGenerator include list item info
 // CRD dosn't support recursive types so we need a different type for the matrix generator
 // https://github.com/kubernetes-sigs/controller-tools/issues/477
 type ApplicationSetBaseGenerator struct {
-	List        *ListGenerator        `json:"list,omitempty"`
-	Clusters    *ClusterGenerator     `json:"clusters,omitempty"`
-	Git         *GitGenerator         `json:"git,omitempty"`
-	SCMProvider *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	List                    *ListGenerator        `json:"list,omitempty"`
+	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
+	Git                     *GitGenerator         `json:"git,omitempty"`
+	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
 }
 
 // ListGenerator include items info
@@ -116,6 +118,21 @@ type ClusterGenerator struct {
 	Selector metav1.LabelSelector   `json:"selector,omitempty"`
 	Template ApplicationSetTemplate `json:"template,omitempty"`
 
+	// Values contains key/value pairs which are passed directly as parameters to the template
+	Values map[string]string `json:"values,omitempty"`
+}
+
+// DuckType defines a generator to match against clusters registered with ArgoCD.
+type DuckTypeGenerator struct {
+	// ConfigMapRef is a ConfigMap with the duck type definitions needed to retreive the data
+	//              this includes apiVersion(group/version), kind, matchKey and validation settings
+	// Name is the resource name of the kind, group and version, defined in the ConfigMapRef
+	// RequeueAfterSeconds is how long before the duckType will be rechecked for a change
+	ConfigMapRef        string `json:"configMapRef"`
+	Name                string `json:"name"`
+	RequeueAfterSeconds *int64 `json:"requeueAfterSeconds,omitempty"`
+
+	Template ApplicationSetTemplate `json:"template,omitempty"`
 	// Values contains key/value pairs which are passed directly as parameters to the template
 	Values map[string]string `json:"values,omitempty"`
 }

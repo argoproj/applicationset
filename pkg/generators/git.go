@@ -16,10 +16,6 @@ import (
 
 var _ Generator = (*GitGenerator)(nil)
 
-const (
-	DefaultRequeueAfterSeconds = 3 * time.Minute
-)
-
 type GitGenerator struct {
 	repos services.Repos
 }
