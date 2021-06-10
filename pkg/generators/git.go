@@ -129,9 +129,9 @@ func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1al
 	return res, nil
 }
 
-func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, path string) ([]map[string]string, error) {
+func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, filePath string) ([]map[string]string, error) {
 
-	fileContent, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, path)
+	fileContent, err := g.repos.GetFileContent(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision, filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -163,6 +163,8 @@ func (g *GitGenerator) generateParamsFromGitFile(appSetGenerator *argoprojiov1al
 		for k, v := range flat {
 			params[k] = fmt.Sprintf("%v", v)
 		}
+		params["path"] = path.Dir(filePath)
+		params["path.basename"] = path.Base(params["path"])
 		res = append(res, params)
 	}
 
