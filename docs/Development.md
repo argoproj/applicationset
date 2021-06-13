@@ -15,7 +15,7 @@ To build and push a container with your current code, and deploy Kubernetes mani
 
 ```bash
 # Build and push the image to container registry
-IMAGE="(username)/argocd-applicationset:v0.0.1" make image
+IMAGE="(username)/argocd-applicationset:v0.0.1" make image-push
 
 # Deploy the ApplicationSet controller manifests
 IMAGE="(username)/argocd-applicationset:v0.0.1" make deploy
