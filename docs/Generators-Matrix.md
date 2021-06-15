@@ -6,8 +6,8 @@ The Matrix generator combines two other generators by multiplying the parameters
 
 Imagine we have two clusters: 
 
-- staging (@ https://1.2.3.4)
-- production (@ https://2.4.6.8)
+- staging (at `https://1.2.3.4`)
+- production (at `https://2.4.6.8`)
 
 And our application YAMLs are defined in a Git repository:
 

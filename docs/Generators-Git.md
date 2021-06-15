@@ -76,8 +76,8 @@ spec:
       revision: HEAD
       directories:
       - path: examples/git-generator-directory/excludes/cluster-addons/*
-      - exclude: true
-        path: examples/git-generator-directory/excludes/cluster-addons/exclude-helm-guestbook
+      - path: examples/git-generator-directory/excludes/cluster-addons/exclude-helm-guestbook
+        exclude: true
   template:
     metadata:
       name: '{{path.basename}}'
@@ -97,9 +97,9 @@ This example excludes the `exclude-helm-guestbook` directory from the list of di
 
 !!! note "Exclude rules have higher priority than include rules"
 
-Every directory that matches at least one `exclude` pattern will always be excluded. Or, said another way, *exclude rules take precedence over include rules.*
+    If a directory matches at least one `exclude` pattern, it will be excluded. Or, said another way, *exclude rules take precedence over include rules.*
 
-As a corollary, the order of `path`s in the `directories` field does not change which directories are included/excluded (because, as above, exclude rules always take precedence over include rules). 
+    As a corollary, which directories are included/excluded is not affected by the order of `path`s in the `directories` field list (because, as above, exclude rules always take precedence over include rules). 
 
 For example, with these directories:
 
