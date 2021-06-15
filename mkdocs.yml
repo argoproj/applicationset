@@ -21,10 +21,17 @@ markdown_extensions:
     permalink: true
 nav:
   - Introduction: index.md
-  - Getting Started: Geting-Started.md
+  - Getting Started: Getting-Started.md
   - Use Cases: Use-Cases.md
   - How ApplicationSet controller interacts with Argo CD: Argo-CD-Integration.md
-  - Generators: Generators.md
+  - Generators: 
+    - Generators.md
+    - Generators-List.md
+    - Generators-Cluster.md
+    - Generators-Git.md
+    - Generators-Matrix.md
+    - Generators-SCM-Provider.md
+    - Generators-Cluster-Decision-Resource.md
   - Template fields: Template.md
   - Application Pruning & Resource Deletion: Application-Deletion.md
   - Developer Guide:
