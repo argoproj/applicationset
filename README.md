@@ -66,7 +66,7 @@ Development builds can be installed by running the following command:
 ```
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
 ```
-Commits to the `master` branch will automatically push new container images to this install. See [Development builds](docs/Geting-Started.md) for details.
+Commits to the `master` branch will automatically push new container images to the container registry used by this install. See [Development builds](docs/Geting-Started.md) for details.
 
 ## Development
 
