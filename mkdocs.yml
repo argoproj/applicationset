@@ -2,6 +2,7 @@
 site_name: ApplicationSet Controller
 #site_url: ''
 repo_url: https://github.com/argoproj-labs/applicationset
+use_directory_urls: false
 #strict: true
 theme:
   name: material
