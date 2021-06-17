@@ -60,6 +60,14 @@ The ApplicationSet controller is a community-driven project. You can reach the A
 
 We'd love to have you join us!
 
+## Development builds
+
+Development builds can be installed by running the following command:
+```
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
+```
+Commits to the `master` branch will automatically push new container images to the container registry used by this install, and see this link for automatically updated [documentation for these builds](https://argocd-applicationset.readthedocs.io/en/master/). See [Development builds](docs/Geting-Started.md) for more details.
+
 ## Development
 
 Learn more about how to [setup a development environment, build the ApplicationSet controller, and run the unit/E2E tests](https://argocd-applicationset.readthedocs.io/en/latest/Development/).
