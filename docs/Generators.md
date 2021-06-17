@@ -7,7 +7,7 @@ Generators are primarily based on the data source that they use to generate the 
 As of this writing there are six generators:
 
 - [List generator](Generators-List.md): The List generator allows you to target Argo CD Applications to clusters based on a fixed list of cluster name/URL values.
-- [Cluster generator](Generators-Cluster.md): The Cluster generators allows you to automatically target Argo CD Applications to clusters, based on the list of clusters defined within (and managed by) Argo CD (which includes responding to cluster addition/removal events from Argo CD).
+- [Cluster generator](Generators-Cluster.md): The Cluster generator allows you to target Argo CD Applications to clusters, based on the list of clusters defined within (and managed by) Argo CD (which includes automatically responding to cluster addition/removal events from Argo CD).
 - [Git generator](Generators-Git.md): The Git generator allows you to create Applications based on files within a Git repository, or based on the directory structure of a Git repository.
 - [Matrix generator](Generators-Matrix.md): The Matrix generator may be used to combine the generated parameters of two separate generators.
 - [SCM Provider generator](Generators-SCM-Provider.md): The SCM Provider generator uses the API of an SCM provider (eg GitHub) to automatically discover repositories within an organization.
