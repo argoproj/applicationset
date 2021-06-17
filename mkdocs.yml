@@ -1,5 +1,6 @@
 
 site_name: ApplicationSet Controller
+site_url: ''
 repo_url: https://github.com/argoproj-labs/applicationset
 strict: true
 theme:
