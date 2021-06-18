@@ -165,9 +165,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 
 		log.WithField("duckResourceStatus", duckResource.Object["status"]).Debug("found resource")
 
-		for _, decision := range duckResource.Object["status"].(map[string]interface{})[statusListKey].([]interface{}) {
-			clusterDecisions = append(clusterDecisions, decision)
-		}
+		clusterDecisions = append(clusterDecisions, duckResource.Object["status"].(map[string]interface{})[statusListKey].([]interface{})...)
 
 	}
 	log.Infof("Number of decisions found: %v", len(clusterDecisions))
@@ -175,7 +173,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	// Read this outside the loop to improve performance
 	argoClusters := clustersFromArgoCD.Items
 
-	if clusterDecisions != nil && len(clusterDecisions) > 0 {
+	if len(clusterDecisions) > 0 {
 		for _, cluster := range clusterDecisions {
 
 			// generated instance of cluster params
