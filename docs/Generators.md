@@ -610,7 +610,16 @@ spec:
  generators:
  - clusterDecisionResource:
     configMapRef: my-configmap  # ConfigMap with GVK information for the duck type resource
-    name: quak                  # The name of the resource
+    name: quak                  # Choose either "name" of the resource or "labelSelector"
+    labelSelector:
+      matchLabels:              # OPTIONAL
+        duck: spotted
+      matchExpression:          # OPTIONAL
+      - key: duck
+        operator: In
+        values:
+        - "spotted"
+        - "canvasback"                         
     requeueAfterSeconds: 60     # OPTIONAL: Checks for changes every 60sec (default 3min)
  template:
    metadata:

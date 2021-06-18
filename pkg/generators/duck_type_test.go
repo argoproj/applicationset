@@ -80,6 +80,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"name":      resourceName,
 				"namespace": "namespace",
+				"labels":    map[string]interface{}{"duck": "all-species"},
 			},
 			"status": map[string]interface{}{
 				"decisions": []interface{}{
@@ -101,6 +102,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"name":      resourceName,
 				"namespace": "namespace",
+				"labels":    map[string]interface{}{"duck": "spotted"},
 			},
 			"status": map[string]interface{}{
 				"decisions": []interface{}{
@@ -119,6 +121,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			"metadata": map[string]interface{}{
 				"name":      resourceName,
 				"namespace": "namespace",
+				"labels":    map[string]interface{}{"duck": "canvasback"},
 			},
 			"status": map[string]interface{}{},
 		},
@@ -138,14 +141,13 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name         string
-		configMapRef string
-		resourceName string
-		resource     *unstructured.Unstructured
-		values       map[string]string
-		expected     []map[string]string
-		// clientError is true if a k8s client error should be simulated
-		clientError   bool
+		name          string
+		configMapRef  string
+		resourceName  string
+		labelSelector metav1.LabelSelector
+		resource      *unstructured.Unstructured
+		values        map[string]string
+		expected      []map[string]string
 		expectedError error
 	}{
 		{
@@ -154,20 +156,20 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			resource:      duckType,
 			values:        nil,
 			expected:      []map[string]string{},
-			clientError:   false,
-			expectedError: errors.New("Invalid resource reference"),
+			expectedError: errors.New("There is a problem with the definition of the ClusterDecisionResource generator"),
 		},
+		/*** This does not work with the FAKE runtime client, fieldSelectors are broken.
 		{
-			name:          "invalid params for duck resource",
-			resourceName:  resourceName,
+			name:          "invalid name for duck resource",
+			resourceName:  resourceName + "-different",
 			resource:      duckType,
 			values:        nil,
 			expected:      []map[string]string{},
-			clientError:   false,
 			expectedError: errors.New("duck.mallard.io \"quak\" not found"),
 		},
+		***/
 		{
-			name:         "duck type generator",
+			name:         "duck type generator resourceName",
 			resourceName: resourceName,
 			resource:     duckType,
 			values:       nil,
@@ -176,7 +178,6 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 
 				{"clusterName": "staging-01", "name": "staging-01", "server": "https://staging-01.example.com"},
 			},
-			clientError:   false,
 			expectedError: nil,
 		},
 		{
@@ -189,7 +190,6 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			expected: []map[string]string{
 				{"clusterName": "production-01", "values.foo": "bar", "name": "production-01", "server": "https://production-01.example.com"},
 			},
-			clientError:   false,
 			expectedError: nil,
 		},
 		{
@@ -198,17 +198,76 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			resource:      duckTypeEmpty,
 			values:        nil,
 			expected:      nil,
-			clientError:   false,
-			expectedError: errors.New("duck type status.decisions missing"),
+			expectedError: nil,
 		},
 		{
-			name:          "simulate client error",
-			resourceName:  resourceName,
+			name:          "duck type empty status labelSelector.matchLabels",
+			resourceName:  "",
+			labelSelector: metav1.LabelSelector{MatchLabels: map[string]string{"duck": "canvasback"}},
+			resource:      duckTypeEmpty,
+			values:        nil,
+			expected:      nil,
+			expectedError: nil,
+		},
+		{
+			name:          "duck type generator labelSelector.matchLabels",
+			resourceName:  "",
+			labelSelector: metav1.LabelSelector{MatchLabels: map[string]string{"duck": "all-species"}},
+			resource:      duckType,
+			values:        nil,
+			expected: []map[string]string{
+				{"clusterName": "production-01", "name": "production-01", "server": "https://production-01.example.com"},
+
+				{"clusterName": "staging-01", "name": "staging-01", "server": "https://staging-01.example.com"},
+			},
+			expectedError: nil,
+		},
+		{
+			name:          "production-only labelSelector.matchLabels",
+			resourceName:  "",
+			resource:      duckTypeProdOnly,
+			labelSelector: metav1.LabelSelector{MatchLabels: map[string]string{"duck": "spotted"}},
+			values: map[string]string{
+				"foo": "bar",
+			},
+			expected: []map[string]string{
+				{"clusterName": "production-01", "values.foo": "bar", "name": "production-01", "server": "https://production-01.example.com"},
+			},
+			expectedError: nil,
+		},
+		{
+			name:         "duck type generator labelSelector.matchExpression",
+			resourceName: "",
+			labelSelector: metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{
+				metav1.LabelSelectorRequirement{
+					Key:      "duck",
+					Operator: "In",
+					Values:   []string{"all-species", "marbled"},
+				},
+			}},
+			resource: duckType,
+			values:   nil,
+			expected: []map[string]string{
+				{"clusterName": "production-01", "name": "production-01", "server": "https://production-01.example.com"},
+
+				{"clusterName": "staging-01", "name": "staging-01", "server": "https://staging-01.example.com"},
+			},
+			expectedError: nil,
+		},
+		{
+			name:         "duck type generator resourceName and labelSelector.matchExpression",
+			resourceName: resourceName,
+			labelSelector: metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{
+				metav1.LabelSelectorRequirement{
+					Key:      "duck",
+					Operator: "In",
+					Values:   []string{"all-species", "marbled"},
+				},
+			}},
 			resource:      duckType,
 			values:        nil,
 			expected:      nil,
-			clientError:   true,
-			expectedError: errors.New("could not list Secrets"),
+			expectedError: errors.New("There is a problem with the definition of the ClusterDecisionResource generator"),
 		},
 	}
 
@@ -230,19 +289,19 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 
 			got, err := duckTypeGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
 				ClusterDecisionResource: &argoprojiov1alpha1.DuckTypeGenerator{
-					ConfigMapRef: "my-configmap",
-					Name:         testCase.resourceName,
-					Values:       testCase.values,
+					ConfigMapRef:  "my-configmap",
+					Name:          testCase.resourceName,
+					LabelSelector: testCase.labelSelector,
+					Values:        testCase.values,
 				},
 			}, nil)
 
 			if testCase.expectedError != nil {
-				assert.Error(t, testCase.expectedError, err)
+				assert.EqualError(t, err, testCase.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
 				assert.ElementsMatch(t, testCase.expected, got)
 			}
-
 		})
 	}
 }

@@ -13,6 +13,7 @@ import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -90,13 +91,21 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	versionIdx := strings.Index(cm.Data["apiVersion"], "/")
 	kind := cm.Data["kind"]
 	resourceName := appSetGenerator.ClusterDecisionResource.Name
+	labelSelector := appSetGenerator.ClusterDecisionResource.LabelSelector
 
-	log.WithField("resourcename.kind.apiVersion", resourceName+"."+kind+"."+
-		cm.Data["apiVersion"]).Info("ResourceName.Kind.Group/Version Reference")
+	log.WithField("kind.apiVersion", kind+"."+cm.Data["apiVersion"]).Info("Kind.Group/Version Reference")
 
-	if kind == "" || resourceName == "" || versionIdx < 1 {
+	// Validate the fields
+	if kind == "" || versionIdx < 1 {
 		log.Warningf("kind=%v, resourceName=%v, versionIdx=%v", kind, resourceName, versionIdx)
 		return nil, errors.New("There is a problem with the apiVersion, kind or resourceName provided")
+	}
+
+	if (resourceName == "" && labelSelector.MatchLabels == nil && labelSelector.MatchExpressions == nil) ||
+		(resourceName != "" && (labelSelector.MatchExpressions != nil || labelSelector.MatchLabels != nil)) {
+
+		log.Warningf("You must choose either resourceName=%v, labelSelector.matchLabels=%v or labelSelect.matchExpressions=%v", resourceName, labelSelector.MatchLabels, labelSelector.MatchExpressions)
+		return nil, errors.New("There is a problem with the definition of the ClusterDecisionResource generator")
 	}
 
 	// Split up the apiVersion
@@ -105,19 +114,28 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	log.WithField("kind.group.version", kind+"."+group+"/"+version).Debug("decoded Ref")
 
 	duckGVR := schema.GroupVersionResource{Group: group, Version: version, Resource: kind}
-	duckResource, err := g.dynClient.Resource(duckGVR).Namespace(g.namespace).Get(g.ctx, resourceName, metav1.GetOptions{})
+
+	listOptions := metav1.ListOptions{}
+	if resourceName == "" {
+		listOptions.LabelSelector = metav1.FormatLabelSelector(&labelSelector)
+		log.WithField("listOptions.LabelSelector", listOptions.LabelSelector).Info("selection type")
+	} else {
+		listOptions.FieldSelector = fields.OneTermEqualSelector("metadata.name", resourceName).String()
+		//metav1.Convert_fields_Selector_To_string(fields.).Sprintf("metadata.name=%s", resourceName)
+		log.WithField("listOptions.FieldSelector", listOptions.FieldSelector).Info("selection type")
+	}
+
+	duckResources, err := g.dynClient.Resource(duckGVR).Namespace(g.namespace).List(g.ctx, listOptions)
 
 	if err != nil {
-		log.WithField("GVK", duckGVR).Warningf("resource was not found with name=%v", resourceName)
+		log.WithField("GVK", duckGVR).Warning("resources were not found")
 		return nil, err
 	}
 
-	if duckResource == nil || duckResource.Object["status"] == nil {
-		log.Warning("duck type status missing")
-		return nil, nil
+	if len(duckResources.Items) == 0 {
+		log.Warning("no resource found, make sure you clusterDecisionResource is defined correctly")
+		return nil, errors.New("no clusterDecisionResources found")
 	}
-
-	log.WithField("duckResourceName", duckResource.GetName()).Debug("found duck status on resource")
 
 	// Override the duck type in the status of the resource
 	statusListKey := "clusters"
@@ -134,15 +152,36 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	}
 
 	res := []map[string]string{}
+	clusterDecisions := []interface{}{}
 
-	clusterDecisions := duckResource.Object["status"].(map[string]interface{})[statusListKey]
+	// Build the decision slice
+	for _, duckResource := range duckResources.Items {
+		log.WithField("duckResourceName", duckResource.GetName()).Debug("found resource")
 
-	if clusterDecisions != nil {
-		for _, cluster := range clusterDecisions.([]interface{}) {
+		if duckResource.Object["status"] == nil || len(duckResource.Object["status"].(map[string]interface{})) == 0 {
+			log.Warningf("clusterDecisionResource: %s, has no status", duckResource.GetName())
+			continue
+		}
+
+		log.WithField("duckResourceStatus", duckResource.Object["status"]).Debug("found resource")
+
+		for _, decision := range duckResource.Object["status"].(map[string]interface{})[statusListKey].([]interface{}) {
+			clusterDecisions = append(clusterDecisions, decision)
+		}
+
+	}
+	log.Infof("Number of decisions found: %v", len(clusterDecisions))
+
+	// Read this outside the loop to improve performance
+	argoClusters := clustersFromArgoCD.Items
+
+	if clusterDecisions != nil && len(clusterDecisions) > 0 {
+		for _, cluster := range clusterDecisions {
 
 			// generated instance of cluster params
 			params := map[string]string{}
 
+			log.Infof("cluster: %v", cluster)
 			matchValue := cluster.(map[string]interface{})[matchKey]
 			if matchValue == nil || matchValue.(string) == "" {
 				log.Warningf("matchKey=%v not found in \"%v\" list: %v\n", matchKey, statusListKey, cluster.(map[string]interface{}))
@@ -154,7 +193,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 
 			found := false
 
-			for _, argoCluster := range clustersFromArgoCD.Items {
+			for _, argoCluster := range argoClusters {
 				if argoCluster.Name == strMatchValue {
 
 					log.WithField(matchKey, argoCluster.Name).Info("matched cluster in ArgoCD")
@@ -162,6 +201,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 					params["server"] = argoCluster.Server
 
 					found = true
+					break // Stop looking
 				}
 
 			}
@@ -182,7 +222,8 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 			res = append(res, params)
 		}
 	} else {
-		return nil, errors.New("duck type status." + statusListKey + " missing")
+		log.Warningf("clusterDecisionResource status." + statusListKey + " missing")
+		return nil, nil
 	}
 
 	return res, nil
