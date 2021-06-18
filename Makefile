@@ -1,8 +1,12 @@
+VERSION_PACKAGE=github.com/argoproj-labs/applicationset/common
 VERSION?=$(shell cat VERSION)
 IMAGE_NAMESPACE?=argoproj
 IMAGE_NAME?=argocd-applicationset
 IMAGE_TAG?=latest
 CONTAINER_REGISTRY?=quay.io
+GIT_COMMIT = $(shell git rev-parse HEAD)
+LDFLAGS = -w -s -X ${VERSION_PACKAGE}.version=${VERSION} \
+	-X ${VERSION_PACKAGE}.gitCommit=${GIT_COMMIT}
 
 MKDOCS_DOCKER_IMAGE?=squidfunk/mkdocs-material:4.1.1
 MKDOCS_RUN_ARGS?=
@@ -34,7 +38,7 @@ endif
 
 .PHONY: build
 build: manifests fmt vet
-	CGO_ENABLED=0 go build -ldflags="-w -s" -o ./dist/argocd-applicationset .
+	CGO_ENABLED=0 go build -ldflags="${LDFLAGS}" -o ./dist/argocd-applicationset .
 
 .PHONY: test
 test: generate fmt vet manifests

@@ -31,6 +31,7 @@ import (
 	"github.com/argoproj-labs/applicationset/pkg/services"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
 
+	"github.com/argoproj-labs/applicationset/common"
 	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/util/db"
 	argosettings "github.com/argoproj/argo-cd/util/settings"
@@ -110,7 +111,8 @@ func main() {
 		namespace = "argocd"
 	}
 
-	setupLog.Info(fmt.Sprintf("ApplicationSet controller using namespace '%s'", namespace), "namespace", namespace)
+	version := common.GetVersion()
+	setupLog.Info(fmt.Sprintf("ApplicationSet controller %s using namespace '%s'", version.Version, namespace), "namespace", namespace, "COMMIT_ID", version.GitCommit)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
