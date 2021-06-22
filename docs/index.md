@@ -57,8 +57,9 @@ There are multiple generators currently supported by the ApplicationSet controll
 - **Git generator**: The Git generator generates parameters based on files or folders that are contained within the Git repository defined within the generator resource. 
     - Files containing JSON values will be parsed and converted into template parameters. 
     - Individual directory paths within the Git repository may be used as parameter values, as well.
+- **Matrix generator**: The Matrix generators combines the generated parameters of two other generators.
 
-See the [generator section](Generators.md) for more information about individual generators.
+See the [generator section](Generators.md) for more information about individual generators, and the other generators not listed above.
 
 ## Parameter substitution into templates
 
