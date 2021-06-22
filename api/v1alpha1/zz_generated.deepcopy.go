@@ -304,6 +304,7 @@ func (in *DuckTypeGenerator) DeepCopyInto(out *DuckTypeGenerator) {
 		*out = new(int64)
 		**out = **in
 	}
+	in.LabelSelector.DeepCopyInto(&out.LabelSelector)
 	in.Template.DeepCopyInto(&out.Template)
 	if in.Values != nil {
 		in, out := &in.Values, &out.Values

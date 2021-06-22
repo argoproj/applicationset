@@ -37,14 +37,14 @@ data:
 
 # Applying the example
 1. Connect to a cluster with the ApplicationSet controller running
-2. Edit the Role for the ApplicationSet service account, and grant it permission to `get` the `placementdecisions` resources, from apiGroups `cluster.open-cluster-management.io/v1alpha1`
+2. Edit the Role for the ApplicationSet service account, and grant it permission to `list` the `placementdecisions` resources, from apiGroups `cluster.open-cluster-management.io/v1alpha1`
 ```yaml
 - apiGroups:
   - "cluster.open-cluster-management.io/v1alpha1"
   resources:
   - placementdecisions
   verbs:
-  - get
+  - list
 ```
 3. Apply the following controller and associated ManagedCluster CRD's:
 https://github.com/open-cluster-management/placement

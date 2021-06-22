@@ -232,7 +232,7 @@ func TestGenerateParams(t *testing.T) {
 			}, nil)
 
 			if testCase.expectedError != nil {
-				assert.Error(t, testCase.expectedError, err)
+				assert.EqualError(t, err, testCase.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
 				assert.ElementsMatch(t, testCase.expected, got)

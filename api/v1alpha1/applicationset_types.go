@@ -128,9 +128,10 @@ type DuckTypeGenerator struct {
 	//              this includes apiVersion(group/version), kind, matchKey and validation settings
 	// Name is the resource name of the kind, group and version, defined in the ConfigMapRef
 	// RequeueAfterSeconds is how long before the duckType will be rechecked for a change
-	ConfigMapRef        string `json:"configMapRef"`
-	Name                string `json:"name"`
-	RequeueAfterSeconds *int64 `json:"requeueAfterSeconds,omitempty"`
+	ConfigMapRef        string               `json:"configMapRef"`
+	Name                string               `json:"name,omitempty"`
+	RequeueAfterSeconds *int64               `json:"requeueAfterSeconds,omitempty"`
+	LabelSelector       metav1.LabelSelector `json:"labelSelector,omitempty"`
 
 	Template ApplicationSetTemplate `json:"template,omitempty"`
 	// Values contains key/value pairs which are passed directly as parameters to the template
