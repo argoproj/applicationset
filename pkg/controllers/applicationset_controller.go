@@ -387,6 +387,11 @@ func (r *ApplicationSetReconciler) getCurrentApplications(_ context.Context, app
 // The function must be called after all generators had been called and generated applications
 func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
 
+	clusterList, err := utils.ListClusters(ctx, r.KubeClientset, applicationSet.Namespace)
+	if err != nil {
+		return err
+	}
+
 	// Save current applications to be able to delete the ones that are not in appList
 	current, err := r.getCurrentApplications(ctx, applicationSet)
 	if err != nil {
@@ -408,7 +413,7 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 		if !exists {
 
 			// Removes the Argo CD resources finalizer if the application contains an invalid target (eg missing cluster)
-			err := r.removeFinalizerOnInvalidDestination(ctx, applicationSet, &app, appLog)
+			err := r.removeFinalizerOnInvalidDestination(ctx, applicationSet, &app, clusterList, appLog)
 			if err != nil {
 				appLog.WithError(err).Error("failed to update Application")
 				if firstError != nil {
@@ -433,16 +438,49 @@ func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicat
 }
 
 // removeFinalizerOnInvalidDestination removes the Argo CD resources finalizer if the application contains an invalid target (eg missing cluster)
-func (r *ApplicationSetReconciler) removeFinalizerOnInvalidDestination(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, app *argov1alpha1.Application, appLog *log.Entry) error {
+func (r *ApplicationSetReconciler) removeFinalizerOnInvalidDestination(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, app *argov1alpha1.Application, clusterList *argov1alpha1.ClusterList, appLog *log.Entry) error {
 
 	// Only check if the finalizers need to be removed IF there are finalizers to remove
 	if len(app.Finalizers) == 0 {
 		return nil
 	}
 
+	validDestination := true
+
+	// Detect if the destination is invalid (name doesn't correspond to a matching cluster)
+	if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, applicationSet.Namespace); err != nil {
+		appLog.Warnf("The destination cluster for %s couldn't be found: %v", app.Name, err)
+		validDestination = false
+	} else {
+
+		// Detect if the destination's server field does not match an existing cluster
+
+		matchingCluster := false
+		for _, cluster := range clusterList.Items {
+
+			// Server fields must match. Note that ValidateDestination ensures that the server field is set, if applicable.
+			if app.Spec.Destination.Server != cluster.Server {
+				continue
+			}
+
+			// The name must match, if it is not empty
+			if app.Spec.Destination.Name != "" && cluster.Name != app.Spec.Destination.Name {
+				continue
+			}
+
+			matchingCluster = true
+			break
+		}
+
+		if !matchingCluster {
+			appLog.Warnf("A match for the destination cluster for %s, by server url, couldn't be found.", app.Name)
+		}
+
+		validDestination = matchingCluster
+	}
 	// If the destination is invalid (for example the cluster is no longer defined), then remove
 	// the application finalizers to avoid triggering Argo CD bug #5817
-	if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, applicationSet.Namespace); err != nil {
+	if !validDestination {
 
 		// Filter out the Argo CD finalizer from the finalizer list
 		var newFinalizers []string

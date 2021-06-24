@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
+	"github.com/argoproj-labs/applicationset/pkg/utils"
 	"github.com/argoproj/argo-cd/v2/common"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
@@ -840,7 +841,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 	}
 }
 
-func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
+func TestRemoveFinalizerOnInvalidDestination_FinalizerTypes(t *testing.T) {
 
 	scheme := runtime.NewScheme()
 	err := argoprojiov1alpha1.AddToScheme(scheme)
@@ -935,11 +936,14 @@ func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
 				KubeClientset: kubeclientset,
 			}
 
+			clusterList, err := utils.ListClusters(context.Background(), kubeclientset, "namespace")
+			assert.NoError(t, err, "Unexpected error")
+
 			appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": ""})
 
 			appInputParam := app.DeepCopy()
 
-			err = r.removeFinalizerOnInvalidDestination(context.Background(), appSet, appInputParam, appLog)
+			err = r.removeFinalizerOnInvalidDestination(context.Background(), appSet, appInputParam, clusterList, appLog)
 			assert.NoError(t, err, "Unexpected error")
 
 			retrievedApp := argov1alpha1.Application{}
@@ -951,6 +955,163 @@ func TestRemoveFinalizerOnInvalidDestination(t *testing.T) {
 
 			// App object passed in as a parameter should have the expected finaliers
 			assert.ElementsMatch(t, c.expectedFinalizers, appInputParam.Finalizers)
+
+			bytes, _ := json.MarshalIndent(retrievedApp, "", "  ")
+			t.Log("Contents of app after call:", string(bytes))
+
+		})
+	}
+}
+
+func TestRemoveFinalizerOnInvalidDestination_DestinationTypes(t *testing.T) {
+
+	scheme := runtime.NewScheme()
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	for _, c := range []struct {
+		// name is human-readable test name
+		name                   string
+		destinationField       argov1alpha1.ApplicationDestination
+		expectFinalizerRemoved bool
+	}{
+		{
+			name: "invalid cluster: empty destination",
+			destinationField: argov1alpha1.ApplicationDestination{
+				Namespace: "namespace",
+			},
+			expectFinalizerRemoved: true,
+		},
+		{
+			name: "invalid cluster: invalid server url",
+			destinationField: argov1alpha1.ApplicationDestination{
+				Namespace: "namespace",
+				Server:    "https://1.2.3.4",
+			},
+			expectFinalizerRemoved: true,
+		},
+		{
+			name: "invalid cluster: invalid cluster name",
+			destinationField: argov1alpha1.ApplicationDestination{
+				Namespace: "namespace",
+				Name:      "invalid-cluster",
+			},
+			expectFinalizerRemoved: true,
+		},
+		{
+			name: "invalid cluster by both valid",
+			destinationField: argov1alpha1.ApplicationDestination{
+				Namespace: "namespace",
+				Name:      "mycluster2",
+				Server:    "https://kubernetes.default.svc",
+			},
+			expectFinalizerRemoved: true,
+		},
+		{
+			name: "invalid cluster by both invalid",
+			destinationField: argov1alpha1.ApplicationDestination{
+				Namespace: "namespace",
+				Name:      "mycluster3",
+				Server:    "https://4.5.6.7",
+			},
+			expectFinalizerRemoved: true,
+		},
+		{
+			name: "valid cluster by name",
+			destinationField: argov1alpha1.ApplicationDestination{
+				Namespace: "namespace",
+				Name:      "mycluster2",
+			},
+			expectFinalizerRemoved: false,
+		},
+		{
+			name: "valid cluster by server",
+			destinationField: argov1alpha1.ApplicationDestination{
+				Namespace: "namespace",
+				Server:    "https://kubernetes.default.svc",
+			},
+			expectFinalizerRemoved: false,
+		},
+	} {
+
+		t.Run(c.name, func(t *testing.T) {
+
+			appSet := argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+				Spec: argoprojiov1alpha1.ApplicationSetSpec{
+					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+						Spec: argov1alpha1.ApplicationSpec{
+							Project: "project",
+						},
+					},
+				},
+			}
+
+			app := argov1alpha1.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:       "app1",
+					Finalizers: []string{common.ResourcesFinalizerName},
+				},
+				Spec: argov1alpha1.ApplicationSpec{
+					Project:     "project",
+					Source:      argov1alpha1.ApplicationSource{Path: "path", TargetRevision: "revision", RepoURL: "repoURL"},
+					Destination: c.destinationField,
+				},
+			}
+
+			initObjs := []crtclient.Object{&app, &appSet}
+
+			client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-secret",
+					Namespace: "namespace",
+					Labels: map[string]string{
+						generators.ArgoCDSecretTypeLabel: generators.ArgoCDSecretTypeCluster,
+					},
+				},
+				Data: map[string][]byte{
+					// Since this test requires the cluster to be an invalid destination, we
+					// always return a cluster named 'my-cluster2' (different from app 'my-cluster', above)
+					"name":   []byte("mycluster2"),
+					"server": []byte("https://kubernetes.default.svc"),
+					"config": []byte("{\"username\":\"foo\",\"password\":\"foo\"}"),
+				},
+			}
+
+			objects := append([]runtime.Object{}, secret)
+			kubeclientset := kubefake.NewSimpleClientset(objects...)
+
+			r := ApplicationSetReconciler{
+				Client:        client,
+				Scheme:        scheme,
+				Recorder:      record.NewFakeRecorder(10),
+				KubeClientset: kubeclientset,
+			}
+
+			clusterList, err := utils.ListClusters(context.Background(), kubeclientset, "namespace")
+			assert.NoError(t, err, "Unexpected error")
+
+			appLog := log.WithFields(log.Fields{"app": app.Name, "appSet": ""})
+
+			appInputParam := app.DeepCopy()
+
+			err = r.removeFinalizerOnInvalidDestination(context.Background(), appSet, appInputParam, clusterList, appLog)
+			assert.NoError(t, err, "Unexpected error")
+
+			retrievedApp := argov1alpha1.Application{}
+			err = client.Get(context.Background(), crtclient.ObjectKeyFromObject(&app), &retrievedApp)
+			assert.NoError(t, err, "Unexpected error")
+
+			finalizerRemoved := len(retrievedApp.Finalizers) == 0
+
+			assert.True(t, c.expectFinalizerRemoved == finalizerRemoved)
 
 			bytes, _ := json.MarshalIndent(retrievedApp, "", "  ")
 			t.Log("Contents of app after call:", string(bytes))
