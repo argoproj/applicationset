@@ -158,6 +158,7 @@ type GitFileGeneratorItem struct {
 type SCMProviderGenerator struct {
 	// Which provider to use and config for it.
 	Github *SCMProviderGeneratorGithub `json:"github,omitempty"`
+	Gitlab *SCMProviderGeneratorGitlab `json:"gitlab,omitempty"`
 	// TODO other providers.
 	// Filters for which repos should be considered.
 	Filters []SCMProviderGeneratorFilter `json:"filters,omitempty"`
@@ -173,6 +174,18 @@ type SCMProviderGenerator struct {
 type SCMProviderGeneratorGithub struct {
 	// GitHub org to scan. Required.
 	Organization string `json:"organization"`
+	// The GitHub API URL to talk to. If blank, use https://api.github.com/.
+	API string `json:"api,omitempty"`
+	// Authentication token reference.
+	TokenRef *SecretRef `json:"tokenRef,omitempty"`
+	// Scan all branches instead of just the default branch.
+	AllBranches bool `json:"allBranches,omitempty"`
+}
+
+// SCMProviderGeneratorGitlab defines a connection info specific to GitHub.
+type SCMProviderGeneratorGitlab struct {
+	// GitHub org to scan. Required.
+	Group string `json:"group"`
 	// The GitHub API URL to talk to. If blank, use https://api.github.com/.
 	API string `json:"api,omitempty"`
 	// Authentication token reference.
