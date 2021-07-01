@@ -6,10 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
-	"github.com/argoproj/argo-cd/reposerver/apiclient"
-	"github.com/argoproj/argo-cd/util/db"
-	"github.com/argoproj/argo-cd/util/git"
+	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/v2/util/db"
+	"github.com/argoproj/argo-cd/v2/util/git"
 	"github.com/pkg/errors"
 )
 
@@ -21,7 +20,6 @@ type RepositoryDB interface {
 
 type argoCDService struct {
 	repositoriesDB RepositoryDB
-	repoClientset  apiclient.Clientset
 }
 
 type Repos interface {
@@ -40,7 +38,6 @@ func NewArgoCDService(db db.ArgoDB, repoServerAddress string) Repos {
 
 	return &argoCDService{
 		repositoriesDB: db.(RepositoryDB),
-		repoClientset:  apiclient.NewRepoServerClientset(repoServerAddress, 5),
 	}
 }
 
@@ -154,7 +151,7 @@ func checkoutRepo(gitRepoClient git.Client, revision string) error {
 		return errors.Wrap(err, "Error during initializing repo")
 	}
 
-	err = gitRepoClient.Fetch()
+	err = gitRepoClient.Fetch(revision)
 	if err != nil {
 		return errors.Wrap(err, "Error during fetching repo")
 	}

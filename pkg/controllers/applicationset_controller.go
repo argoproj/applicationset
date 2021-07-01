@@ -21,9 +21,9 @@ import (
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
-	"github.com/argoproj/argo-cd/common"
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
-	"github.com/argoproj/argo-cd/util/db"
+	"github.com/argoproj/argo-cd/v2/common"
+	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/v2/util/db"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,8 +39,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	appclientset "github.com/argoproj/argo-cd/pkg/client/clientset/versioned"
-	argoutil "github.com/argoproj/argo-cd/util/argo"
+	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned"
+	argoutil "github.com/argoproj/argo-cd/v2/util/argo"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 )

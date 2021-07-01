@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/argoproj/argo-cd/common"
-	appv1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/v2/common"
+	appv1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,14 +19,14 @@ import (
 )
 
 // The contents of this file are from
-// github.com/argoproj/argo-cd/util/db/cluster.go
+// github.com/argoproj/argo-cd/v2/util/db/cluster.go
 //
 // The main difference is that ListClusters(...) calls the kubeclient directly,
 // via `g.clientset.CoreV1().Secrets`, rather than using the `db.listClusterSecrets()``
 // which appears to have a race condition on when it is called.
 //
 // I was reminded of this issue that I opened, which might be related:
-// https://github.com/argoproj/argo-cd/issues/4755
+// https://github.com/argoproj/argo-cd/v2/issues/4755
 //
 // I hope to upstream this change in some form, so that we do not need to worry about
 // Argo CD changing the logic on us.

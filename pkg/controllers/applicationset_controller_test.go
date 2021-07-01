@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
-	"github.com/argoproj/argo-cd/common"
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	"github.com/argoproj/argo-cd/v2/common"
+	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -24,8 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	appclientset "github.com/argoproj/argo-cd/pkg/client/clientset/versioned/fake"
-	dbmocks "github.com/argoproj/argo-cd/util/db/mocks"
+	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/fake"
+	dbmocks "github.com/argoproj/argo-cd/v2/util/db/mocks"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 )
 

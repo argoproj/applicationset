@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
-	argov1alpha1 "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

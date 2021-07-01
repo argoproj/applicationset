@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/argoproj/argo-cd/util/settings"
+	"github.com/argoproj/argo-cd/v2/util/settings"
 	log "github.com/sirupsen/logrus"
 
 	corev1 "k8s.io/api/core/v1"
