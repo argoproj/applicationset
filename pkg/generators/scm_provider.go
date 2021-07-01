@@ -68,6 +68,15 @@ func (g *SCMProviderGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha
 		if err != nil {
 			return nil, fmt.Errorf("error initializing Github service: %v", err)
 		}
+	} else if providerConfig.Gitlab != nil {
+		token, err := g.getSecretRef(ctx, providerConfig.Gitlab.TokenRef, applicationSetInfo.Namespace)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching Gitlab token: %v", err)
+		}
+		provider, err = scm_provider.NewGitlabProvider(ctx, providerConfig.Gitlab.Group, token, providerConfig.Gitlab.API, providerConfig.Gitlab.AllBranches)
+		if err != nil {
+			return nil, fmt.Errorf("error initializing Gitlab service: %v", err)
+		}
 	} else {
 		return nil, fmt.Errorf("no SCM provider implementation configured")
 	}

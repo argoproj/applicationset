@@ -186,7 +186,7 @@ type SCMProviderGeneratorGithub struct {
 type SCMProviderGeneratorGitlab struct {
 	// GitHub org to scan. Required.
 	Group string `json:"group"`
-	// The GitHub API URL to talk to. If blank, use https://api.github.com/.
+	// The Gitlab API URL to talk to.
 	API string `json:"api,omitempty"`
 	// Authentication token reference.
 	TokenRef *SecretRef `json:"tokenRef,omitempty"`

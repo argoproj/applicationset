@@ -73,8 +73,8 @@ func (g *GitlabProvider) ListRepos(ctx context.Context, cloneProtocol string) ([
 
 			for _, branch := range branches {
 				repos = append(repos, &Repository{
-					Organization: g.organization,
-					Repository:   gitlabRepo.PathWithNamespace,
+					Organization: gitlabRepo.Namespace.FullPath,
+					Repository:   gitlabRepo.Path,
 					URL:          url,
 					Branch:       branch,
 					Labels:       gitlabRepo.TagList,
@@ -90,15 +90,17 @@ func (g *GitlabProvider) ListRepos(ctx context.Context, cloneProtocol string) ([
 }
 
 func (g *GitlabProvider) RepoHasPath(ctx context.Context, repo *Repository, path string) (bool, error) {
-	p, _, err := g.client.Projects.GetProject(repo.Repository, nil)
+	p, _, err := g.client.Projects.GetProject(repo.Organization+"/"+repo.Repository, nil)
 	if err != nil {
-		return false, fmt.Errorf("Error retrieving project %s", repo.Repository)
+		return false, err
 	}
-	_, resp, err := g.client.RepositoryFiles.GetFileMetaData(p.ID, path, &gitlab.GetFileMetaDataOptions{
-		Ref: &repo.Branch,
+	_, resp, err := g.client.Repositories.ListTree(p.ID, &gitlab.ListTreeOptions{
+		Path: &path,
+		Ref:  &repo.Branch,
 	})
-	// 404s are not an error here, just a normal false.
-	if resp != nil && resp.StatusCode == 404 {
+	fmt.Printf("%+v\n", err)
+	fmt.Printf("%+v\n", resp)
+	if resp.TotalItems == 0 {
 		return false, nil
 	}
 	if err != nil {

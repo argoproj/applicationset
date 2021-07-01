@@ -89,7 +89,7 @@ func TestGitlabHasPath(t *testing.T) {
 		Repository:   "test-argocd-proton/argocd",
 		Branch:       "master",
 	}
-	ok, err := host.RepoHasPath(context.Background(), repo, "templates/")
+	ok, err := host.RepoHasPath(context.Background(), repo, "argocd/")
 	assert.Nil(t, err)
 	assert.True(t, ok)
 
