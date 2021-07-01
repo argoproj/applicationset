@@ -10,7 +10,7 @@ import (
 
 type GitlabProvider struct {
 	client       *gitlab.Client
-	group string
+	organization string
 	allBranches  bool
 }
 
