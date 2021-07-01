@@ -10,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	dynfake "k8s.io/client-go/dynamic/fake"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -239,7 +240,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			name:         "duck type generator labelSelector.matchExpression",
 			resourceName: "",
 			labelSelector: metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{
-				metav1.LabelSelectorRequirement{
+				{
 					Key:      "duck",
 					Operator: "In",
 					Values:   []string{"all-species", "marbled"},
@@ -258,7 +259,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			name:         "duck type generator resourceName and labelSelector.matchExpression",
 			resourceName: resourceName,
 			labelSelector: metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{
-				metav1.LabelSelectorRequirement{
+				{
 					Key:      "duck",
 					Operator: "In",
 					Values:   []string{"all-species", "marbled"},
@@ -283,7 +284,13 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 
 			appClientset := kubefake.NewSimpleClientset(append(runtimeClusters, configMap)...)
 
-			fakeDynClient := dynfake.NewSimpleDynamicClient(runtime.NewScheme(), testCase.resource)
+			gvrToListKind := map[schema.GroupVersionResource]string{{
+				Group:    "mallard.io",
+				Version:  "v1",
+				Resource: "ducks",
+			}: "DuckList"}
+
+			fakeDynClient := dynfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), gvrToListKind, testCase.resource)
 
 			var duckTypeGenerator = NewDuckTypeGenerator(context.Background(), fakeDynClient, appClientset, "namespace")
 
