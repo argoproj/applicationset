@@ -14,7 +14,7 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.6.1
 	github.com/valyala/fasttemplate v1.2.1
-	github.com/xanzy/go-gitlab v0.50.0 // indirect
+	github.com/xanzy/go-gitlab v0.50.0
 	golang.org/x/oauth2 v0.0.0-20210413134643-5e61552d6c78
 	k8s.io/api v0.19.2
 	k8s.io/apimachinery v0.19.2
