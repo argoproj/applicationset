@@ -7,19 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func checkRateLimit(t *testing.T, err error) {
-// 	// Check if we've hit a rate limit, don't fail the test if so.
-// 	if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
-// 		allowRateLimitErrors := os.Getenv("CI") == ""
-// 		t.Logf("Got a rate limit error, consider setting $Gitlab_TOKEN to increase your Gitlab API rate limit: %v\n", err)
-// 		if allowRateLimitErrors {
-// 			t.SkipNow()
-// 		} else {
-// 			t.FailNow()
-// 		}
-// 	}
-// }
-
 func TestGitlabListRepos(t *testing.T) {
 	cases := []struct {
 		name, proto, url      string
