@@ -445,7 +445,7 @@ func (r *ApplicationSetReconciler) removeFinalizerOnInvalidDestination(ctx conte
 		return nil
 	}
 
-	validDestination := true
+	var validDestination bool
 
 	// Detect if the destination is invalid (name doesn't correspond to a matching cluster)
 	if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, applicationSet.Namespace); err != nil {
