@@ -67,7 +67,7 @@ func TestGitlabListRepos(t *testing.T) {
 				repos := []*Repository{}
 				branches := []string{}
 				for _, r := range rawRepos {
-					if r.Repository == "test-argocd-proton/argocd" {
+					if r.Repository == "argocd" {
 						repos = append(repos, r)
 						branches = append(branches, r.Branch)
 					}
@@ -86,14 +86,14 @@ func TestGitlabHasPath(t *testing.T) {
 	host, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", false)
 	repo := &Repository{
 		Organization: "test-argocd-proton",
-		Repository:   "test-argocd-proton/argocd",
+		Repository:   "argocd",
 		Branch:       "master",
 	}
-	ok, err := host.RepoHasPath(context.Background(), repo, "argocd/")
+	ok, err := host.RepoHasPath(context.Background(), repo, "argocd")
 	assert.Nil(t, err)
 	assert.True(t, ok)
 
-	ok, err = host.RepoHasPath(context.Background(), repo, "notathing/")
+	ok, err = host.RepoHasPath(context.Background(), repo, "notathing")
 	assert.Nil(t, err)
 	assert.False(t, ok)
 }
