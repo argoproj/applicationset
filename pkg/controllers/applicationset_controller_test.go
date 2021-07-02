@@ -1432,9 +1432,10 @@ func TestDeleteInCluster(t *testing.T) {
 		client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(initObjs...).Build()
 
 		r := ApplicationSetReconciler{
-			Client:   client,
-			Scheme:   scheme,
-			Recorder: record.NewFakeRecorder(len(initObjs) + len(c.expected)),
+			Client:        client,
+			Scheme:        scheme,
+			Recorder:      record.NewFakeRecorder(len(initObjs) + len(c.expected)),
+			KubeClientset: kubefake.NewSimpleClientset(),
 		}
 
 		err = r.deleteInCluster(context.TODO(), c.appSet, c.desiredApps)

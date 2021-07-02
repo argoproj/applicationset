@@ -47,7 +47,8 @@ const (
 
 func ListClusters(ctx context.Context, clientset kubernetes.Interface, namespace string) (*appv1.ClusterList, error) {
 
-	clusterSecretsList, err := clientset.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{LabelSelector: common.LabelKeySecretType + "=" + common.LabelValueSecretTypeCluster})
+	clusterSecretsList, err := clientset.CoreV1().Secrets(namespace).List(ctx,
+		metav1.ListOptions{LabelSelector: common.LabelKeySecretType + "=" + common.LabelValueSecretTypeCluster})
 	if err != nil {
 		return nil, err
 	}

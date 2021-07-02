@@ -383,7 +383,7 @@ func (r *ApplicationSetReconciler) getCurrentApplications(_ context.Context, app
 	return current.Items, nil
 }
 
-// deleteInCluster will delete application that are current in the cluster but not in appList.
+// deleteInCluster will delete Applications that are currently on the cluster, but not in appList.
 // The function must be called after all generators had been called and generated applications
 func (r *ApplicationSetReconciler) deleteInCluster(ctx context.Context, applicationSet argoprojiov1alpha1.ApplicationSet, desiredApplications []argov1alpha1.Application) error {
 
