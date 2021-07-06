@@ -3807,7 +3807,7 @@ spec:
                                     type: object
                                   gitlab:
                                     description: SCMProviderGeneratorGitlab defines
-                                      a connection info specific to GitHub.
+                                      a connection info specific to Gitlab.
                                     properties:
                                       allBranches:
                                         description: Scan all branches instead of
@@ -3817,7 +3817,7 @@ spec:
                                         description: The Gitlab API URL to talk to.
                                         type: string
                                       group:
-                                        description: GitHub org to scan. Required.
+                                        description: Gitlab org to scan. Required.
                                         type: string
                                       tokenRef:
                                         description: Authentication token reference.
@@ -4730,7 +4730,7 @@ spec:
                           type: object
                         gitlab:
                           description: SCMProviderGeneratorGitlab defines a connection
-                            info specific to GitHub.
+                            info specific to Gitlab.
                           properties:
                             allBranches:
                               description: Scan all branches instead of just the default
@@ -4740,7 +4740,7 @@ spec:
                               description: The Gitlab API URL to talk to.
                               type: string
                             group:
-                              description: GitHub org to scan. Required.
+                              description: Gitlab org to scan. Required.
                               type: string
                             tokenRef:
                               description: Authentication token reference.

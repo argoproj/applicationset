@@ -2909,7 +2909,7 @@ spec:
                                     - organization
                                     type: object
                                   gitlab:
-                                    description: SCMProviderGeneratorGitlab defines a connection info specific to GitHub.
+                                    description: SCMProviderGeneratorGitlab defines a connection info specific to Gitlab.
                                     properties:
                                       allBranches:
                                         description: Scan all branches instead of just the default branch.
@@ -2918,7 +2918,7 @@ spec:
                                         description: The Gitlab API URL to talk to.
                                         type: string
                                       group:
-                                        description: GitHub org to scan. Required.
+                                        description: Gitlab org to scan. Required.
                                         type: string
                                       tokenRef:
                                         description: Authentication token reference.
@@ -3628,7 +3628,7 @@ spec:
                           - organization
                           type: object
                         gitlab:
-                          description: SCMProviderGeneratorGitlab defines a connection info specific to GitHub.
+                          description: SCMProviderGeneratorGitlab defines a connection info specific to Gitlab.
                           properties:
                             allBranches:
                               description: Scan all branches instead of just the default branch.
@@ -3637,7 +3637,7 @@ spec:
                               description: The Gitlab API URL to talk to.
                               type: string
                             group:
-                              description: GitHub org to scan. Required.
+                              description: Gitlab org to scan. Required.
                               type: string
                             tokenRef:
                               description: Authentication token reference.

@@ -182,9 +182,9 @@ type SCMProviderGeneratorGithub struct {
 	AllBranches bool `json:"allBranches,omitempty"`
 }
 
-// SCMProviderGeneratorGitlab defines a connection info specific to GitHub.
+// SCMProviderGeneratorGitlab defines a connection info specific to Gitlab.
 type SCMProviderGeneratorGitlab struct {
-	// GitHub org to scan. Required.
+	// Gitlab org to scan. Required.
 	Group string `json:"group"`
 	// The Gitlab API URL to talk to.
 	API string `json:"api,omitempty"`
