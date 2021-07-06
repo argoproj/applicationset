@@ -65,6 +65,7 @@ type ApplicationSetTemplateMeta struct {
 	Namespace   string            `json:"namespace,omitempty"`
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
+	Finalizers  []string          `json:"finalizers,omitempty"`
 }
 
 // ApplicationSetGenerator include list item info

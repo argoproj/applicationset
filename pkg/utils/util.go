@@ -49,10 +49,8 @@ func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy
 		return nil, err
 	}
 
-	if syncPolicy == nil || !syncPolicy.PreserveResourcesOnDeletion {
-		if replacedTmpl.ObjectMeta.Finalizers == nil {
-			replacedTmpl.ObjectMeta.Finalizers = []string{}
-		}
+	if (syncPolicy == nil || !syncPolicy.PreserveResourcesOnDeletion) && replacedTmpl.ObjectMeta.Finalizers == nil {
+		replacedTmpl.ObjectMeta.Finalizers = []string{}
 		replacedTmpl.ObjectMeta.Finalizers = append(replacedTmpl.ObjectMeta.Finalizers, "resources-finalizer.argocd.argoproj.io")
 	}
 
