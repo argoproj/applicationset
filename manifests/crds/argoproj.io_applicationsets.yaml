@@ -3817,8 +3817,15 @@ spec:
                                         description: The Gitlab API URL to talk to.
                                         type: string
                                       group:
-                                        description: Gitlab org to scan. Required.
+                                        description: Gitlab group to scan. Required.  You
+                                          can use either the project id (recommended)
+                                          or the full namespaced path.
                                         type: string
+                                      includeSubgroups:
+                                        description: Recurse through subgroups (true)
+                                          or scan only the base group (false).  Defaults
+                                          to "false"
+                                        type: boolean
                                       tokenRef:
                                         description: Authentication token reference.
                                         properties:
@@ -4740,8 +4747,14 @@ spec:
                               description: The Gitlab API URL to talk to.
                               type: string
                             group:
-                              description: Gitlab org to scan. Required.
+                              description: Gitlab group to scan. Required.  You can
+                                use either the project id (recommended) or the full
+                                namespaced path.
                               type: string
+                            includeSubgroups:
+                              description: Recurse through subgroups (true) or scan
+                                only the base group (false).  Defaults to "false"
+                              type: boolean
                             tokenRef:
                               description: Authentication token reference.
                               properties:
