@@ -94,8 +94,6 @@ func (g *GitlabProvider) RepoHasPath(_ context.Context, repo *Repository, path s
 		Path: &path,
 		Ref:  &repo.Branch,
 	})
-	fmt.Printf("%+v\n", err)
-	fmt.Printf("%+v\n", resp)
 	if resp.TotalItems == 0 {
 		return false, nil
 	}
