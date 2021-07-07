@@ -2,7 +2,6 @@
 
 The SCM Provider generator uses the API of an SCMaaS provider (eg GitHub) to automatically discover repositories within an organization. This fits well with GitOps layout patterns that split microservices across many repositories.
 
-Support is currently limited to GitHub, but PRs are welcome to add more SCM providers.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -54,6 +53,45 @@ spec:
 * `tokenRef`: A `Secret` name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit and can only see public repositories.
 
 For label filtering, the repository topics are used.
+
+Available clone protocols are `ssh` and `https`.
+
+## Gitlab
+
+The Gitlab mode uses the Gitlab API to scan and organization in either gitlab.com or self-hosted gitlab.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - scmProvider:
+      gitlab:
+        # The base Gitlab group to scan.  You can either use the group id or the full namespaced path.
+        group: "8675309"
+        # For GitHub Enterprise:
+        api: https://gitlab.example.com/
+        # If true, scan every branch of every repository. If false, scan only the default branch. Defaults to false.
+        allBranches: true
+        # If true, recurses through subgroups. If false, it searches only in the base group. Defaults to false.
+        includeSubgroups: true
+        # Reference to a Secret containing an access token. (optional)
+        tokenRef:
+          secretName: gitlab-token
+          key: token
+  template:
+  # ...
+```
+
+* `group`: Required name of the base Gitlab group to scan. If you have multiple base groups, use multiple generators.
+* `api`: If using GitHub Enterprise, the URL to access it.
+* `allBranches`: By default (false) the template will only be evaluated for the default branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
+* `allBranches`: By default (false) the controller will only search for repos directly in the base group. If this is true, it will recurse through all the subgroups searching for repos to scan.
+* `tokenRef`: A `Secret` name and key containing the Gitlab access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit and can only see public repositories.
+
+For label filtering, the repository tags are used.
 
 Available clone protocols are `ssh` and `https`.
 
