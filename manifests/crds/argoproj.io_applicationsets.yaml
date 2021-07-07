@@ -3748,8 +3748,8 @@ spec:
                                       all protocols.
                                     type: string
                                   filters:
-                                    description: TODO other providers. Filters for
-                                      which repos should be considered.
+                                    description: Filters for which repos should be
+                                      considered.
                                     items:
                                       description: SCMProviderGeneratorFilter is a
                                         single repository filter. If multiple filter
@@ -3804,6 +3804,41 @@ spec:
                                         type: object
                                     required:
                                     - organization
+                                    type: object
+                                  gitlab:
+                                    description: SCMProviderGeneratorGitlab defines
+                                      a connection info specific to Gitlab.
+                                    properties:
+                                      allBranches:
+                                        description: Scan all branches instead of
+                                          just the default branch.
+                                        type: boolean
+                                      api:
+                                        description: The Gitlab API URL to talk to.
+                                        type: string
+                                      group:
+                                        description: Gitlab group to scan. Required.  You
+                                          can use either the project id (recommended)
+                                          or the full namespaced path.
+                                        type: string
+                                      includeSubgroups:
+                                        description: Recurse through subgroups (true)
+                                          or scan only the base group (false).  Defaults
+                                          to "false"
+                                        type: boolean
+                                      tokenRef:
+                                        description: Authentication token reference.
+                                        properties:
+                                          key:
+                                            type: string
+                                          secretName:
+                                            type: string
+                                        required:
+                                        - key
+                                        - secretName
+                                        type: object
+                                    required:
+                                    - group
                                     type: object
                                   requeueAfterSeconds:
                                     description: Standard parameters.
@@ -4646,8 +4681,7 @@ spec:
                             necessarily support all protocols.
                           type: string
                         filters:
-                          description: TODO other providers. Filters for which repos
-                            should be considered.
+                          description: Filters for which repos should be considered.
                           items:
                             description: SCMProviderGeneratorFilter is a single repository
                               filter. If multiple filter types are set on a single
@@ -4699,6 +4733,40 @@ spec:
                               type: object
                           required:
                           - organization
+                          type: object
+                        gitlab:
+                          description: SCMProviderGeneratorGitlab defines a connection
+                            info specific to Gitlab.
+                          properties:
+                            allBranches:
+                              description: Scan all branches instead of just the default
+                                branch.
+                              type: boolean
+                            api:
+                              description: The Gitlab API URL to talk to.
+                              type: string
+                            group:
+                              description: Gitlab group to scan. Required.  You can
+                                use either the project id (recommended) or the full
+                                namespaced path.
+                              type: string
+                            includeSubgroups:
+                              description: Recurse through subgroups (true) or scan
+                                only the base group (false).  Defaults to "false"
+                              type: boolean
+                            tokenRef:
+                              description: Authentication token reference.
+                              properties:
+                                key:
+                                  type: string
+                                secretName:
+                                  type: string
+                              required:
+                              - key
+                              - secretName
+                              type: object
+                          required:
+                          - group
                           type: object
                         requeueAfterSeconds:
                           description: Standard parameters.

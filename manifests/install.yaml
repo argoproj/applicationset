@@ -2862,7 +2862,7 @@ spec:
                                     description: Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers necessarily support all protocols.
                                     type: string
                                   filters:
-                                    description: TODO other providers. Filters for which repos should be considered.
+                                    description: Filters for which repos should be considered.
                                     items:
                                       description: SCMProviderGeneratorFilter is a single repository filter. If multiple filter types are set on a single struct, they will be AND'd together. All filters must pass for a repo to be included.
                                       properties:
@@ -2907,6 +2907,35 @@ spec:
                                         type: object
                                     required:
                                     - organization
+                                    type: object
+                                  gitlab:
+                                    description: SCMProviderGeneratorGitlab defines a connection info specific to Gitlab.
+                                    properties:
+                                      allBranches:
+                                        description: Scan all branches instead of just the default branch.
+                                        type: boolean
+                                      api:
+                                        description: The Gitlab API URL to talk to.
+                                        type: string
+                                      group:
+                                        description: Gitlab group to scan. Required.  You can use either the project id (recommended) or the full namespaced path.
+                                        type: string
+                                      includeSubgroups:
+                                        description: Recurse through subgroups (true) or scan only the base group (false).  Defaults to "false"
+                                        type: boolean
+                                      tokenRef:
+                                        description: Authentication token reference.
+                                        properties:
+                                          key:
+                                            type: string
+                                          secretName:
+                                            type: string
+                                        required:
+                                        - key
+                                        - secretName
+                                        type: object
+                                    required:
+                                    - group
                                     type: object
                                   requeueAfterSeconds:
                                     description: Standard parameters.
@@ -3555,7 +3584,7 @@ spec:
                           description: Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers necessarily support all protocols.
                           type: string
                         filters:
-                          description: TODO other providers. Filters for which repos should be considered.
+                          description: Filters for which repos should be considered.
                           items:
                             description: SCMProviderGeneratorFilter is a single repository filter. If multiple filter types are set on a single struct, they will be AND'd together. All filters must pass for a repo to be included.
                             properties:
@@ -3600,6 +3629,35 @@ spec:
                               type: object
                           required:
                           - organization
+                          type: object
+                        gitlab:
+                          description: SCMProviderGeneratorGitlab defines a connection info specific to Gitlab.
+                          properties:
+                            allBranches:
+                              description: Scan all branches instead of just the default branch.
+                              type: boolean
+                            api:
+                              description: The Gitlab API URL to talk to.
+                              type: string
+                            group:
+                              description: Gitlab group to scan. Required.  You can use either the project id (recommended) or the full namespaced path.
+                              type: string
+                            includeSubgroups:
+                              description: Recurse through subgroups (true) or scan only the base group (false).  Defaults to "false"
+                              type: boolean
+                            tokenRef:
+                              description: Authentication token reference.
+                              properties:
+                                key:
+                                  type: string
+                                secretName:
+                                  type: string
+                              required:
+                              - key
+                              - secretName
+                              type: object
+                          required:
+                          - group
                           type: object
                         requeueAfterSeconds:
                           description: Standard parameters.
