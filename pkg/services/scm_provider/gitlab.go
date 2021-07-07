@@ -9,19 +9,15 @@ import (
 )
 
 type GitlabProvider struct {
-	client       *gitlab.Client
-	organization string
-	allBranches  bool
+	client           *gitlab.Client
+	organization     string
+	allBranches      bool
+	includeSubgroups bool
 }
 
 var _ SCMProviderService = &GitlabProvider{}
 
-func newTrue() *bool {
-	b := true
-	return &b
-}
-
-func NewGitlabProvider(ctx context.Context, organization string, token string, url string, allBranches bool) (*GitlabProvider, error) {
+func NewGitlabProvider(ctx context.Context, organization string, token string, url string, allBranches, includeSubgroups bool) (*GitlabProvider, error) {
 	// Undocumented environment variable to set a default token, to be used in testing to dodge anonymous rate limits.
 	if token == "" {
 		token = os.Getenv("GITLAB_TOKEN")
@@ -40,13 +36,13 @@ func NewGitlabProvider(ctx context.Context, organization string, token string, u
 			return nil, err
 		}
 	}
-	return &GitlabProvider{client: client, organization: organization, allBranches: allBranches}, nil
+	return &GitlabProvider{client: client, organization: organization, allBranches: allBranches, includeSubgroups: includeSubgroups}, nil
 }
 
 func (g *GitlabProvider) ListRepos(ctx context.Context, cloneProtocol string) ([]*Repository, error) {
 	opt := &gitlab.ListGroupProjectsOptions{
 		ListOptions:      gitlab.ListOptions{PerPage: 100},
-		IncludeSubgroups: newTrue(),
+		IncludeSubgroups: &g.includeSubgroups,
 	}
 	repos := []*Repository{}
 	for {
@@ -89,7 +85,7 @@ func (g *GitlabProvider) ListRepos(ctx context.Context, cloneProtocol string) ([
 	return repos, nil
 }
 
-func (g *GitlabProvider) RepoHasPath(ctx context.Context, repo *Repository, path string) (bool, error) {
+func (g *GitlabProvider) RepoHasPath(_ context.Context, repo *Repository, path string) (bool, error) {
 	p, _, err := g.client.Projects.GetProject(repo.Organization+"/"+repo.Repository, nil)
 	if err != nil {
 		return false, err
@@ -109,7 +105,7 @@ func (g *GitlabProvider) RepoHasPath(ctx context.Context, repo *Repository, path
 	return true, nil
 }
 
-func (g *GitlabProvider) listBranches(ctx context.Context, repo *gitlab.Project) ([]string, error) {
+func (g *GitlabProvider) listBranches(_ context.Context, repo *gitlab.Project) ([]string, error) {
 	// If we don't specifically want to query for all branches, just use the default branch and call it a day.
 	if !g.allBranches {
 		return []string{repo.DefaultBranch}, nil

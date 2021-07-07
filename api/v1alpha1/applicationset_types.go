@@ -184,8 +184,10 @@ type SCMProviderGeneratorGithub struct {
 
 // SCMProviderGeneratorGitlab defines a connection info specific to Gitlab.
 type SCMProviderGeneratorGitlab struct {
-	// Gitlab org to scan. Required.
+	// Gitlab group to scan. Required.  You can use either the project id (recommended) or the full namespaced path.
 	Group string `json:"group"`
+	// Recurse through subgroups (true) or scan only the base group (false).  Defaults to "false"
+	IncludeSubgroups bool `json:"includeSubgroups,omitempty"`
 	// The Gitlab API URL to talk to.
 	API string `json:"api,omitempty"`
 	// Authentication token reference.

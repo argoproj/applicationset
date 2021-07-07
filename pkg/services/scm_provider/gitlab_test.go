@@ -9,9 +9,9 @@ import (
 
 func TestGitlabListRepos(t *testing.T) {
 	cases := []struct {
-		name, proto, url      string
-		hasError, allBranches bool
-		branches              []string
+		name, proto, url                        string
+		hasError, allBranches, includeSubgroups bool
+		branches                                []string
 	}{
 		{
 			name:     "blank protocol",
@@ -43,7 +43,7 @@ func TestGitlabListRepos(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			provider, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", c.allBranches)
+			provider, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", c.allBranches, c.includeSubgroups)
 			rawRepos, err := provider.ListRepos(context.Background(), c.proto)
 			if c.hasError {
 				assert.NotNil(t, err)
@@ -70,7 +70,7 @@ func TestGitlabListRepos(t *testing.T) {
 }
 
 func TestGitlabHasPath(t *testing.T) {
-	host, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", false)
+	host, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", false, true)
 	repo := &Repository{
 		Organization: "test-argocd-proton",
 		Repository:   "argocd",
