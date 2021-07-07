@@ -2862,7 +2862,7 @@ spec:
                                     description: Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers necessarily support all protocols.
                                     type: string
                                   filters:
-                                    description: TODO other providers. Filters for which repos should be considered.
+                                    description: Filters for which repos should be considered.
                                     items:
                                       description: SCMProviderGeneratorFilter is a single repository filter. If multiple filter types are set on a single struct, they will be AND'd together. All filters must pass for a repo to be included.
                                       properties:
@@ -3584,7 +3584,7 @@ spec:
                           description: Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers necessarily support all protocols.
                           type: string
                         filters:
-                          description: TODO other providers. Filters for which repos should be considered.
+                          description: Filters for which repos should be considered.
                           items:
                             description: SCMProviderGeneratorFilter is a single repository filter. If multiple filter types are set on a single struct, they will be AND'd together. All filters must pass for a repo to be included.
                             properties:
