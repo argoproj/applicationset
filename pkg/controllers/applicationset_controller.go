@@ -211,6 +211,7 @@ func getTempApplication(applicationSetTemplate argoprojiov1alpha1.ApplicationSet
 	tmplApplication.Namespace = applicationSetTemplate.Namespace
 	tmplApplication.Name = applicationSetTemplate.Name
 	tmplApplication.Spec = applicationSetTemplate.Spec
+	tmplApplication.Finalizers = applicationSetTemplate.Finalizers
 
 	return &tmplApplication
 }
