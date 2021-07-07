@@ -159,7 +159,6 @@ type SCMProviderGenerator struct {
 	// Which provider to use and config for it.
 	Github *SCMProviderGeneratorGithub `json:"github,omitempty"`
 	Gitlab *SCMProviderGeneratorGitlab `json:"gitlab,omitempty"`
-	// TODO other providers.
 	// Filters for which repos should be considered.
 	Filters []SCMProviderGeneratorFilter `json:"filters,omitempty"`
 	// Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers
