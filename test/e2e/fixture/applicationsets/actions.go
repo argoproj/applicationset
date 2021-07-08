@@ -7,7 +7,7 @@ import (
 
 	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
-	argocommon "github.com/argoproj/argo-cd/common"
+	argocommon "github.com/argoproj/argo-cd/v2/common"
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

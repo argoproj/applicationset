@@ -15,7 +15,7 @@ import (
 	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	log "github.com/sirupsen/logrus"
 
-	appclientset "github.com/argoproj/argo-cd/pkg/client/clientset/versioned"
+	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned"
 	"k8s.io/apimachinery/pkg/api/equality"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

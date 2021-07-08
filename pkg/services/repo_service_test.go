@@ -9,9 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
-	"github.com/argoproj/argo-cd/reposerver/apiclient"
-	"github.com/argoproj/argo-cd/util/io"
+	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -25,24 +23,6 @@ func (a ArgocdRepositoryMock) GetRepository(ctx context.Context, url string) (*v
 
 	return args.Get(0).(*v1alpha1.Repository), args.Error(1)
 
-}
-
-type closer struct {
-	// mock *mock.Mock
-}
-
-func (c closer) Close() error {
-	return nil
-}
-
-type repoClientsetMock struct {
-	mock *mock.Mock
-}
-
-func (r repoClientsetMock) NewRepoServerClient() (io.Closer, apiclient.RepoServerServiceClient, error) {
-	args := r.mock.Called()
-
-	return closer{}, args.Get(0).(apiclient.RepoServerServiceClient), args.Error(1)
 }
 
 func TestGetDirectories(t *testing.T) {
@@ -102,13 +82,11 @@ func TestGetDirectories(t *testing.T) {
 		cc := c
 		t.Run(cc.name, func(t *testing.T) {
 			argocdRepositoryMock := ArgocdRepositoryMock{mock: &mock.Mock{}}
-			repoClientsetMock := repoClientsetMock{mock: &mock.Mock{}}
 
 			argocdRepositoryMock.mock.On("GetRepository", mock.Anything, cc.repoURL).Return(cc.repoRes, cc.repoErr)
 
 			argocd := argoCDService{
 				repositoriesDB: argocdRepositoryMock,
-				repoClientset:  repoClientsetMock,
 			}
 
 			got, err := argocd.GetDirectories(context.TODO(), cc.repoURL, cc.revision)
@@ -187,7 +165,7 @@ func TestGetPaths(t *testing.T) {
 			revision:            "this-tag-does-not-exist",
 			pattern:             "*",
 			expectSubsetOfPaths: []string{},
-			expectedError:       errors.New("Error during fetching commitSHA: Unable to resolve 'this-tag-does-not-exist' to a commit SHA"),
+			expectedError:       errors.New("Error during fetching repo: `git fetch origin this-tag-does-not-exist --tags --force` failed exit status 128: fatal: couldn't find remote ref this-tag-does-not-exist"),
 		},
 		{
 			name: "pull a specific revision of example apps, and use a ** pattern",
@@ -309,7 +287,7 @@ func TestGetFileContent(t *testing.T) {
 			repoURL:       "https://github.com/argoproj/argocd-example-apps/",
 			revision:      "this-tag-does-not-exist",
 			path:          "/README.md",
-			expectedError: errors.New("Error during fetching commitSHA: Unable to resolve 'this-tag-does-not-exist' to a commit SHA"),
+			expectedError: errors.New("Error during fetching repo: `git fetch origin this-tag-does-not-exist --tags --force` failed exit status 128: fatal: couldn't find remote ref this-tag-does-not-exist"),
 		},
 		{
 			name: "pull an invalid file",
