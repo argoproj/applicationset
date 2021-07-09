@@ -49,11 +49,15 @@ func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy
 		return nil, err
 	}
 
-	if syncPolicy == nil || !syncPolicy.PreserveResourcesOnDeletion {
-		if replacedTmpl.ObjectMeta.Finalizers == nil {
-			replacedTmpl.ObjectMeta.Finalizers = []string{}
-		}
-		replacedTmpl.ObjectMeta.Finalizers = append(replacedTmpl.ObjectMeta.Finalizers, "resources-finalizer.argocd.argoproj.io")
+	// Add the 'resources-finalizer' finalizer if:
+	// The template application doesn't have any finalizers, and:
+	// a) there is no syncPolicy, or
+	// b) there IS a syncPolicy, but preserveResourcesOnDeletion is set to false
+	// See TestRenderTemplateParamsFinalizers in util_test.go for test-based definition of behaviour
+	if (syncPolicy == nil || !syncPolicy.PreserveResourcesOnDeletion) &&
+		(replacedTmpl.ObjectMeta.Finalizers == nil || len(replacedTmpl.ObjectMeta.Finalizers) == 0) {
+
+		replacedTmpl.ObjectMeta.Finalizers = []string{"resources-finalizer.argocd.argoproj.io"}
 	}
 
 	return &replacedTmpl, nil
