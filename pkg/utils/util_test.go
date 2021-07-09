@@ -167,6 +167,111 @@ func TestRenderTemplateParams(t *testing.T) {
 
 }
 
+func TestRenderTemplateParamsFinalizers(t *testing.T) {
+
+	emptyApplication := &argov1alpha1.Application{
+		Spec: argov1alpha1.ApplicationSpec{
+			Source: argov1alpha1.ApplicationSource{
+				Path:           "",
+				RepoURL:        "",
+				TargetRevision: "",
+				Chart:          "",
+			},
+			Destination: argov1alpha1.ApplicationDestination{
+				Server:    "",
+				Namespace: "",
+				Name:      "",
+			},
+			Project: "",
+		},
+	}
+
+	for _, c := range []struct {
+		testName           string
+		syncPolicy         *argoprojiov1alpha1.ApplicationSetSyncPolicy
+		existingFinalizers []string
+		expectedFinalizers []string
+	}{
+		{
+			testName:           "existing finalizer should be preserved",
+			existingFinalizers: []string{"existing-finalizer"},
+			syncPolicy:         nil,
+			expectedFinalizers: []string{"existing-finalizer"},
+		},
+		{
+			testName:           "background finalizer should be preserved",
+			existingFinalizers: []string{"resources-finalizer.argocd.argoproj.io/background"},
+			syncPolicy:         nil,
+			expectedFinalizers: []string{"resources-finalizer.argocd.argoproj.io/background"},
+		},
+
+		{
+			testName:           "empty finalizer and empty sync should use standard finalizer",
+			existingFinalizers: nil,
+			syncPolicy:         nil,
+			expectedFinalizers: []string{"resources-finalizer.argocd.argoproj.io"},
+		},
+
+		{
+			testName:           "standard finalizer should be preserved",
+			existingFinalizers: []string{"resources-finalizer.argocd.argoproj.io"},
+			syncPolicy:         nil,
+			expectedFinalizers: []string{"resources-finalizer.argocd.argoproj.io"},
+		},
+		{
+			testName:           "empty array finalizers should use standard finalizer",
+			existingFinalizers: []string{},
+			syncPolicy:         nil,
+			expectedFinalizers: []string{"resources-finalizer.argocd.argoproj.io"},
+		},
+		{
+			testName:           "non-nil sync policy should use standard finalizer",
+			existingFinalizers: nil,
+			syncPolicy:         &argoprojiov1alpha1.ApplicationSetSyncPolicy{},
+			expectedFinalizers: []string{"resources-finalizer.argocd.argoproj.io"},
+		},
+		{
+			testName:           "preserveResourcesOnDeletion should not have a finalizer",
+			existingFinalizers: nil,
+			syncPolicy: &argoprojiov1alpha1.ApplicationSetSyncPolicy{
+				PreserveResourcesOnDeletion: true,
+			},
+			expectedFinalizers: nil,
+		},
+		{
+			testName:           "user-specified finalizer should overwrite preserveResourcesOnDeletion",
+			existingFinalizers: []string{"resources-finalizer.argocd.argoproj.io/background"},
+			syncPolicy: &argoprojiov1alpha1.ApplicationSetSyncPolicy{
+				PreserveResourcesOnDeletion: true,
+			},
+			expectedFinalizers: []string{"resources-finalizer.argocd.argoproj.io/background"},
+		},
+	} {
+
+		t.Run(c.testName, func(t *testing.T) {
+
+			// Clone the template application
+			application := emptyApplication.DeepCopy()
+			application.Finalizers = c.existingFinalizers
+
+			params := map[string]string{
+				"one": "two",
+			}
+
+			// Render the cloned application, into a new application
+			render := Render{}
+
+			res, err := render.RenderTemplateParams(application, c.syncPolicy, params)
+			assert.Nil(t, err)
+
+			assert.ElementsMatch(t, res.Finalizers, c.expectedFinalizers)
+
+		})
+
+	}
+
+}
+
 func TestCheckInvalidGenerators(t *testing.T) {
 
 	scheme := runtime.NewScheme()
