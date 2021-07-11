@@ -7,6 +7,7 @@ import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 func TestMatrixGenerate(t *testing.T) {
@@ -18,12 +19,7 @@ func TestMatrixGenerate(t *testing.T) {
 	}
 
 	listGenerator := &argoprojiov1alpha1.ListGenerator{
-		Elements: []argoprojiov1alpha1.ListGeneratorElement{
-			{
-				Cluster: "Cluster",
-				Url:     "Url",
-			},
-		},
+		Elements: []apiextensionsv1.JSON{{Raw: []byte(`{"cluster": "Cluster","url": "Url"}`)}},
 	}
 
 	testCases := []struct {
@@ -162,12 +158,7 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 	}
 
 	listGenerator := &argoprojiov1alpha1.ListGenerator{
-		Elements: []argoprojiov1alpha1.ListGeneratorElement{
-			{
-				Cluster: "Cluster",
-				Url:     "Url",
-			},
-		},
+		Elements: []apiextensionsv1.JSON{{Raw: []byte(`{"cluster": "Cluster","url": "Url"}`)}},
 	}
 
 	testCases := []struct {
