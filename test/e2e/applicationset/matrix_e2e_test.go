@@ -82,7 +82,7 @@ func TestListMatrixGenerator(t *testing.T) {
 									List: &v1alpha1.ListGenerator{
 										Elements: []apiextensionsv1.JSON{
 											{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster1"}}`)},
-											{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster1"}}`)},
+											{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster2"}}`)},
 										},
 									},
 								},
