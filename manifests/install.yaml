@@ -1145,21 +1145,7 @@ spec:
                       properties:
                         elements:
                           items:
-                            description: ListGeneratorElement include cluster and url info
-                            properties:
-                              cluster:
-                                type: string
-                              url:
-                                type: string
-                              values:
-                                additionalProperties:
-                                  type: string
-                                description: Values contains key/value pairs which are passed directly as parameters to the template
-                                type: object
-                            required:
-                            - cluster
-                            - url
-                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
                           type: array
                         template:
                           description: ApplicationSetTemplate represents argocd ApplicationSpec
@@ -2605,21 +2591,7 @@ spec:
                                 properties:
                                   elements:
                                     items:
-                                      description: ListGeneratorElement include cluster and url info
-                                      properties:
-                                        cluster:
-                                          type: string
-                                        url:
-                                          type: string
-                                        values:
-                                          additionalProperties:
-                                            type: string
-                                          description: Values contains key/value pairs which are passed directly as parameters to the template
-                                          type: object
-                                      required:
-                                      - cluster
-                                      - url
-                                      type: object
+                                      x-kubernetes-preserve-unknown-fields: true
                                     type: array
                                   template:
                                     description: ApplicationSetTemplate represents argocd ApplicationSpec

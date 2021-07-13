@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -91,7 +92,7 @@ type ApplicationSetBaseGenerator struct {
 
 // ListGenerator include items info
 type ListGenerator struct {
-	Elements []ListGeneratorElement `json:"elements"`
+	Elements []apiextensionsv1.JSON `json:"elements"`
 	Template ApplicationSetTemplate `json:"template,omitempty"`
 }
 
@@ -99,14 +100,6 @@ type ListGenerator struct {
 type MatrixGenerator struct {
 	Generators []ApplicationSetBaseGenerator `json:"generators"`
 	Template   ApplicationSetTemplate        `json:"template,omitempty"`
-}
-
-// ListGeneratorElement include cluster and url info
-type ListGeneratorElement struct {
-	Cluster string `json:"cluster"`
-	Url     string `json:"url"`
-	// Values contains key/value pairs which are passed directly as parameters to the template
-	Values map[string]string `json:"values,omitempty"`
 }
 
 // ClusterGenerator defines a generator to match against clusters registered with ArgoCD.

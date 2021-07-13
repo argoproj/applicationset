@@ -4,24 +4,21 @@ import (
 	"testing"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-
 	"github.com/stretchr/testify/assert"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 func TestGenerateListParams(t *testing.T) {
 	testCases := []struct {
-		elements []argoprojiov1alpha1.ListGeneratorElement
+		elements []apiextensionsv1.JSON
 		expected []map[string]string
 	}{
 		{
-			elements: []argoprojiov1alpha1.ListGeneratorElement{{Cluster: "cluster", Url: "url", Values: map[string]string{}}}, expected: []map[string]string{{
-				"cluster": "cluster", "url": "url"},
-			},
-		},
-		{
-			elements: []argoprojiov1alpha1.ListGeneratorElement{{Cluster: "cluster", Url: "url", Values: map[string]string{"foo": "bar"}}}, expected: []map[string]string{{
-				"cluster": "cluster", "url": "url", "values.foo": "bar",
-			}},
+			elements: []apiextensionsv1.JSON{{Raw: []byte(`{"cluster": "cluster","url": "url"}`)}},
+			expected: []map[string]string{{"cluster": "cluster", "url": "url"}},
+		}, {
+			elements: []apiextensionsv1.JSON{{Raw: []byte(`{"cluster": "cluster","url": "url","values":{"foo":"bar"}}`)}},
+			expected: []map[string]string{{"cluster": "cluster", "url": "url", "values.foo": "bar"}},
 		},
 	}
 

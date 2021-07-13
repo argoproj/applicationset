@@ -1,11 +1,11 @@
 package generators
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/utils"
 )
 
 var _ Generator = (*ListGenerator)(nil)
@@ -38,12 +38,35 @@ func (g *ListGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appli
 	res := make([]map[string]string, len(appSetGenerator.List.Elements))
 
 	for i, tmpItem := range appSetGenerator.List.Elements {
-		params := make(map[string]string, 2+len(tmpItem.Values))
-		params[utils.ClusterListGeneratorKeyName] = tmpItem.Cluster
-		params[utils.UrlGeneratorKeyName] = tmpItem.Url
-		for key, value := range tmpItem.Values {
-			params[fmt.Sprintf("values.%s", key)] = value
+		params := map[string]string{}
+		var element map[string]interface{}
+		err := json.Unmarshal(tmpItem.Raw, &element)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshling list element %v", err)
 		}
+
+		for key, value := range element {
+			if key == "values" {
+				values, ok := (value).(map[string]interface{})
+				if !ok {
+					return nil, fmt.Errorf("error parsing values map")
+				}
+				for k, v := range values {
+					value, ok := v.(string)
+					if !ok {
+						return nil, fmt.Errorf("error parsing value as string %v", err)
+					}
+					params[fmt.Sprintf("values.%s", k)] = value
+				}
+			} else {
+				v, ok := value.(string)
+				if !ok {
+					return nil, fmt.Errorf("error parsing value as string %v", err)
+				}
+				params[key] = v
+			}
+		}
+
 		res[i] = params
 	}
 

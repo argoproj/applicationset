@@ -8,6 +8,7 @@ import (
 	. "github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets"
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -79,9 +80,9 @@ func TestListMatrixGenerator(t *testing.T) {
 							Generators: []v1alpha1.ApplicationSetBaseGenerator{
 								{
 									List: &v1alpha1.ListGenerator{
-										Elements: []v1alpha1.ListGeneratorElement{
-											{Cluster: "my-cluster", Url: "https://kubernetes.default.svc", Values: map[string]string{"name": "cluster1"}},
-											{Cluster: "my-cluster", Url: "https://kubernetes.default.svc", Values: map[string]string{"name": "cluster2"}},
+										Elements: []apiextensionsv1.JSON{
+											{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster1"}}`)},
+											{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster2"}}`)},
 										},
 									},
 								},

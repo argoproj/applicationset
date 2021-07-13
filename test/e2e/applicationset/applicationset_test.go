@@ -10,6 +10,7 @@ import (
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -65,9 +66,9 @@ func TestSimpleListGenerator(t *testing.T) {
 			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
 					List: &v1alpha1.ListGenerator{
-						Elements: []v1alpha1.ListGeneratorElement{
-							{Cluster: "my-cluster", Url: "https://kubernetes.default.svc"},
-						},
+						Elements: []apiextensionsv1.JSON{{
+							Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
+						}},
 					},
 				},
 			},
@@ -494,9 +495,9 @@ func TestCustomApplicationFinalizers(t *testing.T) {
 			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
 					List: &v1alpha1.ListGenerator{
-						Elements: []v1alpha1.ListGeneratorElement{
-							{Cluster: "my-cluster", Url: "https://kubernetes.default.svc"},
-						},
+						Elements: []apiextensionsv1.JSON{{
+							Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
+						}},
 					},
 				},
 			},
