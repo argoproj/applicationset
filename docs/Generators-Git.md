@@ -18,7 +18,7 @@ Suppose you have a Git repository with the following directory structure:
     └── values.yaml
 ```
 
-This reposistory contains two directories, one for each of the workloads to deploy:
+This repository contains two directories, one for each of the workloads to deploy:
 
 - an Argo Workflow controller kustomization YAML file
 - a Prometheus Operator Helm chart
