@@ -19,7 +19,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
 	crtclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -27,6 +29,7 @@ import (
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/fake"
 	dbmocks "github.com/argoproj/argo-cd/v2/util/db/mocks"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 )
 
@@ -1789,4 +1792,62 @@ func TestValidateGeneratedApplications(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReconcilerValidationErrorBehaviour(t *testing.T) {
+
+	scheme := runtime.NewScheme()
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	appSet := argoprojiov1alpha1.ApplicationSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "name",
+			Namespace: "argocd",
+		},
+		Spec: argoprojiov1alpha1.ApplicationSetSpec{
+			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+				{List: &argoprojiov1alpha1.ListGenerator{
+					Elements: []apiextensionsv1.JSON{{
+						Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
+					}},
+				}},
+			},
+			Template: argoprojiov1alpha1.ApplicationSetTemplate{},
+		},
+	}
+	kubeclientset := kubefake.NewSimpleClientset([]runtime.Object{}...)
+	argoDBMock := dbmocks.ArgoDB{}
+	argoObjs := []runtime.Object{}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&appSet).Build()
+
+	r := ApplicationSetReconciler{
+		Log:      ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
+		Client:   client,
+		Scheme:   scheme,
+		Renderer: &utils.Render{},
+		Recorder: record.NewFakeRecorder(1),
+		Generators: map[string]generators.Generator{
+			"List": generators.NewListGenerator(),
+		},
+		ArgoDB:           &argoDBMock,
+		ArgoAppClientset: appclientset.NewSimpleClientset(argoObjs...),
+		KubeClientset:    kubeclientset,
+	}
+
+	req := ctrl.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: "argocd",
+			Name:      "name",
+		},
+	}
+
+	// Verify that on validation error, no error is returned, but the object is requeued
+	res, err := r.Reconcile(context.Background(), req)
+	assert.Nil(t, err)
+	assert.True(t, res.RequeueAfter > 0)
+
 }

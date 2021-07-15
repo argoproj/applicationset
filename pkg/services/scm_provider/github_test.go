@@ -11,7 +11,9 @@ import (
 
 func checkRateLimit(t *testing.T, err error) {
 	// Check if we've hit a rate limit, don't fail the test if so.
-	if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
+	if err != nil && (strings.Contains(err.Error(), "rate limit exceeded") ||
+		(strings.Contains(err.Error(), "API rate limit") && strings.Contains(err.Error(), "still exceeded"))) {
+
 		allowRateLimitErrors := os.Getenv("CI") == ""
 		t.Logf("Got a rate limit error, consider setting $GITHUB_TOKEN to increase your GitHub API rate limit: %v\n", err)
 		if allowRateLimitErrors {

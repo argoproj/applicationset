@@ -49,7 +49,8 @@ const (
 	// Rather than importing the whole argocd-notifications controller, just copying the const here
 	//   https://github.com/argoproj-labs/argocd-notifications/blob/33d345fa838829bb50fca5c08523aba380d2c12b/pkg/controller/subscriptions.go#L12
 	//   https://github.com/argoproj-labs/argocd-notifications/blob/33d345fa838829bb50fca5c08523aba380d2c12b/pkg/controller/state.go#L17
-	NotifiedAnnotationKey = "notified.notifications.argoproj.io"
+	NotifiedAnnotationKey             = "notified.notifications.argoproj.io"
+	ReconcileRequeueOnValidationError = time.Minute * 3
 )
 
 // ApplicationSetReconciler reconciles a ApplicationSet object
@@ -96,19 +97,15 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	if validateError := r.validateGeneratedApplications(ctx, desiredApplications, applicationSetInfo, req.Namespace); validateError != nil {
-		// The reconciler presumes that any errors that are returned are a signal
-		// that the resource should attempt to be reconciled again (causing
-		// Reconcile to be called again, which will return the same error, ad
-		// infinitum until we are exponentially backed off).
+		// While some generators may return an error that requires user intervention,
+		// other generators reference external resources that may change to cause
+		// the error to no longer occur. We thus log the error and requeue
+		// with a timeout to give this another shot at a later time.
 		//
-		// In this case, since we know that what the user provided is incorrect
-		// (we successfully generated and templated their ApplicationSet, but the
-		// result of that was bad), no matter how many times we try to do so it
-		// will fail. So just log it and return that the resource was
-		// successfully reconciled (which is true... it was reconciled to an
-		// error condition).
-		log.Errorf("%s", validateError.Error())
-		return ctrl.Result{}, nil
+		// Changes to watched resources will cause this to be reconciled sooner than
+		// the RequeueAfter time.
+		log.Errorf("error occurred during application generation: %s", validateError.Error())
+		return ctrl.Result{RequeueAfter: ReconcileRequeueOnValidationError}, nil
 	}
 
 	if r.Policy.Update() {
