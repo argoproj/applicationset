@@ -15,6 +15,9 @@ The end result is that when an ApplicationSet is deleted, the following occurs (
 
 Thus the lifecycle of the `ApplicationSet`, the `Application`, and the `Application`'s resources, are equivalent.
 
+!!! note
+    See also the [controlling resource modification](Controlling-Resource-Modification.md) page for more information about how to prevent deletion or modification of Application resources by the ApplicationSet controller.
+
 It *is* still possible to delete an `ApplicationSet` resource, while preventing `Application`s (and their deployed resources) from also being deleted, using a non-cascading delete:
 ```
 kubectl delete ApplicationSet (NAME) --cascade=false

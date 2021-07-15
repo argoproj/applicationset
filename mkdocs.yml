@@ -35,6 +35,7 @@ nav:
     - Generators-SCM-Provider.md
     - Generators-Cluster-Decision-Resource.md
   - Template fields: Template.md
+  - Controlling Resource Modification: Controlling-Resource-Modification.md
   - Application Pruning & Resource Deletion: Application-Deletion.md
   - Developer Guide:
     - Building and Running the Controller: Development.md
