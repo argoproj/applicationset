@@ -25,7 +25,7 @@ To allow the ApplicationSet controller to *create* `Application` resources, but 
 --policy create-only
 ```
 
-### Policy - `create-update`: Prevent Application from deleting Applications
+### Policy - `create-update`: Prevent ApplicationSet controller from deleting Applications
 
 To allow the ApplicationSet controller to create or modify `Application` resources, but prevent Applications from being deleted, add the following parameter to the ApplicationSet controller `Deployment`:
 ```
@@ -84,9 +84,7 @@ spec:
       - command:
         - applicationset-controller
         # Insert new parameters here, for example:
-        # -policy create-only
-        - --argocd-repo-server 
-        - openshift-gitops-repo-server.openshift-gitops.svc.cluster.local:8081
+        # --policy create-only
     # (...)
 ```
 
@@ -123,13 +121,13 @@ There is currently no way to restrict modification/deletion of the Applications 
 
 ### Limitation: No support for manual edits to individual Applications
 
-There is currently no way to restrict modification of a single child Application of an ApplicationSet, for example, if you wanted to make manual edits to a single Application for debugging/testing purposes.
+There is currently no way to allow modification of a single child Application of an ApplicationSet, for example, if you wanted to make manual edits to a single Application for debugging/testing purposes.
 
 For example:
 
 - Imagine that you have an ApplicationSet that created Applications `app1`, `app2`, and `app3`.
-- You now want edit `app3` with `kubectl edit application/app3`, to update one of the `app3`'s fields.
-- However, as soon as you make edits to `app3`  (or any of the individual Applications), they will be immediately reverted by the ApplicationSet reconciler back to the `template`-ized version (by design).
+- You now want to edit `app3` with `kubectl edit application/app3`, to update one of the `app3`'s fields.
+- However, as soon as you make edits to `app3` (or any of the individual Applications), they will be immediately reverted by the ApplicationSet reconciler back to the `template`-ized version (by design).
 
 As of this writing, there is [an issue open](https://github.com/argoproj-labs/applicationset/issues/186) for discussion of this behaviour.
 
@@ -138,7 +136,7 @@ As of this writing, there is [an issue open](https://github.com/argoproj-labs/ap
 
 There is currently no way to instruct the ApplicationSet controller to ignore changes to individual fields of Applications.
 
-For example, imagine that we have an Application created from an ApplicationSet, but a user has attempted to add a custom annotation that does not exist in the `ApplicationSet`:
+For example, imagine that we have an Application created from an ApplicationSet, but a user has attempted to add a custom annotation (to the Application) that does not exist in the `ApplicationSet` resource:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
