@@ -92,7 +92,7 @@ Save and exit the editor. Wait for a new `Pod` to start containing the updated p
 
 ### Or, B) Edit the `install.yaml` manifest for the ApplicationSet installation
 
-Rather than directly editting the cluster resource, you may instead choose to modify the installation YAML that is used to install the ApplicationSet controller:
+Rather than directly editing the cluster resource, you may instead choose to modify the installation YAML that is used to install the ApplicationSet controller:
 
 ```bash
 # Clone the repository
