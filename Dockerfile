@@ -12,15 +12,19 @@ RUN go mod download
 
 # Copy the go source
 COPY . .
+
+RUN rm -f ./bin/*
+
 # Build
 RUN make build
 
-FROM ubuntu:20.10
+FROM docker.io/library/ubuntu:21.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get upgrade -y && \
-  apt-get install -y git-all git-lfs gpg && \
-  rm -r /var/lib/apt/lists /var/cache/apt/archives
+RUN apt-get update && apt-get dist-upgrade -y && \
+  apt-get install -y git git-lfs gpg && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists /var/cache/apt/archives /tmp/* /var/tmp/*
 
 # Add Argo CD helper scripts that are required by 'github.com/argoproj/argo-cd/util/git' package
 COPY hack/from-argo-cd/git-ask-pass.sh /usr/local/bin/git-ask-pass.sh
