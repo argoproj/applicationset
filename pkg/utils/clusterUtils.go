@@ -34,7 +34,7 @@ import (
 var (
 	localCluster = appv1.Cluster{
 		Name:            "in-cluster",
-		Server:          common.KubernetesInternalAPIServerAddr,
+		Server:          appv1.KubernetesInternalAPIServerAddr,
 		ConnectionState: appv1.ConnectionState{Status: appv1.ConnectionStatusSuccessful},
 	}
 	initLocalCluster sync.Once
@@ -66,7 +66,7 @@ func ListClusters(ctx context.Context, clientset kubernetes.Interface, namespace
 	for i, clusterSecret := range clusterSecrets {
 		cluster := *secretToCluster(&clusterSecret)
 		clusterList.Items[i] = cluster
-		if cluster.Server == common.KubernetesInternalAPIServerAddr {
+		if cluster.Server == appv1.KubernetesInternalAPIServerAddr {
 			hasInClusterCredentials = true
 		}
 	}
@@ -115,7 +115,7 @@ func secretToCluster(s *corev1.Secret) *appv1.Cluster {
 		}
 	}
 	var refreshRequestedAt *metav1.Time
-	if v, found := s.Annotations[common.AnnotationKeyRefresh]; found {
+	if v, found := s.Annotations[appv1.AnnotationKeyRefresh]; found {
 		requestedAt, err := time.Parse(time.RFC3339, v)
 		if err != nil {
 			log.Warnf("Error while parsing date in cluster secret '%s': %v", s.Name, err)

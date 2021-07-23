@@ -3,29 +3,23 @@ module github.com/argoproj-labs/applicationset
 go 1.16
 
 require (
-	github.com/argoproj/argo-cd/v2 v2.0.3
-	github.com/argoproj/gitops-engine v0.3.2
-	github.com/argoproj/pkg v0.2.0
+	github.com/argoproj/argo-cd/v2 v2.0.0-20210723045424-f66a38875b49
+	github.com/argoproj/gitops-engine v0.3.1-0.20210709004906-a4c77d5c70fb
+	github.com/argoproj/pkg v0.9.1
 	github.com/go-logr/logr v0.4.0
-	github.com/golang/mock v1.5.0 // indirect
 	github.com/google/go-github/v35 v35.0.0
 	github.com/imdario/mergo v0.3.12
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.1.3 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/valyala/fasttemplate v1.2.1
 	github.com/xanzy/go-gitlab v0.50.0
-	golang.org/x/oauth2 v0.0.0-20210413134643-5e61552d6c78
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
 	k8s.io/api v0.21.1
 	k8s.io/apiextensions-apiserver v0.21.1
 	k8s.io/apimachinery v0.21.1
 	k8s.io/client-go v11.0.1-0.20190816222228-6d55c1b1f1ca+incompatible
-	k8s.io/kube-aggregator v0.21.0 // indirect
-	k8s.io/kubectl v0.21.0 // indirect
-	k8s.io/kubernetes v1.21.0 // indirect
 	k8s.io/utils v0.0.0-20210527160623-6fdb442a123b
 	sigs.k8s.io/controller-runtime v0.9.0
 	sigs.k8s.io/yaml v1.2.0

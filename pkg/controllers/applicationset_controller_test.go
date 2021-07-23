@@ -11,7 +11,6 @@ import (
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
-	"github.com/argoproj/argo-cd/v2/common"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -866,7 +865,7 @@ func TestRemoveFinalizerOnInvalidDestination_FinalizerTypes(t *testing.T) {
 		},
 		{
 			name:               "contains only argo finalizer",
-			existingFinalizers: []string{common.ResourcesFinalizerName},
+			existingFinalizers: []string{argov1alpha1.ResourcesFinalizerName},
 			expectedFinalizers: nil,
 		},
 		{
@@ -876,7 +875,7 @@ func TestRemoveFinalizerOnInvalidDestination_FinalizerTypes(t *testing.T) {
 		},
 		{
 			name:               "contains both argo and non-argo finalizer",
-			existingFinalizers: []string{"non-argo-finalizer", common.ResourcesFinalizerName},
+			existingFinalizers: []string{"non-argo-finalizer", argov1alpha1.ResourcesFinalizerName},
 			expectedFinalizers: []string{"non-argo-finalizer"},
 		},
 	} {
@@ -1059,7 +1058,7 @@ func TestRemoveFinalizerOnInvalidDestination_DestinationTypes(t *testing.T) {
 			app := argov1alpha1.Application{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       "app1",
-					Finalizers: []string{common.ResourcesFinalizerName},
+					Finalizers: []string{argov1alpha1.ResourcesFinalizerName},
 				},
 				Spec: argov1alpha1.ApplicationSpec{
 					Project:     "project",
