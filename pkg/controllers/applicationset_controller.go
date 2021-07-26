@@ -21,7 +21,6 @@ import (
 
 	"github.com/argoproj-labs/applicationset/pkg/generators"
 	"github.com/argoproj-labs/applicationset/pkg/utils"
-	"github.com/argoproj/argo-cd/v2/common"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/util/db"
 	"github.com/go-logr/logr"
@@ -483,7 +482,7 @@ func (r *ApplicationSetReconciler) removeFinalizerOnInvalidDestination(ctx conte
 		// Filter out the Argo CD finalizer from the finalizer list
 		var newFinalizers []string
 		for _, existingFinalizer := range app.Finalizers {
-			if existingFinalizer != common.ResourcesFinalizerName { // only remove this one
+			if existingFinalizer != argov1alpha1.ResourcesFinalizerName { // only remove this one
 				newFinalizers = append(newFinalizers, existingFinalizer)
 			}
 		}
