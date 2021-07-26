@@ -218,3 +218,8 @@ spec:
 Any `config.json` files found under the `cluster-config` directory will be parameterized based on the `path` wildcard pattern specified. Within each file JSON fields are flattened into key/value pairs, with this ApplicationSet example using the `cluster.address` as `cluster.name` parameters in the template.
 
 As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
+
+In addition to the flattened key/value pairs from the configuration file, the following generator parameters are provided:
+
+- `{{path}}`: The path to the matching configuration file within the Git repository. Example: `/cluster-config/staging/config.json`
+- `{{path.basename}}`: The filename of the configuration file. Example: `config.json`

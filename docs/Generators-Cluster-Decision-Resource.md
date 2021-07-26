@@ -9,18 +9,20 @@ metadata:
 spec:
  generators:
  - clusterDecisionResource:
-    configMapRef: my-configmap  # ConfigMap with GVK information for the duck type resource
-    name: quak                  # Choose either "name" of the resource or "labelSelector"
+    # ConfigMap with GVK information for the duck type resource
+    configMapRef: my-configmap  
+    name: quak           # Choose either "name" of the resource or "labelSelector"
     labelSelector:
-      matchLabels:              # OPTIONAL
+      matchLabels:       # OPTIONAL
         duck: spotted
-      matchExpression:          # OPTIONAL
+      matchExpression:   # OPTIONAL
       - key: duck
         operator: In
         values:
         - "spotted"
         - "canvasback"   
-    requeueAfterSeconds: 60     # OPTIONAL: Checks for changes every 60sec (default 3min)
+    # OPTIONAL: Checks for changes every 60sec (default 3min)
+    requeueAfterSeconds: 60
  template:
    metadata:
      name: '{{name}}-guestbook'
@@ -42,7 +44,9 @@ metadata:
   name: quak
 spec: {}
 status:
-  decisions:     # Duck-typing ignores all other aspects of the resource except the "decisions" list
+  # Duck-typing ignores all other aspects of the resource except 
+  # the "decisions" list
+  decisions:
   - clusterName: cluster-01
   - clusterName: cluster-02
 ```
@@ -53,10 +57,14 @@ kind: ConfigMap
 metadata:
   name: my-configmap
 data:
-  apiVersion: mallard.io/v1beta1  # apiVersion of the target resource
-  kind: ducks                     # kind of the target resource
-  statusListKey: decisions        # status key name that holds the list of Argo CD clusters
-  matchKey: clusterName           # The key in the status list whose value is the cluster name found in Argo CD
+  # apiVersion of the target resource
+  apiVersion: mallard.io/v1beta1  
+  # kind of the target resource
+  kind: ducks
+  # status key name that holds the list of Argo CD clusters
+  statusListKey: decisions
+  # The key in the status list whose value is the cluster name found in Argo CD
+  matchKey: clusterName
 ```
 
 (*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/clusterDecisionResource).*)

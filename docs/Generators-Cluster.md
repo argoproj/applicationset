@@ -110,3 +110,45 @@ However, if you do wish to target both local and non-local clusters, while also 
 5. Click *Save*.
 
 These steps might seem counterintuitive, but the act of changing one of the default values for the local cluster causes the Argo CD Web UI to create a new secret for this cluster. In the Argo CD namespace, you should now see a Secret resource named `cluster-(cluster suffix)` with label `argocd.argoproj.io/secret-type": "cluster"`. You may also create a local [cluster secret declaratively](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters), or with the CLI using `argocd cluster add "(context name)" --in-cluster`, rather than through the Web UI.
+
+### Pass additional key-value pairs via `values` field
+
+You may pass additional, arbitrary string key-value pairs via the `values` field of the cluster generator. Values added via the `values` field are added as `values.(field)`
+
+In this example, a `revision` parameter value is passed, based on matching labels on the cluster secret:
+```yaml
+spec:
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          type: 'staging'
+      # A key-value map for arbitrary parameters
+      values: 
+        revision: HEAD # staging clusters use HEAD branch
+  - clusters:
+      selector:
+        matchLabels:
+          type: 'production'
+      values: 
+        # production uses a different revision value, for 'stable' branch
+        revision: stable
+  template:
+    metadata:
+      name: '{{name}}-guestbook'
+    spec:
+      project: "default"
+      source:
+        repoURL: https://github.com/argoproj/argocd-example-apps/
+        # The cluster values field for each generator will be substituted here:
+        targetRevision: '{{values.revision}}'
+        path: guestbook
+      destination:
+        server: '{{server}}'
+        namespace: guestbook        
+```
+
+In this example the `revision` value from the `generators.clusters` fields is passed into the template as `values.revision`, containing either `HEAD` or `stable` (based on which generator generated the set of parameters). 
+
+!!! note
+    The `values.` prefix is always prepended to values provided via `generators.clusters.values` field. Ensure you include this prefix in the parameter name within the `template` when using it.

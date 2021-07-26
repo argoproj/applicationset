@@ -60,8 +60,8 @@ How it works:
 - [Documentation for the `master`-branch-based developer builds](https://argocd-applicationset.readthedocs.io/en/master/)  is available from Read the Docs.
 
 !!! warning
+    Development builds contain newer features and bug fixes, but are more likely to be unstable, as compared to release drivers.
 
-Development builds contain newer features and bug fixes, but are more likely to be unstable, as compared to release drivers.
 See the `master` branch [Read the Docs](https://argocd-applicationset.readthedocs.io/en/master/) page for documentation on post-release features.
 
 
@@ -69,7 +69,28 @@ See the `master` branch [Read the Docs](https://argocd-applicationset.readthedoc
 
 To extend or customize the ApplicationSet controller installation, [Kustomize](https://kustomize.io/) may be used with the existing namespace install [manifests/namespace-install/kustomize.yaml](https://github.com/argoproj-labs/applicationset/blob/master/manifests/namespace-install/kustomization.yaml) file.
 
+## Upgrading to a Newer Release
 
+To upgrade from an older release (eg 0.1.0) to a newer release (eg 0.2.0), you only need to `kubectl apply` the `install.yaml` for the new release, as described under *Installation* above.
+
+There are no manual upgrade steps required between any release of ApplicationSet controller, including 0.1.0 and 0.2.0, as of this writing.
+
+!!! note 
+    If you installed using the combined 'ApplicationSet and Argo CD' bundle, you may wish to consult the [Argo CD release upgrade docs](https://argoproj.github.io/argo-cd/operator-manual/upgrading/overview/) as well, to familiarize yourself with Argo CD upgrades, and to confirm if there is anything on the Argo CD side you need to be aware of.
+
+### Optional: Additional Post-Upgrade Safeguards
+
+See the [Controlling Resource Modification](Controlling-Resource-Modification.md) page for information on additional parameters you may wish to add to the ApplicationSet `install.yaml`, to provide extra security against any initial, unexpected post-upgrade behaviour. 
+
+For instance, to temporarily prevent the upgraded ApplicationSet controller from making any changes, you could:
+- Enable dry-run
+- Use a create-only policy
+- Enable `preserveResourcesOnDeletion` on your ApplicationSets
+- Temporarily disable automated sync in your ApplicationSets' template
+
+These parameters would allow you to observe/control the behaviour of the new version of the ApplicationSet controller in your environment, to ensure you are happy with the result (see the ApplicationSet log file for details). Just don't forget to remove any temporary changes when you are done testing!
+
+However, as mentioned above, these steps are not strictly necessary: upgrading the ApplicationSet controller should be a minimally invasive process, and these are only suggested as an optional precaution for extra safety.
 
 ## Next Steps
 
