@@ -23,7 +23,7 @@ And our application YAMLs are defined in a Git repository:
 - Argo Workflows controller (examples/git-generator-directory/cluster-addons/argo-workflows)
 - Prometheus operator (/examples/git-generator-directory/cluster-addons/prometheus-operator)
 
-Our goal is to deploy both application onto both clusters, and, more generally, in the future to automatically deploy new applications in the Git repository, and to new clusters defined within Argo CD, as well.
+Our goal is to deploy both applications onto both clusters, and, more generally, in the future to automatically deploy new applications in the Git repository, and to new clusters defined within Argo CD, as well.
 
 For this we will use the Matrix generator, with the Git and the Cluster as child generators:
 
@@ -114,7 +114,7 @@ Finally, the Matrix generator will combine both sets of outputs, and produce:
      - list: # (...)
        git: # (...)
 ```
-    - While this *will* be accepted by Kubernetes API validation, the controller will report an error on generation. Each generator should be specified in a separate array element, in the examples above.
+    - While this *will* be accepted by Kubernetes API validation, the controller will report an error on generation. Each generator should be specified in a separate array element, as in the examples above.
 3. The Matrix generator does not currently support [`template` overrides](Template.md#generator-templates) specified on child generators, eg this `template` will not be processed:
 ```yaml
 - matrix:
