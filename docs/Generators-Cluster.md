@@ -52,6 +52,23 @@ spec:
 
 In this example, the cluster secret's `name` and `server` fields are used to populate the `Application` resource `name` and `server` (which are then used to target that same cluster).
 
+### Name list
+
+Specifying a list of cluster names will retrieve the relevant parameters for each one for use in the template. Compared to the list generator, this can save having to provide server URLs, while retrieving additional labels and annotations for use in the template.
+```yaml
+kind: ApplicationSet
+metadata:
+  name: guestbook
+spec:
+  generators:
+  - clusters:
+      names:
+      - cluster1
+      - cluster2
+  template:
+  # (...)
+```
+
 ### Label selector
 
 A label selector may be used to narrow the scope of targeted clusters to only those matching a specific label:
@@ -82,6 +99,8 @@ metadata:
 ```
 
 The cluster selector also supports set-based requirements, as used by [several core Kubernetes resources](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#resources-that-support-set-based-requirements).
+
+Only one of the name list and label selector should be specified. If both are provided, the name list will be ignored.
 
 ### Deploying to the local cluster
 
