@@ -147,7 +147,7 @@ func (g *ClusterGenerator) getSecretsByClusterName(appSetGenerator *argoprojiov1
 		return nil, err
 	}
 
-	if err := g.Client.List(context.Background(), clusterSecretList, client.MatchingLabelsSelector{Selector: secretSelector}); err != nil {
+	if err := g.Client.List(g.ctx, clusterSecretList, client.MatchingLabelsSelector{Selector: secretSelector}); err != nil {
 		return nil, err
 	}
 	log.Debug("clusters matching labels", "count", len(clusterSecretList.Items))
