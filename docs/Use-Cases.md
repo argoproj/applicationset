@@ -89,4 +89,4 @@ spec:
         name: production-cluster # cluster is restricted
         namespace: dev-team-one # namespace is restricted
 ```
-See the Git generator section for more details.
+See the [Git generator](Generators-Git.md) for more details.
