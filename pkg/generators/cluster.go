@@ -83,7 +83,7 @@ func (g *ClusterGenerator) GenerateParams(
 		return nil, nil
 	}
 
-	clusterSecrets, err := g.getSecretsByClusterName(appSetGenerator)
+	clusterSecrets, err := g.findClusterSecrets(&appSetGenerator.Clusters.Selector)
 	if err != nil {
 		return nil, err
 	}
@@ -137,16 +137,16 @@ func (g *ClusterGenerator) GenerateParams(
 	return res, nil
 }
 
-func (g *ClusterGenerator) getSecretsByClusterName(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) (map[string]corev1.Secret, error) {
-	// List all Clusters:
-	clusterSecretList := &corev1.SecretList{}
-
-	selector := metav1.AddLabelToSelector(&appSetGenerator.Clusters.Selector, ArgoCDSecretTypeLabel, ArgoCDSecretTypeCluster)
+// findClusterSecrets returns all cluster secret objects matching the provided
+// filter, keyed by cluster name.
+func (g *ClusterGenerator) findClusterSecrets(selector *metav1.LabelSelector) (map[string]corev1.Secret, error) {
+	selector = metav1.AddLabelToSelector(selector, ArgoCDSecretTypeLabel, ArgoCDSecretTypeCluster)
 	secretSelector, err := metav1.LabelSelectorAsSelector(selector)
 	if err != nil {
 		return nil, err
 	}
 
+	clusterSecretList := &corev1.SecretList{}
 	if err := g.Client.List(g.ctx, clusterSecretList, client.MatchingLabelsSelector{Selector: secretSelector}); err != nil {
 		return nil, err
 	}
