@@ -80,6 +80,8 @@ func (g *ClusterGenerator) GenerateParams(
 	return paramsSet, nil
 }
 
+// clusterParams finds the relevant clusters and generates parameters for each
+// one, solely from information held in Argo. Values are ignored at this stage.
 func (g *ClusterGenerator) clusterParams(config *argoappsetv1alpha1.ClusterGenerator) ([]map[string]string, error) {
 	// If no selector was specified, this will yield all cluster secrets. The
 	// local cluster will be included if and only if it has a secret.
@@ -90,8 +92,8 @@ func (g *ClusterGenerator) clusterParams(config *argoappsetv1alpha1.ClusterGener
 
 	paramsSet := []map[string]string{}
 
-	// If a selector was specified, we generate params for any matching cluster,
-	// which may include the local cluster if it has a secret.
+	// If a selector was specified, we just selected the relevant secrets, so
+	// generate params for each match.
 	if len(config.Selector.MatchExpressions) > 0 ||
 		len(config.Selector.MatchLabels) > 0 {
 		for _, secret := range clusterSecrets {
@@ -100,7 +102,6 @@ func (g *ClusterGenerator) clusterParams(config *argoappsetv1alpha1.ClusterGener
 		return paramsSet, nil
 	}
 
-	// No selector, so if a list of cluster names was provided, use that.
 	if len(config.Names) > 0 {
 		for _, name := range config.Names {
 			secret, ok := clusterSecrets[name]
@@ -113,21 +114,22 @@ func (g *ClusterGenerator) clusterParams(config *argoappsetv1alpha1.ClusterGener
 		return paramsSet, nil
 	}
 
-	// Assume a wildcard selector.
+	// Wildcard selector - all clusters with a secret, plus the local cluster if
+	// it does not have a secret.
 
-	// ListClusters provides the name and server of every cluster including
-	// local, but not labels or annotations - we need the secrets for those.
+	// ListClusters provides only the name and server of every cluster, so
+	// cross-match with secrets and use those where possible for the additional
+	// parameters they provide.
 	clusters, err := utils.ListClusters(g.ctx, g.clientset, g.namespace)
 	if err != nil {
 		return nil, err
 	}
-
 	for _, cluster := range clusters.Items {
 		if secret, ok := clusterSecrets[cluster.Name]; ok {
 			// Remote clusters, and the local cluster if it has a secret.
 			paramsSet = append(paramsSet, paramsForSecret(&secret))
 		} else {
-			// Local cluster, which evidently does not have a secret.
+			// Local cluster, which does not have a secret if we get here.
 			paramsSet = append(paramsSet, paramsForCluster(&cluster))
 		}
 	}
@@ -174,10 +176,12 @@ func sanitizeName(name string) string {
 }
 
 // findClusterSecrets returns all cluster secret objects matching the provided
-// filter, keyed by cluster name.
+// filter, keyed by cluster name. If the filter does not specify
+// argocd.argoproj.io/secret-type: cluster, this is added without modifying the
+// original object.
 func (g *ClusterGenerator) findClusterSecrets(selector *metav1.LabelSelector) (map[string]corev1.Secret, error) {
-	withCluster := metav1.CloneSelectorAndAddLabel(selector, utils.ArgoCDSecretTypeLabel, utils.ArgoCDSecretTypeCluster)
-	secretSelector, err := metav1.LabelSelectorAsSelector(withCluster)
+	secretSelector, err := metav1.LabelSelectorAsSelector(
+		metav1.CloneSelectorAndAddLabel(selector, utils.ArgoCDSecretTypeLabel, utils.ArgoCDSecretTypeCluster))
 	if err != nil {
 		return nil, err
 	}
