@@ -160,21 +160,21 @@ func paramsForCluster(cluster *argoappv1alpha1.Cluster) map[string]string {
 	}
 }
 
+const dnsNameMaxLength = 253
+
+var dnsNameInvalidChars = regexp.MustCompile(`[^-a-z0-9.]`)
+
 // sanitizeName returns the provided cluster name, modified if necessary to meet
 // the following rules:
 //   1. contains no more than 253 characters
 //   2. contains only lowercase alphanumeric characters, '-' or '.'
 //   3. starts and ends with an alphanumeric character
 func sanitizeName(name string) string {
-	invalidDNSNameChars := regexp.MustCompile("[^-a-z0-9.]")
-	maxDNSNameLength := 253
-
 	name = strings.ToLower(name)
-	name = invalidDNSNameChars.ReplaceAllString(name, "-")
-	if len(name) > maxDNSNameLength {
-		name = name[:maxDNSNameLength]
+	name = dnsNameInvalidChars.ReplaceAllString(name, "-")
+	if len(name) > dnsNameMaxLength {
+		name = name[:dnsNameMaxLength]
 	}
-
 	return strings.Trim(name, "-.")
 }
 
