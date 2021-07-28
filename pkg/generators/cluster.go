@@ -20,11 +20,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const (
-	ArgoCDSecretTypeLabel   = "argocd.argoproj.io/secret-type"
-	ArgoCDSecretTypeCluster = "cluster"
-)
-
 var _ Generator = (*ClusterGenerator)(nil)
 
 // ClusterGenerator generates Applications for some or all clusters registered with ArgoCD.
@@ -181,7 +176,7 @@ func sanitizeName(name string) string {
 // findClusterSecrets returns all cluster secret objects matching the provided
 // filter, keyed by cluster name.
 func (g *ClusterGenerator) findClusterSecrets(selector *metav1.LabelSelector) (map[string]corev1.Secret, error) {
-	withCluster := metav1.CloneSelectorAndAddLabel(selector, ArgoCDSecretTypeLabel, ArgoCDSecretTypeCluster)
+	withCluster := metav1.CloneSelectorAndAddLabel(selector, utils.ArgoCDSecretTypeLabel, utils.ArgoCDSecretTypeCluster)
 	secretSelector, err := metav1.LabelSelectorAsSelector(withCluster)
 	if err != nil {
 		return nil, err
