@@ -10,6 +10,9 @@ on:
 jobs:
   build-docker:
     name: Ensure Docker image builds
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -85,6 +88,9 @@ jobs:
 
   test-go:
     name: Run unit tests for Go packages
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
     runs-on: ubuntu-latest
     needs:
       - build-go
@@ -148,6 +154,8 @@ jobs:
         k3s-version: [v1.19.2, v1.16.15]
         # k3s-version: [v1.19.2, v1.18.9, v1.17.11, v1.16.15]
     env:
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
       GOPATH: /home/runner/go
       ARGOCD_FAKE_IN_CLUSTER: 'true'
       ARGOCD_SSH_DATA_PATH: '/tmp/argo-e2e/app/config/ssh'
