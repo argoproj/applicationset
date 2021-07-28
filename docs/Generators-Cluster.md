@@ -26,36 +26,11 @@ metadata:
 # (...)
 ```
 
-The Cluster generator will automatically identify clusters defined with Argo CD, and extract the cluster data as parameters:
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: guestbook
-spec:
-  generators:
-  - clusters: {} # Automatically use all clusters defined within Argo CD
-  template:
-    metadata:
-      name: '{{name}}-guestbook' # 'name' field of the Secret
-    spec:
-      project: "default"
-      source:
-        repoURL: https://github.com/argoproj/argocd-example-apps/
-        targetRevision: HEAD
-        path: guestbook
-      destination:
-        server: '{{server}}' # 'server' field of the secret
-        namespace: guestbook
-```
-(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/cluster).*)
-
-In this example, the cluster secret's `name` and `server` fields are used to populate the `Application` resource `name` and `server` (which are then used to target that same cluster).
-
 ### Name list
 
-Specifying a list of cluster names will retrieve the relevant parameters for each one for use in the template. Compared to the list generator, this can save having to provide server URLs, while retrieving additional labels and annotations for use in the template.
+Providing a static list of cluster names is the simplest way to use the cluster generator. This is handy when adding or removing clusters automatically is undesirable, however you would still like to benefit from automatic retrieval of the server URL, labels and annotations. Unrecognised cluster names will be skipped.
 ```yaml
+apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: guestbook
@@ -66,12 +41,24 @@ spec:
       - cluster1
       - cluster2
   template:
-  # (...)
+    metadata:
+      name: '{{name}}-guestbook' # 'name' field of the secret
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/argoproj/argocd-example-apps/
+        path: guestbook
+      destination:
+        server: '{{server}}' # 'server' field of the secret
+        namespace: guestbook
 ```
+
+In this example, the `name` and `server` fields of `cluster1` and `cluster2`s' secrets are used to produce two `Application` resources.
 
 ### Label selector
 
-A label selector may be used to narrow the scope of targeted clusters to only those matching a specific label:
+Alternatively, a set of label conditions may be used to narrow the list of targeted clusters, starting from all those defined in Argo. This automatically creates `Application` resources for new clusters that match the criteria.
+
 ```yaml
 kind: ApplicationSet
 metadata:
@@ -100,7 +87,22 @@ metadata:
 
 The cluster selector also supports set-based requirements, as used by [several core Kubernetes resources](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#resources-that-support-set-based-requirements).
 
-Only one of the name list and label selector should be specified. If both are provided, the name list will be ignored.
+A maximum of one of the name list and label selector should be specified. If neither is provided, this is treated as an empty filter, selecting all clusters:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: guestbook
+spec:
+  generators:
+  - clusters: {} # automatically use all clusters defined within Argo CD
+# (...)
+```
+
+If both are provided, the name list will be ignored.
+
+(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/cluster).*)
 
 ### Deploying to the local cluster
 
