@@ -2,6 +2,7 @@ package generators
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
@@ -62,7 +63,7 @@ func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 
 func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetBaseGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
-	t, _ := Transform(
+	t, err := Transform(
 		argoprojiov1alpha1.ApplicationSetGenerator{
 			List:     appSetBaseGenerator.List,
 			Clusters: appSetBaseGenerator.Clusters,
@@ -71,6 +72,14 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{},
 		appSet)
+
+	if err != nil {
+		return nil, fmt.Errorf("child generator returned an error on parameter generation: %v", err)
+	}
+
+	if len(t) == 0 {
+		return nil, fmt.Errorf("child generator generated no parameters")
+	}
 
 	if len(t) > 1 {
 		return nil, MoreThenOneInnerGenerators
