@@ -65,9 +65,11 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 
 	t, err := Transform(
 		argoprojiov1alpha1.ApplicationSetGenerator{
-			List:     appSetBaseGenerator.List,
-			Clusters: appSetBaseGenerator.Clusters,
-			Git:      appSetBaseGenerator.Git,
+			List:                    appSetBaseGenerator.List,
+			Clusters:                appSetBaseGenerator.Clusters,
+			Git:                     appSetBaseGenerator.Git,
+			SCMProvider:             appSetBaseGenerator.SCMProvider,
+			ClusterDecisionResource: appSetBaseGenerator.ClusterDecisionResource,
 		},
 		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{},
