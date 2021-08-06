@@ -62,6 +62,8 @@ As with other generators, clusters *must* already be defined within Argo CD, in 
 
 ### Exclude directories
 
+The Git directory generator will automatically exclude folders that begin with `.` (such as `.git`).
+
 The Git directory generator also supports an `exclude` option in order to exclude directories in the repository from being scanned by the ApplicationSet controller:
 
 ```yaml
