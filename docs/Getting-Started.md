@@ -60,7 +60,7 @@ How it works:
 - [Documentation for the `master`-branch-based developer builds](https://argocd-applicationset.readthedocs.io/en/master/)  is available from Read the Docs.
 
 !!! warning
-    Development builds contain newer features and bug fixes, but are more likely to be unstable, as compared to release drivers.
+    Development builds contain newer features and bug fixes, but are more likely to be unstable, as compared to release builds.
 
 See the `master` branch [Read the Docs](https://argocd-applicationset.readthedocs.io/en/master/) page for documentation on post-release features.
 
