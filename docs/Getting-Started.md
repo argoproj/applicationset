@@ -83,6 +83,7 @@ There are no manual upgrade steps required between any release of ApplicationSet
 See the [Controlling Resource Modification](Controlling-Resource-Modification.md) page for information on additional parameters you may wish to add to the ApplicationSet `install.yaml`, to provide extra security against any initial, unexpected post-upgrade behaviour. 
 
 For instance, to temporarily prevent the upgraded ApplicationSet controller from making any changes, you could:
+
 - Enable dry-run
 - Use a create-only policy
 - Enable `preserveResourcesOnDeletion` on your ApplicationSets

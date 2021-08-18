@@ -4,7 +4,7 @@ metadata:
   name: guestbook
 spec:
   generators:
-  - git:
+    - git:
       repoURL: https://github.com/argoproj-labs/applicationset.git
       revision: HEAD
       files:
