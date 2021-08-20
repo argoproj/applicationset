@@ -50,7 +50,7 @@ make manifests
 
 echo
 echo "*** performing release commit"
-git commit -s -m "Release ${TARGET_TAG}" VERSION manifests/
+git commit -s -m "Release ${TARGET_TAG}" VERSION manifests/ docs/ .github hack/ go.mod go.sum CHANGELOG.md examples/
 git tag ${TARGET_TAG}
 
 echo

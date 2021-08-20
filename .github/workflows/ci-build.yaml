@@ -174,7 +174,7 @@ jobs:
           # This version is verified to match a version consistent with the kustomize install yaml,
           # by 'hack/verify-argo-cd-versions.sh'.
           # BEGIN-ARGO-CD-VERSION
-          ref: v2.0.0
+          ref: v2.1.0
           # END-ARGO-CD-VERSION
       - name: Setup Golang
         uses: actions/setup-go@v2
