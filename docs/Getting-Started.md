@@ -18,7 +18,7 @@ The ApplicationSet controller *must* be installed into the same namespace as the
 Presuming that Argo CD is installed into the `argocd` namespace, run the following command:
 
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.2.0/manifests/install.yaml
 ```
 
 Once installed, the ApplicationSet controller requires no additional setup.
@@ -38,7 +38,7 @@ You may instead install both the ApplicationSet controller and the latest stable
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install-with-argo-cd.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.2.0/manifests/install-with-argo-cd.yaml
 ```
 
 Once installed, follow the [Argo CD Getting Started](https://argoproj.github.io/argo-cd/getting_started/) to access Argo CD and log-in to the Web UI.
@@ -67,7 +67,7 @@ See the `master` branch [Read the Docs](https://argocd-applicationset.readthedoc
 
 ### D) Customized install using Kustomize
 
-To extend or customize the ApplicationSet controller installation, [Kustomize](https://kustomize.io/) may be used with the existing namespace install [manifests/namespace-install/kustomize.yaml](https://github.com/argoproj-labs/applicationset/blob/master/manifests/namespace-install/kustomization.yaml) file.
+To extend or customize the ApplicationSet controller installation, [Kustomize](https://kustomize.io/) may be used with the existing namespace install [manifests/namespace-install/kustomize.yaml](https://github.com/argoproj-labs/applicationset/blob/v0.2.0/manifests/namespace-install/kustomization.yaml) file.
 
 ## Upgrading to a Newer Release
 
@@ -83,6 +83,7 @@ There are no manual upgrade steps required between any release of ApplicationSet
 See the [Controlling Resource Modification](Controlling-Resource-Modification.md) page for information on additional parameters you may wish to add to the ApplicationSet `install.yaml`, to provide extra security against any initial, unexpected post-upgrade behaviour. 
 
 For instance, to temporarily prevent the upgraded ApplicationSet controller from making any changes, you could:
+
 - Enable dry-run
 - Use a create-only policy
 - Enable `preserveResourcesOnDeletion` on your ApplicationSets
