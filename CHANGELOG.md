@@ -303,7 +303,7 @@ A big thanks to all ApplicationSet controller contributors for their hard work o
 - Alex Sharov ([@kvendingoldo](https://github.com/kvendingoldo))
 - Omer Levi Hevroni ([@omerlh](https://github.com/omerlh))
 
-The ApplicationSet controller would not exist without the contributions of these talented individuals! ��
+The ApplicationSet controller would not exist without the contributions of these talented individuals! 🎉️
 
 ## New in this Release
 
