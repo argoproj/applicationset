@@ -83,7 +83,7 @@ spec:
       source:
         # developers may customize app details using JSON files from above repo URL
         repoURL: {{app.source}}
-        targetRevision: {app.revision}}
+        targetRevision: {{app.revision}}
         path: {{app.path}}
       destination:
         name: production-cluster # cluster is restricted
