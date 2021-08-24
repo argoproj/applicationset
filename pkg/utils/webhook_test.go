@@ -78,7 +78,8 @@ func TestWebhookHandler(t *testing.T) {
 			assert.Nil(t, err)
 			fc := fake.NewClientBuilder().WithScheme(scheme).WithObjects(fakeAppWithGitGenerator("sample", namespace, test.repo)).Build()
 			set := argosettings.NewSettingsManager(context.TODO(), fakeClient, namespace)
-			h := NewWebhookHandler(namespace, set, fc)
+			h, err := NewWebhookHandler(namespace, set, fc)
+			assert.Nil(t, err)
 
 			req := httptest.NewRequest("POST", "/api/webhook", nil)
 			req.Header.Set(test.headerKey, test.headerValue)

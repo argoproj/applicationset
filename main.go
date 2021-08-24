@@ -141,7 +141,11 @@ func main() {
 	argoCDDB := db.NewDB(namespace, argoSettingsMgr, k8s)
 
 	// start a webhook server that listens to incoming webhook payloads
-	webhookHandler := utils.NewWebhookHandler(namespace, argoSettingsMgr, mgr.GetClient())
+	webhookHandler, err := utils.NewWebhookHandler(namespace, argoSettingsMgr, mgr.GetClient())
+	if err != nil {
+		setupLog.Error(err, "failed to create webhook handler")
+		os.Exit(1)
+	}
 	startWebhookServer(webhookHandler)
 
 	baseGenerators := map[string]generators.Generator{

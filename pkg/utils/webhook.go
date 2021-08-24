@@ -28,19 +28,19 @@ type WebhookHandler struct {
 	client    client.Client
 }
 
-func NewWebhookHandler(namespace string, argocdSettingsMgr *argosettings.SettingsManager, client client.Client) *WebhookHandler {
+func NewWebhookHandler(namespace string, argocdSettingsMgr *argosettings.SettingsManager, client client.Client) (*WebhookHandler, error) {
 	// register the webhook secrets stored under "argocd-secret" for verifying incoming payloads
 	argocdSettings, err := argocdSettingsMgr.GetSettings()
 	if err != nil {
-		log.Errorf("Failed to get argocd settings: %v", err)
+		return nil, fmt.Errorf("Failed to get argocd settings: %v", err)
 	}
 	githubHandler, err := github.New(github.Options.Secret(argocdSettings.WebhookGitHubSecret))
 	if err != nil {
-		log.Warnf("Unable to init GitHub webhook: %v", err)
+		return nil, fmt.Errorf("Unable to init GitHub webhook: %v", err)
 	}
 	gitlabHandler, err := gitlab.New(gitlab.Options.Secret(argocdSettings.WebhookGitLabSecret))
 	if err != nil {
-		log.Warnf("Unable to init GitLab webhook: %v", err)
+		return nil, fmt.Errorf("Unable to init GitLab webhook: %v", err)
 	}
 
 	return &WebhookHandler{
@@ -48,7 +48,7 @@ func NewWebhookHandler(namespace string, argocdSettingsMgr *argosettings.Setting
 		github:    githubHandler,
 		gitlab:    gitlabHandler,
 		client:    client,
-	}
+	}, nil
 }
 
 func (h *WebhookHandler) HandleEvent(payload interface{}) {
@@ -58,19 +58,19 @@ func (h *WebhookHandler) HandleEvent(payload interface{}) {
 	appSetList := &v1alpha1.ApplicationSetList{}
 	err := h.client.List(context.Background(), appSetList, &client.ListOptions{})
 	if err != nil {
-		log.Warnf("Failed to list applicationsets: %v", err)
+		log.Errorf("Failed to list applicationsets: %v", err)
 		return
 	}
 
 	urlObj, err := url.Parse(webURL)
 	if err != nil {
-		log.Warnf("Failed to parse repoURL '%s'", webURL)
+		log.Errorf("Failed to parse repoURL '%s'", webURL)
 		return
 	}
 	regexpStr := `(?i)(http://|https://|\w+@|ssh://(\w+@)?)` + urlObj.Hostname() + "(:[0-9]+|)[:/]" + urlObj.Path[1:] + "(\\.git)?"
 	repoRegexp, err := regexp.Compile(regexpStr)
 	if err != nil {
-		log.Warnf("Failed to compile regexp for repoURL '%s'", webURL)
+		log.Errorf("Failed to compile regexp for repoURL '%s'", webURL)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (h *WebhookHandler) HandleEvent(payload interface{}) {
 			if gen.Git != nil && gitGeneratorUsesURL(gen.Git, revision, repoRegexp) && genRevisionHasChanged(gen.Git, revision, touchedHead) {
 				err := refreshApplicationSet(h.client, &appSet)
 				if err != nil {
-					log.Warnf("Failed to refresh ApplicationSet '%s' for controller reprocessing", appSet.Name)
+					log.Errorf("Failed to refresh ApplicationSet '%s' for controller reprocessing", appSet.Name)
 					continue
 				}
 			}
