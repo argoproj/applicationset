@@ -5,10 +5,10 @@ metadata:
 spec:
   generators:
     - git:
-      repoURL: https://github.com/argoproj-labs/applicationset.git
-      revision: HEAD
-      files:
-      - path: "examples/git-generator-files-discovery/cluster-config/**/config.json"
+        repoURL: https://github.com/argoproj-labs/applicationset.git
+        revision: HEAD
+        files:
+        - path: "examples/git-generator-files-discovery/cluster-config/**/config.json"
   template:
     metadata:
       name: '{{cluster.name}}-guestbook'
