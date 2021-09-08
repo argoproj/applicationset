@@ -23,6 +23,10 @@ jobs:
           docker images -a --format "{{.ID}}" | xargs -I {} docker rmi {}
           CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=argoproj IMAGE_TAG=latest make image
         working-directory: ./src/applicationset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+
 
       # Publish the image
       - run: |
