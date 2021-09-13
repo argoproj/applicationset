@@ -17,7 +17,11 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
+	"sort"
+
 	"github.com/argoproj-labs/applicationset/common"
+
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,6 +36,7 @@ type SecretRef struct {
 // ApplicationSet is a set of Application resources
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=applicationsets,shortName=appset;appsets
+// +kubebuilder:subresource:status
 type ApplicationSet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
@@ -233,7 +238,49 @@ type PullRequestGeneratorGithub struct {
 type ApplicationSetStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Conditions []ApplicationSetCondition `json:"conditions,omitempty"`
 }
+
+// ApplicationSetCondition contains details about an application condition, which is usally an error or warning
+type ApplicationSetCondition struct {
+	// Type is an application condition type
+	Type ApplicationSetConditionType `json:"type" protobuf:"bytes,1,opt,name=type"`
+	// Message contains human-readable message indicating details about condition
+	Message string `json:"message" protobuf:"bytes,2,opt,name=message"`
+	// LastTransitionTime is the time the condition was last observed
+	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,3,opt,name=lastTransitionTime"`
+	// True/False/Unknown
+	Status ApplicationSetConditionStatus `json:"status" protobuf:"bytes,4,opt,name=status"`
+	//Single word camelcase representing the reason for the status eg MissingParameter or ErrorOccurred
+	Reason string `json:"reason" protobuf:"bytes,5,opt,name=reason"`
+}
+
+// SyncStatusCode is a type which represents possible comparison results
+type ApplicationSetConditionStatus string
+
+// Application Condition Status
+const (
+	// ApplicationConditionStatusSuccessful indicates that a application has been successfully established
+	ApplicationConditionStatusSuccessful = "True"
+	// ApplicationConditionStatusFailed indicates that a application attempt has failed
+	ApplicationConditionStatusFailed = "False"
+	// ApplicationConditionStatusUnknown indicates that the application condition status could not be reliably determined
+	ApplicationConditionStatusUnknown = "Unknown"
+)
+
+// ApplicationSetConditionType represents type of application condition. Type name has following convention:
+// prefix "Error" means error condition
+// prefix "Warning" means warning condition
+// prefix "Info" means informational condition
+type ApplicationSetConditionType string
+
+//ErrorOccurred / ParametersGenerated / TemplateRendered / ResourcesUpToDate /
+const (
+	ApplicationSetConditionErrorOccured        ApplicationSetConditionType = "ErrorOccured"
+	ApplicationSetConditionParametersGenerated ApplicationSetConditionType = "ParametersGenerated"
+	ApplicationSetConditionTemplateRendered    ApplicationSetConditionType = "TemplateRendered"
+	ApplicationSetConditionResourcesUpToDate   ApplicationSetConditionType = "ResourcesUpToDate"
+)
 
 // ApplicationSetList contains a list of ApplicationSet
 // +kubebuilder:object:root=true
@@ -251,4 +298,52 @@ func init() {
 func (a *ApplicationSet) RefreshRequired() bool {
 	_, found := a.Annotations[common.AnnotationGitGeneratorRefresh]
 	return found
+}
+
+// SetConditions updates the application status conditions for a subset of evaluated types.
+// If the application has a pre-existing condition of a type that is not in the evaluated list,
+// it will be preserved. If the application has a pre-existing condition of a type that
+// is in the evaluated list, but not in the incoming conditions list, it will be removed.
+func (status *ApplicationSetStatus) SetConditions(conditions []ApplicationSetCondition, evaluatedTypes map[ApplicationSetConditionType]bool) {
+	applicationSetConditions := make([]ApplicationSetCondition, 0)
+	now := metav1.Now()
+	for i := 0; i < len(status.Conditions); i++ {
+		condition := status.Conditions[i]
+		if _, ok := evaluatedTypes[condition.Type]; !ok {
+			if condition.LastTransitionTime == nil {
+				condition.LastTransitionTime = &now
+			}
+			applicationSetConditions = append(applicationSetConditions, condition)
+		}
+	}
+	for i := range conditions {
+		condition := conditions[i]
+		if condition.LastTransitionTime == nil {
+			condition.LastTransitionTime = &now
+		}
+		eci := findConditionIndexByType(status.Conditions, condition.Type)
+		if eci >= 0 && status.Conditions[eci].Message == condition.Message {
+			// If we already have a condition of this type, only update the timestamp if something
+			// has changed.
+			applicationSetConditions = append(applicationSetConditions, status.Conditions[eci])
+		} else {
+			// Otherwise we use the new incoming condition with an updated timestamp:
+			applicationSetConditions = append(applicationSetConditions, condition)
+		}
+	}
+	sort.Slice(applicationSetConditions, func(i, j int) bool {
+		left := applicationSetConditions[i]
+		right := applicationSetConditions[j]
+		return fmt.Sprintf("%s/%s/%v", left.Type, left.Message, left.LastTransitionTime) < fmt.Sprintf("%s/%s/%v", right.Type, right.Message, right.LastTransitionTime)
+	})
+	status.Conditions = applicationSetConditions
+}
+
+func findConditionIndexByType(conditions []ApplicationSetCondition, t ApplicationSetConditionType) int {
+	for i := range conditions {
+		if conditions[i].Type == t {
+			return i
+		}
+	}
+	return -1
 }
