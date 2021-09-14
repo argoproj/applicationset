@@ -7422,7 +7422,7 @@ spec:
                   of cluster Important: Run "make" to regenerate code after modifying
                   this file'
                 items:
-                  description: ApplicationSetCondition contains details about an application
+                  description: ApplicationSetCondition contains details about an applicationset
                     condition, which is usally an error or warning
                   properties:
                     lastTransitionTime:
@@ -7436,13 +7436,13 @@ spec:
                       type: string
                     reason:
                       description: Single word camelcase representing the reason for
-                        the status eg MissingParameter or ErrorOccurred
+                        the status eg ErrorOccurred
                       type: string
                     status:
                       description: True/False/Unknown
                       type: string
                     type:
-                      description: Type is an application condition type
+                      description: Type is an applicationset condition type
                       type: string
                   required:
                   - message

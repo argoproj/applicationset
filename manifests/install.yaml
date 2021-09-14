@@ -5289,7 +5289,7 @@ spec:
               conditions:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state of cluster Important: Run "make" to regenerate code after modifying this file'
                 items:
-                  description: ApplicationSetCondition contains details about an application condition, which is usally an error or warning
+                  description: ApplicationSetCondition contains details about an applicationset condition, which is usally an error or warning
                   properties:
                     lastTransitionTime:
                       description: LastTransitionTime is the time the condition was last observed
@@ -5299,13 +5299,13 @@ spec:
                       description: Message contains human-readable message indicating details about condition
                       type: string
                     reason:
-                      description: Single word camelcase representing the reason for the status eg MissingParameter or ErrorOccurred
+                      description: Single word camelcase representing the reason for the status eg ErrorOccurred
                       type: string
                     status:
                       description: True/False/Unknown
                       type: string
                     type:
-                      description: Type is an application condition type
+                      description: Type is an applicationset condition type
                       type: string
                   required:
                   - message

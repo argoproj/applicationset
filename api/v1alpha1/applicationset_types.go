@@ -241,9 +241,9 @@ type ApplicationSetStatus struct {
 	Conditions []ApplicationSetCondition `json:"conditions,omitempty"`
 }
 
-// ApplicationSetCondition contains details about an application condition, which is usally an error or warning
+// ApplicationSetCondition contains details about an applicationset condition, which is usally an error or warning
 type ApplicationSetCondition struct {
-	// Type is an application condition type
+	// Type is an applicationset condition type
 	Type ApplicationSetConditionType `json:"type" protobuf:"bytes,1,opt,name=type"`
 	// Message contains human-readable message indicating details about condition
 	Message string `json:"message" protobuf:"bytes,2,opt,name=message"`
@@ -251,7 +251,7 @@ type ApplicationSetCondition struct {
 	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,3,opt,name=lastTransitionTime"`
 	// True/False/Unknown
 	Status ApplicationSetConditionStatus `json:"status" protobuf:"bytes,4,opt,name=status"`
-	//Single word camelcase representing the reason for the status eg MissingParameter or ErrorOccurred
+	//Single word camelcase representing the reason for the status eg ErrorOccurred
 	Reason string `json:"reason" protobuf:"bytes,5,opt,name=reason"`
 }
 
@@ -260,12 +260,12 @@ type ApplicationSetConditionStatus string
 
 // Application Condition Status
 const (
-	// ApplicationConditionStatusSuccessful indicates that a application has been successfully established
-	ApplicationConditionStatusSuccessful = "True"
-	// ApplicationConditionStatusFailed indicates that a application attempt has failed
-	ApplicationConditionStatusFailed = "False"
-	// ApplicationConditionStatusUnknown indicates that the application condition status could not be reliably determined
-	ApplicationConditionStatusUnknown = "Unknown"
+	// ApplicationSetConditionStatusTrue indicates that a application has been successfully established
+	ApplicationSetConditionStatusTrue ApplicationSetConditionStatus = "True"
+	// ApplicationSetConditionStatusFalse indicates that a application attempt has failed
+	ApplicationSetConditionStatusFalse ApplicationSetConditionStatus = "False"
+	// ApplicationSetConditionStatusUnknown indicates that the application condition status could not be reliably determined
+	ApplicationSetConditionStatusUnknown ApplicationSetConditionStatus = "Unknown"
 )
 
 // ApplicationSetConditionType represents type of application condition. Type name has following convention:
@@ -274,12 +274,28 @@ const (
 // prefix "Info" means informational condition
 type ApplicationSetConditionType string
 
-//ErrorOccurred / ParametersGenerated / TemplateRendered / ResourcesUpToDate /
+//ErrorOccurred / ParametersGenerated / TemplateRendered / ResourcesUpToDate
 const (
 	ApplicationSetConditionErrorOccured        ApplicationSetConditionType = "ErrorOccured"
 	ApplicationSetConditionParametersGenerated ApplicationSetConditionType = "ParametersGenerated"
 	ApplicationSetConditionTemplateRendered    ApplicationSetConditionType = "TemplateRendered"
 	ApplicationSetConditionResourcesUpToDate   ApplicationSetConditionType = "ResourcesUpToDate"
+)
+
+// type ApplicationSetConditionReason = string
+
+const (
+	ApplicationSetReferencedProjectNotFound                  = "ReferencedProjectNotFound"
+	ApplicationSetReasonInvalidApplicationSpec               = "InvalidApplicationSpec"
+	ApplicationSetReasonErrorOccured                         = "ErrorOccured"
+	ApplicationSetReasonApplicationSetUpToDate               = "ApplicationSetUpToDate"
+	ApplicationSetReasonUpdateApplicationError               = "UpdateApplicationError"
+	ApplicationSetReasonApplicationsWithDuplicateNames       = "ApplicationsWithDuplicateNames"
+	ApplicationSetReasonApplicationGenerationFromParamsError = "ApplicationGenerationFromParamsError"
+	ApplicationSetReasonRenderTemplateParamsError            = "RenderTemplateParamsError"
+	ApplicationSetReasonCreateApplicationError               = "CreateApplicationError"
+	ApplicationSetReasonDeleteApplicationError               = "DeleteApplicationError"
+	ApplicationSetReasonRefreshApplicationError              = "RefreshApplicationError"
 )
 
 // ApplicationSetList contains a list of ApplicationSet
@@ -300,9 +316,9 @@ func (a *ApplicationSet) RefreshRequired() bool {
 	return found
 }
 
-// SetConditions updates the application status conditions for a subset of evaluated types.
-// If the application has a pre-existing condition of a type that is not in the evaluated list,
-// it will be preserved. If the application has a pre-existing condition of a type that
+// SetConditions updates the applicationset status conditions for a subset of evaluated types.
+// If the applicationset has a pre-existing condition of a type that is not in the evaluated list,
+// it will be preserved. If the applicationset has a pre-existing condition of a type, status, reason that
 // is in the evaluated list, but not in the incoming conditions list, it will be removed.
 func (status *ApplicationSetStatus) SetConditions(conditions []ApplicationSetCondition, evaluatedTypes map[ApplicationSetConditionType]bool) {
 	applicationSetConditions := make([]ApplicationSetCondition, 0)
@@ -321,9 +337,9 @@ func (status *ApplicationSetStatus) SetConditions(conditions []ApplicationSetCon
 		if condition.LastTransitionTime == nil {
 			condition.LastTransitionTime = &now
 		}
-		eci := findConditionIndexByType(status.Conditions, condition.Type)
+		eci := findConditionIndex(status.Conditions, condition.Type, condition.Status, condition.Reason)
 		if eci >= 0 && status.Conditions[eci].Message == condition.Message {
-			// If we already have a condition of this type, only update the timestamp if something
+			// If we already have a condition of this type, status and reason, only update the timestamp if something
 			// has changed.
 			applicationSetConditions = append(applicationSetConditions, status.Conditions[eci])
 		} else {
@@ -339,9 +355,9 @@ func (status *ApplicationSetStatus) SetConditions(conditions []ApplicationSetCon
 	status.Conditions = applicationSetConditions
 }
 
-func findConditionIndexByType(conditions []ApplicationSetCondition, t ApplicationSetConditionType) int {
+func findConditionIndex(conditions []ApplicationSetCondition, t ApplicationSetConditionType, status ApplicationSetConditionStatus, reason string) int {
 	for i := range conditions {
-		if conditions[i].Type == t {
+		if conditions[i].Type == t && conditions[i].Status == status && conditions[i].Reason == reason {
 			return i
 		}
 	}
