@@ -72,10 +72,7 @@ func (r *ApplicationSetReconciler) getApplicationSetInfo(ctx context.Context, na
 
 	// Fetch updated application set object
 	if err := r.Get(ctx, namespacedName, applicationSetInfo); err != nil {
-		if client.IgnoreNotFound(err) != nil {
-			log.WithError(err).Infof("unable to get ApplicationSet")
-		}
-		return client.IgnoreNotFound(err)
+		return err
 	}
 	return nil
 }
@@ -89,6 +86,9 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
 	if err := r.getApplicationSetInfo(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
+		if client.IgnoreNotFound(err) != nil {
+			log.WithError(err).Infof("unable to get ApplicationSet: '%v' ", err)
+		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -105,7 +105,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// desiredApplications is the main list of all expected Applications from all generators in this appset.
 	desiredApplications, err := r.generateApplications(applicationSetInfo)
 	if err != nil {
-		r.setApplicationSetStatusCondition(ctx,
+		_ = r.setApplicationSetStatusCondition(ctx,
 			&applicationSetInfo,
 			argoprojiov1alpha1.ApplicationSetCondition{
 				Type:    argoprojiov1alpha1.ApplicationSetConditionErrorOccured,
@@ -128,7 +128,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		// the RequeueAfter time.
 		log.Errorf("error occurred during application validation: %s", err.Error())
 
-		r.setApplicationSetStatusCondition(ctx,
+		_ = r.setApplicationSetStatusCondition(ctx,
 			&applicationSetInfo,
 			argoprojiov1alpha1.ApplicationSetCondition{
 				Type:    argoprojiov1alpha1.ApplicationSetConditionErrorOccured,
@@ -162,7 +162,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if r.Policy.Update() {
 		err = r.createOrUpdateInCluster(ctx, applicationSetInfo, validApps)
 		if err != nil {
-			r.setApplicationSetStatusCondition(ctx,
+			_ = r.setApplicationSetStatusCondition(ctx,
 				&applicationSetInfo,
 				argoprojiov1alpha1.ApplicationSetCondition{
 					Type:    argoprojiov1alpha1.ApplicationSetConditionErrorOccured,
@@ -176,7 +176,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	} else {
 		err = r.createInCluster(ctx, applicationSetInfo, validApps)
 		if err != nil {
-			r.setApplicationSetStatusCondition(ctx,
+			_ = r.setApplicationSetStatusCondition(ctx,
 				&applicationSetInfo,
 				argoprojiov1alpha1.ApplicationSetCondition{
 					Type:    argoprojiov1alpha1.ApplicationSetConditionErrorOccured,
@@ -192,7 +192,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if r.Policy.Delete() {
 		err = r.deleteInCluster(ctx, applicationSetInfo, desiredApplications)
 		if err != nil {
-			r.setApplicationSetStatusCondition(ctx,
+			_ = r.setApplicationSetStatusCondition(ctx,
 				&applicationSetInfo,
 				argoprojiov1alpha1.ApplicationSetCondition{
 					Type:    argoprojiov1alpha1.ApplicationSetConditionResourcesUpToDate,
@@ -210,7 +210,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		err := r.Client.Update(ctx, &applicationSetInfo)
 		if err != nil {
 			log.Warnf("error occurred while updating ApplicationSet: %v", err)
-			r.setApplicationSetStatusCondition(ctx,
+			_ = r.setApplicationSetStatusCondition(ctx,
 				&applicationSetInfo,
 				argoprojiov1alpha1.ApplicationSetCondition{
 					Type:    argoprojiov1alpha1.ApplicationSetConditionErrorOccured,
@@ -226,7 +226,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	requeueAfter := r.getMinRequeueAfter(&applicationSetInfo)
 	log.WithField("requeueAfter", requeueAfter).Info("end reconcile")
 
-	r.setApplicationSetStatusCondition(ctx,
+	if err := r.setApplicationSetStatusCondition(ctx,
 		&applicationSetInfo,
 		argoprojiov1alpha1.ApplicationSetCondition{
 			Type:    argoprojiov1alpha1.ApplicationSetConditionResourcesUpToDate,
@@ -234,18 +234,21 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			Reason:  argoprojiov1alpha1.ApplicationSetReasonApplicationSetUpToDate,
 			Status:  argoprojiov1alpha1.ApplicationSetConditionStatusTrue,
 		},
-	)
+	); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{
 		RequeueAfter: requeueAfter,
 	}, nil
 }
 
-func (r *ApplicationSetReconciler) setApplicationSetStatusCondition(ctx context.Context, applicationSet *argoprojiov1alpha1.ApplicationSet, condition argoprojiov1alpha1.ApplicationSetCondition) {
+func (r *ApplicationSetReconciler) setApplicationSetStatusCondition(ctx context.Context, applicationSet *argoprojiov1alpha1.ApplicationSet, condition argoprojiov1alpha1.ApplicationSetCondition) error {
+
 	// do nothing if appset already has same condition
 	for _, c := range applicationSet.Status.Conditions {
 		if c.Message == condition.Message && c.Type == condition.Type && c.Reason == condition.Reason && c.Status == condition.Status {
-			return
+			return nil
 		}
 	}
 	applicationSet.Status.SetConditions(
@@ -257,15 +260,20 @@ func (r *ApplicationSetReconciler) setApplicationSetStatusCondition(ctx context.
 	var applicationSetObj argoprojiov1alpha1.ApplicationSet
 	namespacedName := types.NamespacedName{Namespace: applicationSet.Namespace, Name: applicationSet.Name}
 	if err := r.getApplicationSetInfo(ctx, namespacedName, &applicationSetObj); err != nil {
-		log.Errorf("error fetching updated application set: %v", err)
+		if client.IgnoreNotFound(err) != nil {
+			return nil
+		}
+		return fmt.Errorf("error fetching updated application set: %v", err)
 	}
 
 	// Update the newly fetched object
 	applicationSetObj.Status.Conditions = applicationSet.Status.Conditions
 	err := r.Client.Status().Update(ctx, &applicationSetObj)
-	if err != nil {
-		log.Errorf("Unable to set application set condition: %v", err)
+	if err != nil && !apierr.IsNotFound(err) {
+		return fmt.Errorf("unable to set application set condition: %v", err)
 	}
+
+	return nil
 }
 
 // validateGeneratedApplications uses the Argo CD validation functions to verify the correctness of the
@@ -365,7 +373,8 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 				if err != nil {
 					log.WithError(err).WithField("params", a.Params).WithField("generator", requestedGenerator).
 						Error("error generating application from params")
-					r.setApplicationSetStatusCondition(context.TODO(),
+
+					_ = r.setApplicationSetStatusCondition(context.TODO(),
 						&applicationSetInfo,
 						argoprojiov1alpha1.ApplicationSetCondition{
 							Type:    argoprojiov1alpha1.ApplicationSetConditionErrorOccured,
@@ -386,7 +395,7 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 		log.WithField("generator", requestedGenerator).Infof("generated %d applications", len(res))
 		log.WithField("generator", requestedGenerator).Debugf("apps from generator: %+v", res)
 		if firstError == nil {
-			r.setApplicationSetStatusCondition(context.TODO(),
+			firstError = r.setApplicationSetStatusCondition(context.TODO(),
 				&applicationSetInfo,
 				argoprojiov1alpha1.ApplicationSetCondition{
 					Type:    argoprojiov1alpha1.ApplicationSetConditionParametersGenerated,
@@ -396,7 +405,7 @@ func (r *ApplicationSetReconciler) generateApplications(applicationSetInfo argop
 				},
 			)
 		} else {
-			r.setApplicationSetStatusCondition(context.TODO(),
+			_ = r.setApplicationSetStatusCondition(context.TODO(),
 				&applicationSetInfo,
 				argoprojiov1alpha1.ApplicationSetCondition{
 					Type:    argoprojiov1alpha1.ApplicationSetConditionParametersGenerated,
