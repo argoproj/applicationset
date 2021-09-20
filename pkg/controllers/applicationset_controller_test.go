@@ -77,8 +77,6 @@ func TestExtractApplications(t *testing.T) {
 	err = argov1alpha1.AddToScheme(scheme)
 	assert.Nil(t, err)
 
-	client := fake.NewClientBuilder().WithScheme(scheme).Build()
-
 	for _, c := range []struct {
 		name                string
 		params              []map[string]string
@@ -127,6 +125,15 @@ func TestExtractApplications(t *testing.T) {
 		}
 
 		t.Run(cc.name, func(t *testing.T) {
+
+			appSet := &argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+			}
+
+			client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(appSet).Build()
 
 			generatorMock := generatorMock{}
 			generator := argoprojiov1alpha1.ApplicationSetGenerator{
@@ -1895,7 +1902,8 @@ func TestSetApplicationSetStatusCondition(t *testing.T) {
 		KubeClientset:    kubeclientset,
 	}
 
-	r.setApplicationSetStatusCondition(context.TODO(), &appSet, appCondition)
+	err = r.setApplicationSetStatusCondition(context.TODO(), &appSet, appCondition)
+	assert.Nil(t, err)
 
 	assert.Len(t, appSet.Status.Conditions, 1)
 }
