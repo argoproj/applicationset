@@ -68,15 +68,6 @@ type ApplicationSetReconciler struct {
 	utils.Renderer
 }
 
-func (r *ApplicationSetReconciler) getApplicationSetInfo(ctx context.Context, namespacedName types.NamespacedName, applicationSetInfo *argoprojiov1alpha1.ApplicationSet) error {
-
-	// Fetch updated application set object
-	if err := r.Get(ctx, namespacedName, applicationSetInfo); err != nil {
-		return err
-	}
-	return nil
-}
-
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=argoproj.io,resources=applicationsets/status,verbs=get;update;patch
 
@@ -85,7 +76,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	_ = log.WithField("applicationset", req.NamespacedName)
 
 	var applicationSetInfo argoprojiov1alpha1.ApplicationSet
-	if err := r.getApplicationSetInfo(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
+	if err := r.Get(ctx, req.NamespacedName, &applicationSetInfo); err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			log.WithError(err).Infof("unable to get ApplicationSet: '%v' ", err)
 		}
@@ -259,7 +250,7 @@ func (r *ApplicationSetReconciler) setApplicationSetStatusCondition(ctx context.
 	// fetch updated Application Set object before updating it
 	var applicationSetObj argoprojiov1alpha1.ApplicationSet
 	namespacedName := types.NamespacedName{Namespace: applicationSet.Namespace, Name: applicationSet.Name}
-	if err := r.getApplicationSetInfo(ctx, namespacedName, &applicationSetObj); err != nil {
+	if err := r.Get(ctx, namespacedName, &applicationSetObj); err != nil {
 		if client.IgnoreNotFound(err) != nil {
 			return nil
 		}

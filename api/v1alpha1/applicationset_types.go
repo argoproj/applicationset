@@ -278,11 +278,8 @@ type ApplicationSetConditionType string
 const (
 	ApplicationSetConditionErrorOccured        ApplicationSetConditionType = "ErrorOccured"
 	ApplicationSetConditionParametersGenerated ApplicationSetConditionType = "ParametersGenerated"
-	ApplicationSetConditionTemplateRendered    ApplicationSetConditionType = "TemplateRendered"
 	ApplicationSetConditionResourcesUpToDate   ApplicationSetConditionType = "ResourcesUpToDate"
 )
-
-// type ApplicationSetConditionReason = string
 
 const (
 	ApplicationSetReferencedProjectNotFound                  = "ReferencedProjectNotFound"
