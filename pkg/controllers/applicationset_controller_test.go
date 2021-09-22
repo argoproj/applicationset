@@ -1516,65 +1516,6 @@ func TestGetMinRequeueAfter(t *testing.T) {
 
 	assert.Equal(t, time.Duration(1)*time.Second, got)
 }
-func TestHasDuplicateNames(t *testing.T) {
-
-	scheme := runtime.NewScheme()
-	err := argoprojiov1alpha1.AddToScheme(scheme)
-	assert.Nil(t, err)
-	err = argov1alpha1.AddToScheme(scheme)
-	assert.Nil(t, err)
-
-	for _, c := range []struct {
-		testName      string
-		desiredApps   []argov1alpha1.Application
-		hasDuplicates bool
-		duplicateName string
-	}{
-		{
-			testName: "has no duplicates",
-			desiredApps: []argov1alpha1.Application{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "app1",
-					},
-				},
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "app2",
-					},
-				},
-			},
-			hasDuplicates: false,
-			duplicateName: "",
-		},
-		{
-			testName: "has duplicates",
-			desiredApps: []argov1alpha1.Application{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "app1",
-					},
-				},
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "app2",
-					},
-				},
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "app1",
-					},
-				},
-			},
-			hasDuplicates: true,
-			duplicateName: "app1",
-		},
-	} {
-		hasDuplicates, name := hasDuplicateNames(c.desiredApps)
-		assert.Equal(t, c.hasDuplicates, hasDuplicates)
-		assert.Equal(t, c.duplicateName, name)
-	}
-}
 
 func TestValidateGeneratedApplications(t *testing.T) {
 
@@ -1775,15 +1716,19 @@ func TestValidateGeneratedApplications(t *testing.T) {
 
 			appSetInfo := argoprojiov1alpha1.ApplicationSet{}
 
-			err := r.validateGeneratedApplications(context.TODO(), cc.apps, appSetInfo, "namespace")
+			validationErrors, err := r.validateGeneratedApplications(context.TODO(), cc.apps, appSetInfo, "namespace")
+			var errorMessages []string
+			for _, v := range validationErrors {
+				errorMessages = append(errorMessages, v.Error())
+			}
 
-			if err == nil {
+			if len(errorMessages) == 0 {
 				assert.Equal(t, len(cc.expectedErrors), 0, "Expected errors but none were seen")
 			} else {
 				// An error was returned: it should be expected
 				matched := false
 				for _, expectedErr := range cc.expectedErrors {
-					foundMatch := strings.Contains(err.Error(), expectedErr)
+					foundMatch := strings.Contains(strings.Join(errorMessages, ";"), expectedErr)
 					assert.True(t, foundMatch, "Unble to locate expected error: %s", cc.expectedErrors)
 					matched = matched || foundMatch
 				}
@@ -1801,6 +1746,10 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 	err = argov1alpha1.AddToScheme(scheme)
 	assert.Nil(t, err)
 
+	defaultProject := argov1alpha1.AppProject{
+		ObjectMeta: metav1.ObjectMeta{Name: "default", Namespace: "argocd"},
+		Spec:       argov1alpha1.AppProjectSpec{SourceRepos: []string{"*"}, Destinations: []argov1alpha1.ApplicationDestination{{Namespace: "*", Server: "https://good-cluster"}}},
+	}
 	appSet := argoprojiov1alpha1.ApplicationSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "name",
@@ -1810,18 +1759,38 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 				{List: &argoprojiov1alpha1.ListGenerator{
 					Elements: []apiextensionsv1.JSON{{
-						Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
+						Raw: []byte(`{"cluster": "good-cluster","url": "https://good-cluster"}`),
+					}, {
+						Raw: []byte(`{"cluster": "bad-cluster","url": "https://bad-cluster"}`),
 					}},
 				}},
 			},
-			Template: argoprojiov1alpha1.ApplicationSetTemplate{},
+			Template: argoprojiov1alpha1.ApplicationSetTemplate{
+				ApplicationSetTemplateMeta: argoprojiov1alpha1.ApplicationSetTemplateMeta{
+					Name:      "{{cluster}}",
+					Namespace: "argocd",
+				},
+				Spec: argov1alpha1.ApplicationSpec{
+					Source:      argov1alpha1.ApplicationSource{RepoURL: "https://github.com/argoproj/argocd-example-apps", Path: "guestbook"},
+					Project:     "default",
+					Destination: argov1alpha1.ApplicationDestination{Server: "{{url}}"},
+				},
+			},
 		},
 	}
-	kubeclientset := kubefake.NewSimpleClientset([]runtime.Object{}...)
+
+	kubeclientset := kubefake.NewSimpleClientset()
 	argoDBMock := dbmocks.ArgoDB{}
-	argoObjs := []runtime.Object{}
+	argoObjs := []runtime.Object{&defaultProject}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&appSet).Build()
+	goodCluster := argov1alpha1.Cluster{Server: "https://good-cluster", Name: "good-cluster"}
+	badCluster := argov1alpha1.Cluster{Server: "https://bad-cluster", Name: "bad-cluster"}
+	argoDBMock.On("GetCluster", mock.Anything, "https://good-cluster").Return(&goodCluster, nil)
+	argoDBMock.On("GetCluster", mock.Anything, "https://bad-cluster").Return(&badCluster, nil)
+	argoDBMock.On("ListClusters", mock.Anything).Return(&argov1alpha1.ClusterList{Items: []argov1alpha1.Cluster{
+		goodCluster,
+	}}, nil)
 
 	r := ApplicationSetReconciler{
 		Log:      ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
@@ -1835,6 +1804,7 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 		ArgoDB:           &argoDBMock,
 		ArgoAppClientset: appclientset.NewSimpleClientset(argoObjs...),
 		KubeClientset:    kubeclientset,
+		Policy:           &utils.SyncPolicy{},
 	}
 
 	req := ctrl.Request{
@@ -1847,6 +1817,16 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 	// Verify that on validation error, no error is returned, but the object is requeued
 	res, err := r.Reconcile(context.Background(), req)
 	assert.Nil(t, err)
-	assert.True(t, res.RequeueAfter > 0)
+	assert.True(t, res.RequeueAfter == 0)
 
+	var app argov1alpha1.Application
+
+	// make sure good app got created
+	err = r.Client.Get(context.TODO(), crtclient.ObjectKey{Namespace: "argocd", Name: "good-cluster"}, &app)
+	assert.NoError(t, err)
+	assert.Equal(t, app.Name, "good-cluster")
+
+	// make sure bad app was not created
+	err = r.Client.Get(context.TODO(), crtclient.ObjectKey{Namespace: "argocd", Name: "bad-cluster"}, &app)
+	assert.Error(t, err)
 }

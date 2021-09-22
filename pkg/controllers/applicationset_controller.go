@@ -96,7 +96,8 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, err
 	}
 
-	if validateError := r.validateGeneratedApplications(ctx, desiredApplications, applicationSetInfo, req.Namespace); validateError != nil {
+	validateErrors, err := r.validateGeneratedApplications(ctx, desiredApplications, applicationSetInfo, req.Namespace)
+	if err != nil {
 		// While some generators may return an error that requires user intervention,
 		// other generators reference external resources that may change to cause
 		// the error to no longer occur. We thus log the error and requeue
@@ -104,17 +105,36 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		//
 		// Changes to watched resources will cause this to be reconciled sooner than
 		// the RequeueAfter time.
-		log.Errorf("error occurred during application generation: %s", validateError.Error())
+		log.Errorf("error occurred during application validation: %s", err.Error())
 		return ctrl.Result{RequeueAfter: ReconcileRequeueOnValidationError}, nil
 	}
 
+	var validApps []argov1alpha1.Application
+	for i := range desiredApplications {
+		if validateErrors[i] == nil {
+			validApps = append(validApps, desiredApplications[i])
+		}
+	}
+
+	if len(validateErrors) > 0 {
+		var message string
+		for _, v := range validateErrors {
+			message = v.Error()
+			break
+		}
+		if len(validateErrors) > 1 {
+			message = fmt.Sprintf("%s (and %d more)", message, len(validateErrors)-1)
+		}
+		log.Errorf("error occurred during application validation: %s", message)
+	}
+
 	if r.Policy.Update() {
-		err = r.createOrUpdateInCluster(ctx, applicationSetInfo, desiredApplications)
+		err = r.createOrUpdateInCluster(ctx, applicationSetInfo, validApps)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
 	} else {
-		err = r.createInCluster(ctx, applicationSetInfo, desiredApplications)
+		err = r.createInCluster(ctx, applicationSetInfo, validApps)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -146,48 +166,44 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 // validateGeneratedApplications uses the Argo CD validation functions to verify the correctness of the
 // generated applications.
-func (r *ApplicationSetReconciler) validateGeneratedApplications(ctx context.Context, desiredApplications []argov1alpha1.Application, applicationSetInfo argoprojiov1alpha1.ApplicationSet, namespace string) (err error) {
+func (r *ApplicationSetReconciler) validateGeneratedApplications(ctx context.Context, desiredApplications []argov1alpha1.Application, applicationSetInfo argoprojiov1alpha1.ApplicationSet, namespace string) (map[int]error, error) {
+	errorsByIndex := map[int]error{}
+	namesSet := map[string]bool{}
+	for i, app := range desiredApplications {
 
-	if hasDuplicates, name := hasDuplicateNames(desiredApplications); hasDuplicates {
-		return fmt.Errorf("ApplicationSet %s contains applications with duplicate name: %s", applicationSetInfo.Name, name)
-	}
-
-	for _, app := range desiredApplications {
+		if !namesSet[app.Name] {
+			namesSet[app.Name] = true
+		} else {
+			errorsByIndex[i] = fmt.Errorf("ApplicationSet %s contains applications with duplicate name: %s", applicationSetInfo.Name, app.Name)
+			continue
+		}
 
 		proj, err := r.ArgoAppClientset.ArgoprojV1alpha1().AppProjects(namespace).Get(ctx, app.Spec.GetProject(), metav1.GetOptions{})
 		if err != nil {
 			if apierr.IsNotFound(err) {
-				return fmt.Errorf("application references project %s which does not exist", app.Spec.Project)
+				errorsByIndex[i] = fmt.Errorf("application references project %s which does not exist", app.Spec.Project)
+				continue
 			}
-			return err
+			return nil, err
 		}
 
 		if err := utils.ValidateDestination(ctx, &app.Spec.Destination, r.KubeClientset, namespace); err != nil {
-			return fmt.Errorf("application destination spec is invalid: %s", err.Error())
+			errorsByIndex[i] = fmt.Errorf("application destination spec is invalid: %s", err.Error())
+			continue
 		}
 
 		conditions, err := argoutil.ValidatePermissions(ctx, &app.Spec, proj, r.ArgoDB)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if len(conditions) > 0 {
-			return fmt.Errorf("application spec is invalid: %s", argoutil.FormatAppConditions(conditions))
+			errorsByIndex[i] = fmt.Errorf("application spec is invalid: %s", argoutil.FormatAppConditions(conditions))
+			continue
 		}
 
 	}
 
-	return nil
-}
-
-func hasDuplicateNames(applications []argov1alpha1.Application) (bool, string) {
-	nameSet := map[string]struct{}{}
-	for _, app := range applications {
-		if _, present := nameSet[app.Name]; present {
-			return true, app.Name
-		}
-		nameSet[app.Name] = struct{}{}
-	}
-	return false, ""
+	return errorsByIndex, nil
 }
 
 func (r *ApplicationSetReconciler) getMinRequeueAfter(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) time.Duration {
