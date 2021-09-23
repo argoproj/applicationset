@@ -124,7 +124,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			argoprojiov1alpha1.ApplicationSetCondition{
 				Type:    argoprojiov1alpha1.ApplicationSetConditionErrorOccured,
 				Message: err.Error(),
-				Reason:  "validationMessage",
+				Reason:  argoprojiov1alpha1.ApplicationSetReasonApplicationValidationError,
 				Status:  argoprojiov1alpha1.ApplicationSetConditionStatusTrue,
 			},
 		)
@@ -148,6 +148,15 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			message = fmt.Sprintf("%s (and %d more)", message, len(validateErrors)-1)
 		}
 		log.Errorf("error occurred during application validation: %s", message)
+		_ = r.setApplicationSetStatusCondition(ctx,
+			&applicationSetInfo,
+			argoprojiov1alpha1.ApplicationSetCondition{
+				Type:    argoprojiov1alpha1.ApplicationSetConditionErrorOccured,
+				Message: message,
+				Reason:  argoprojiov1alpha1.ApplicationSetReasonApplicationValidationError,
+				Status:  argoprojiov1alpha1.ApplicationSetConditionStatusTrue,
+			},
+		)
 	}
 
 	if r.Policy.Update() {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -1563,10 +1564,10 @@ func TestValidateGeneratedApplications(t *testing.T) {
 
 	// Test a subset of the validations that 'validateGeneratedApplications' performs
 	for _, cc := range []struct {
-		name              string
-		apps              []argov1alpha1.Application
-		expectedErrors    []string
-		validationMessage []string
+		name             string
+		apps             []argov1alpha1.Application
+		expectedErrors   []string
+		validationErrors map[int]error
 	}{
 		{
 			name: "valid app should return true",
@@ -1588,8 +1589,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors:    []string{},
-			validationMessage: []string{""},
+			expectedErrors:   []string{},
+			validationErrors: map[int]error{},
 		},
 		{
 			name: "can't have both name and server defined",
@@ -1612,8 +1613,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors:    []string{"application destination can't have both name and server defined"},
-			validationMessage: []string{argoprojiov1alpha1.ApplicationSetReasonInvalidApplicationSpec},
+			expectedErrors:   []string{"application destination can't have both name and server defined"},
+			validationErrors: map[int]error{0: errors.New("application destination spec is invalid: application destination can't have both name and server defined: my-cluster my-server")},
 		},
 		{
 			name: "project mismatch should return error",
@@ -1635,8 +1636,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors:    []string{"application references project DOES-NOT-EXIST which does not exist"},
-			validationMessage: []string{argoprojiov1alpha1.ApplicationSetReferencedProjectNotFound},
+			expectedErrors:   []string{"application references project DOES-NOT-EXIST which does not exist"},
+			validationErrors: map[int]error{0: errors.New("application references project DOES-NOT-EXIST which does not exist")},
 		},
 		{
 			name: "valid app should return true",
@@ -1658,8 +1659,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors:    []string{},
-			validationMessage: []string{""},
+			expectedErrors:   []string{},
+			validationErrors: map[int]error{},
 		},
 		{
 			name: "cluster should match",
@@ -1681,8 +1682,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors:    []string{"there are no clusters with this name: nonexistent-cluster"},
-			validationMessage: []string{argoprojiov1alpha1.ApplicationSetReasonInvalidApplicationSpec},
+			expectedErrors:   []string{"there are no clusters with this name: nonexistent-cluster"},
+			validationErrors: map[int]error{0: errors.New("application destination spec is invalid: unable to find destination server: there are no clusters with this name: nonexistent-cluster")},
 		},
 	} {
 
@@ -1746,13 +1747,18 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					matched = matched || foundMatch
 				}
 				// validation message was returned: it should be expected
-				// matched = false
-				// for _, validationMessage := range cc.validationMessage {
-				// 	foundMatch := msg == validationMessage
-				// 	assert.True(t, foundMatch, "Unble to locate validation message: %s", msg)
-				// 	matched = matched || foundMatch
+				matched = false
+				// for _, validationError := range cc.validationErrors {
+				foundMatch := reflect.DeepEqual(validationErrors, cc.validationErrors)
+				var message string
+				for _, v := range validationErrors {
+					message = v.Error()
+					break
+				}
+				assert.True(t, foundMatch, "Unble to locate validation message: %s", message)
+				matched = matched || foundMatch
 				// }
-				// assert.True(t, matched, "An unexpected error occurrred: %v", err)
+				assert.True(t, matched, "An unexpected error occurrred: %v", err)
 			}
 		})
 	}

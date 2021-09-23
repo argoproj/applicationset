@@ -53,7 +53,7 @@ func TestSetConditions(t *testing.T) {
 			name:     "new conditions with lastTransitionTime",
 			existing: []ApplicationSetCondition{},
 			incoming: []ApplicationSetCondition{
-				testCond(ApplicationSetConditionErrorOccured, "foo", fiveMinsAgo, ApplicationSetConditionStatusTrue, ApplicationSetReasonInvalidApplicationSpec),
+				testCond(ApplicationSetConditionErrorOccured, "foo", fiveMinsAgo, ApplicationSetConditionStatusTrue, ApplicationSetReasonApplicationValidationError),
 				testCond(ApplicationSetConditionResourcesUpToDate, "bar", tenMinsAgo, ApplicationSetConditionStatusTrue, ApplicationSetReasonApplicationSetUpToDate),
 			},
 			evaluatedTypes: map[ApplicationSetConditionType]bool{
@@ -61,7 +61,7 @@ func TestSetConditions(t *testing.T) {
 				ApplicationSetConditionResourcesUpToDate: true,
 			},
 			expected: []ApplicationSetCondition{
-				testCond(ApplicationSetConditionErrorOccured, "foo", fiveMinsAgo, ApplicationSetConditionStatusTrue, ApplicationSetReasonInvalidApplicationSpec),
+				testCond(ApplicationSetConditionErrorOccured, "foo", fiveMinsAgo, ApplicationSetConditionStatusTrue, ApplicationSetReasonApplicationValidationError),
 				testCond(ApplicationSetConditionResourcesUpToDate, "bar", tenMinsAgo, ApplicationSetConditionStatusTrue, ApplicationSetReasonApplicationSetUpToDate),
 			},
 			validate: func(t *testing.T, a *ApplicationSet) {
@@ -72,7 +72,7 @@ func TestSetConditions(t *testing.T) {
 			name:     "new conditions without lastTransitionTime",
 			existing: []ApplicationSetCondition{},
 			incoming: []ApplicationSetCondition{
-				testCond(ApplicationSetConditionErrorOccured, "foo", nil, ApplicationSetConditionStatusTrue, ApplicationSetReasonInvalidApplicationSpec),
+				testCond(ApplicationSetConditionErrorOccured, "foo", nil, ApplicationSetConditionStatusTrue, ApplicationSetReasonApplicationValidationError),
 				testCond(ApplicationSetConditionResourcesUpToDate, "bar", nil, ApplicationSetConditionStatusFalse, ApplicationSetReasonApplicationSetUpToDate),
 			},
 			evaluatedTypes: map[ApplicationSetConditionType]bool{
@@ -80,7 +80,7 @@ func TestSetConditions(t *testing.T) {
 				ApplicationSetConditionResourcesUpToDate: true,
 			},
 			expected: []ApplicationSetCondition{
-				testCond(ApplicationSetConditionErrorOccured, "foo", nil, ApplicationSetConditionStatusTrue, ApplicationSetReasonInvalidApplicationSpec),
+				testCond(ApplicationSetConditionErrorOccured, "foo", nil, ApplicationSetConditionStatusTrue, ApplicationSetReasonApplicationValidationError),
 				testCond(ApplicationSetConditionResourcesUpToDate, "bar", nil, ApplicationSetConditionStatusFalse, ApplicationSetReasonApplicationSetUpToDate),
 			},
 			validate: func(t *testing.T, a *ApplicationSet) {
@@ -91,7 +91,7 @@ func TestSetConditions(t *testing.T) {
 		}, {
 			name: "condition cleared",
 			existing: []ApplicationSetCondition{
-				testCond(ApplicationSetConditionErrorOccured, "foo", fiveMinsAgo, ApplicationSetConditionStatusTrue, ApplicationSetReasonInvalidApplicationSpec),
+				testCond(ApplicationSetConditionErrorOccured, "foo", fiveMinsAgo, ApplicationSetConditionStatusTrue, ApplicationSetReasonApplicationValidationError),
 				testCond(ApplicationSetConditionResourcesUpToDate, "bar", tenMinsAgo, ApplicationSetConditionStatusFalse, ApplicationSetReasonApplicationSetUpToDate),
 			},
 			incoming: []ApplicationSetCondition{

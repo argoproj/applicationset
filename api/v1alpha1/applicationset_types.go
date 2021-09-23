@@ -282,17 +282,18 @@ const (
 )
 
 const (
-	ApplicationSetReferencedProjectNotFound                  = "ReferencedProjectNotFound"
-	ApplicationSetReasonInvalidApplicationSpec               = "InvalidApplicationSpec"
-	ApplicationSetReasonErrorOccured                         = "ErrorOccured"
-	ApplicationSetReasonApplicationSetUpToDate               = "ApplicationSetUpToDate"
-	ApplicationSetReasonUpdateApplicationError               = "UpdateApplicationError"
-	ApplicationSetReasonApplicationsWithDuplicateNames       = "ApplicationsWithDuplicateNames"
+	// ApplicationSetReferencedProjectNotFound                  = "ReferencedProjectNotFound"
+	// ApplicationSetReasonInvalidApplicationSpec               = "InvalidApplicationSpec"
+	ApplicationSetReasonErrorOccured           = "ErrorOccured"
+	ApplicationSetReasonApplicationSetUpToDate = "ApplicationSetUpToDate"
+	ApplicationSetReasonUpdateApplicationError = "UpdateApplicationError"
+	// ApplicationSetReasonApplicationsWithDuplicateNames       = "ApplicationsWithDuplicateNames"
 	ApplicationSetReasonApplicationGenerationFromParamsError = "ApplicationGenerationFromParamsError"
 	ApplicationSetReasonRenderTemplateParamsError            = "RenderTemplateParamsError"
 	ApplicationSetReasonCreateApplicationError               = "CreateApplicationError"
 	ApplicationSetReasonDeleteApplicationError               = "DeleteApplicationError"
 	ApplicationSetReasonRefreshApplicationError              = "RefreshApplicationError"
+	ApplicationSetReasonApplicationValidationError           = "ApplicationValidationError"
 )
 
 // ApplicationSetList contains a list of ApplicationSet
