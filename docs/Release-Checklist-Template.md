@@ -25,7 +25,7 @@ Once complete, this is a set of checks to perform once you have a commit, tags, 
         - [ ] `manifests/install-with-argo-cd.yaml`
         - [ ] `manifests/base/kustomization.yaml`
         - [ ] `.github/workflows/ci-build.yaml`
-        - [ ] `docs/Geting-Started.md`
+        - [ ] `docs/Getting-Started.md`
         - [ ] `hack/verify-argo-cd-versions.sh`
         - [ ] `manifests/namespace-install-with-argo-cd/kustomization.yaml`
 - [ ] A `v(version)` tag exists in the `argoproj-labs/applicationset` repo

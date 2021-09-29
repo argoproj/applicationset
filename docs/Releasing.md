@@ -39,9 +39,9 @@ Visit `https://github.com/argoproj-labs/applicationset/commit/(COMMIT ID)`
 
 Verify there is a green check mark at the top left hand corner, indicating that each of the jobs of the GitHub action successfully passed. If not, you should be able to click the icon to see what failed. 
 
-#### 5) Update the `docs/Geting-Started.md` file to point to the release version
+#### 5) Update the `docs/Getting-Started.md` file to point to the release version
 
-In `docs/Geting-Started.md`, locate the references to `kubectl apply -f`. These are the commands that users will run to install the ApplicationSet controller.
+In `docs/Getting-Started.md`, locate the references to `kubectl apply -f`. These are the commands that users will run to install the ApplicationSet controller.
 
 For all `kubectl` references (there are 2, as of this writing) replace `master` with the version `v(version)` (eg `v0.1.0`)
 
