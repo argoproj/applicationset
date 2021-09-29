@@ -268,3 +268,22 @@ func ToUnstructured(obj interface{}) (*unstructured.Unstructured, error) {
 	}
 	return &unstructured.Unstructured{Object: uObj}, nil
 }
+
+// IsGitHubSkippedTest returns true if the test should be skipped because it requires a GitHub API Token
+// and one has not been provided.
+// Unfortunately, GitHub Actions cannot use repository secrets, so we need to skip these tests for PRs.
+//
+// Tests that call this function require a GITHUB_TOKEN to be present, otherwise they will fail, due to
+// GitHub's rate limiting on anonymous API requests.
+//
+// Note: This only applies to tests that use the GitHub API (different from GitHub's Git service)
+func IsGitHubAPISkippedTest(t *testing.T) bool {
+
+	if strings.TrimSpace(os.Getenv("GITHUB_TOKEN")) == "" {
+		t.Skip("Skipping this test, as the GITHUB_TOKEN is not set. Please ensure this test passes locally, with your own GITHUB_TOKEN.")
+		return true
+	}
+
+	return false
+
+}

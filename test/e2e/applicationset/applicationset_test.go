@@ -510,6 +510,11 @@ func TestCustomApplicationFinalizers(t *testing.T) {
 }
 
 func TestSimplePullRequestGenerator(t *testing.T) {
+
+	if utils.IsGitHubAPISkippedTest(t) {
+		return
+	}
+
 	expectedApp := argov1alpha1.Application{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Application",
