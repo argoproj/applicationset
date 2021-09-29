@@ -154,6 +154,7 @@ func main() {
 		"Git":                     generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
 		"SCMProvider":             generators.NewSCMProviderGenerator(mgr.GetClient()),
 		"ClusterDecisionResource": generators.NewDuckTypeGenerator(context.Background(), dynClient, k8s, namespace),
+		"PullRequest":             generators.NewPullRequestGenerator(mgr.GetClient()),
 	}
 
 	combineGenerators := map[string]generators.Generator{

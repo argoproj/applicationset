@@ -34,6 +34,7 @@ nav:
     - Generators-Matrix.md
     - Generators-SCM-Provider.md
     - Generators-Cluster-Decision-Resource.md
+    - Generators-Pull-Request.md
   - Template fields: Template.md
   - Controlling Resource Modification: Controlling-Resource-Modification.md
   - Application Pruning & Resource Deletion: Application-Deletion.md

@@ -78,6 +78,7 @@ type ApplicationSetGenerator struct {
 	Matrix                  *MatrixGenerator      `json:"matrix,omitempty"`
 	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
 	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
+	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
 }
 
 // ApplicationSetBaseGenerator include list item info
@@ -89,6 +90,7 @@ type ApplicationSetBaseGenerator struct {
 	Git                     *GitGenerator         `json:"git,omitempty"`
 	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
 	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
+	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
 }
 
 // ListGenerator include items info
@@ -202,6 +204,29 @@ type SCMProviderGeneratorFilter struct {
 	LabelMatch *string `json:"labelMatch,omitempty"`
 	// A regex which must match the branch name.
 	BranchMatch *string `json:"branchMatch,omitempty"`
+}
+
+// PullRequestGenerator defines a generator that scrapes a PullRequest API to find candidate pull requests.
+type PullRequestGenerator struct {
+	// Which provider to use and config for it.
+	Github *PullRequestGeneratorGithub `json:"github,omitempty"`
+	// Standard parameters.
+	RequeueAfterSeconds *int64                 `json:"requeueAfterSeconds,omitempty"`
+	Template            ApplicationSetTemplate `json:"template,omitempty"`
+}
+
+// PullRequestGenerator defines a connection info specific to GitHub.
+type PullRequestGeneratorGithub struct {
+	// GitHub org or user to scan. Required.
+	Owner string `json:"owner"`
+	// GitHub repo name to scan. Required.
+	Repo string `json:"repo"`
+	// The GitHub API URL to talk to. If blank, use https://api.github.com/.
+	API string `json:"api,omitempty"`
+	// Authentication token reference.
+	TokenRef *SecretRef `json:"tokenRef,omitempty"`
+	// Labels is used to filter the PRs that you want to target
+	Labels []string `json:"labels,omitempty"`
 }
 
 // ApplicationSetStatus defines the observed state of ApplicationSet

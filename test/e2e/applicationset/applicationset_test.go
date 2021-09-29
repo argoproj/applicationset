@@ -508,3 +508,72 @@ func TestCustomApplicationFinalizers(t *testing.T) {
 		When().
 		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{expectedApp}))
 }
+
+func TestSimplePullRequestGenerator(t *testing.T) {
+	expectedApp := argov1alpha1.Application{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Application",
+			APIVersion: "argoproj.io/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "guestbook-1",
+			Namespace:  utils.ArgoCDNamespace,
+			Finalizers: []string{"resources-finalizer.argocd.argoproj.io"},
+		},
+		Spec: argov1alpha1.ApplicationSpec{
+			Project: "default",
+			Source: argov1alpha1.ApplicationSource{
+				RepoURL:        "git@github.com:applicationset-test-org/argocd-example-apps.git",
+				TargetRevision: "824a5c987fdfb2b0629e9dbf5f31636c69ba4772",
+				Path:           "kustomize-guestbook",
+				Kustomize: &argov1alpha1.ApplicationSourceKustomize{
+					NamePrefix: "guestbook-1",
+				},
+			},
+			Destination: argov1alpha1.ApplicationDestination{
+				Server:    "https://kubernetes.default.svc",
+				Namespace: "guestbook-pull-request",
+			},
+		},
+	}
+
+	Given(t).
+		// Create an PullRequestGenerator-based ApplicationSet
+		When().Create(v1alpha1.ApplicationSet{ObjectMeta: metav1.ObjectMeta{
+		Name: "simple-pull-request-generator",
+	},
+		Spec: v1alpha1.ApplicationSetSpec{
+			Template: v1alpha1.ApplicationSetTemplate{
+				ApplicationSetTemplateMeta: v1alpha1.ApplicationSetTemplateMeta{Name: "guestbook-{{ number }}"},
+				Spec: argov1alpha1.ApplicationSpec{
+					Project: "default",
+					Source: argov1alpha1.ApplicationSource{
+						RepoURL:        "git@github.com:applicationset-test-org/argocd-example-apps.git",
+						TargetRevision: "{{ head_sha }}",
+						Path:           "kustomize-guestbook",
+						Kustomize: &argov1alpha1.ApplicationSourceKustomize{
+							NamePrefix: "guestbook-{{ number }}",
+						},
+					},
+					Destination: argov1alpha1.ApplicationDestination{
+						Server:    "https://kubernetes.default.svc",
+						Namespace: "guestbook-{{ branch }}",
+					},
+				},
+			},
+			Generators: []v1alpha1.ApplicationSetGenerator{
+				{
+					PullRequest: &v1alpha1.PullRequestGenerator{
+						Github: &v1alpha1.PullRequestGeneratorGithub{
+							Owner: "applicationset-test-org",
+							Repo:  "argocd-example-apps",
+							Labels: []string{
+								"preview",
+							},
+						},
+					},
+				},
+			},
+		},
+	}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{expectedApp}))
+}
