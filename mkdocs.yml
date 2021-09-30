@@ -41,6 +41,5 @@ nav:
   - Developer Guide:
     - Building and Running the Controller: Development.md
     - Running E2E Tests: E2E-Tests.md
-    - Release Guidance: Releasing.md
-
-
+    - Release Process: Releasing.md
+    - Release Checklist Template: Release-Checklist-Template.md
