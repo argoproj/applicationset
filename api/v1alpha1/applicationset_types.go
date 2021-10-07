@@ -281,19 +281,20 @@ const (
 	ApplicationSetConditionResourcesUpToDate   ApplicationSetConditionType = "ResourcesUpToDate"
 )
 
+type ApplicationSetReasonType string
+
 const (
-	// ApplicationSetReferencedProjectNotFound                  = "ReferencedProjectNotFound"
-	// ApplicationSetReasonInvalidApplicationSpec               = "InvalidApplicationSpec"
-	ApplicationSetReasonErrorOccured           = "ErrorOccured"
-	ApplicationSetReasonApplicationSetUpToDate = "ApplicationSetUpToDate"
-	ApplicationSetReasonUpdateApplicationError = "UpdateApplicationError"
-	// ApplicationSetReasonApplicationsWithDuplicateNames       = "ApplicationsWithDuplicateNames"
-	ApplicationSetReasonApplicationGenerationFromParamsError = "ApplicationGenerationFromParamsError"
-	ApplicationSetReasonRenderTemplateParamsError            = "RenderTemplateParamsError"
-	ApplicationSetReasonCreateApplicationError               = "CreateApplicationError"
-	ApplicationSetReasonDeleteApplicationError               = "DeleteApplicationError"
-	ApplicationSetReasonRefreshApplicationError              = "RefreshApplicationError"
-	ApplicationSetReasonApplicationValidationError           = "ApplicationValidationError"
+	ApplicationSetReasonErrorOccured                     = "ErrorOccured"
+	ApplicationSetReasonApplicationSetUpToDate           = "ApplicationSetUpToDate"
+	ApplicationSetReasonParametersGenerated              = "ParametersGenerated"
+	ApplicationSetReasonApplicationGenerated             = "ApplicationGeneratedSuccessfully"
+	ApplicationSetReasonUpdateApplicationError           = "UpdateApplicationError"
+	ApplicationSetReasonApplicationParamsGenerationError = "ApplicationGenerationFromParamsError"
+	ApplicationSetReasonRenderTemplateParamsError        = "RenderTemplateParamsError"
+	ApplicationSetReasonCreateApplicationError           = "CreateApplicationError"
+	ApplicationSetReasonDeleteApplicationError           = "DeleteApplicationError"
+	ApplicationSetReasonRefreshApplicationError          = "RefreshApplicationError"
+	ApplicationSetReasonApplicationValidationError       = "ApplicationValidationError"
 )
 
 // ApplicationSetList contains a list of ApplicationSet
@@ -321,15 +322,6 @@ func (a *ApplicationSet) RefreshRequired() bool {
 func (status *ApplicationSetStatus) SetConditions(conditions []ApplicationSetCondition, evaluatedTypes map[ApplicationSetConditionType]bool) {
 	applicationSetConditions := make([]ApplicationSetCondition, 0)
 	now := metav1.Now()
-	for i := 0; i < len(status.Conditions); i++ {
-		condition := status.Conditions[i]
-		if _, ok := evaluatedTypes[condition.Type]; !ok {
-			if condition.LastTransitionTime == nil {
-				condition.LastTransitionTime = &now
-			}
-			applicationSetConditions = append(applicationSetConditions, condition)
-		}
-	}
 	for i := range conditions {
 		condition := conditions[i]
 		if condition.LastTransitionTime == nil {

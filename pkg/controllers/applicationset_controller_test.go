@@ -26,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/fake"
 	dbmocks "github.com/argoproj/argo-cd/v2/util/db/mocks"
@@ -85,6 +86,7 @@ func TestExtractApplications(t *testing.T) {
 		generateParamsError error
 		rendererError       error
 		expectErr           bool
+		expectedReason      v1alpha1.ApplicationSetReasonType
 	}{
 		{
 			name:   "Generate two applications",
@@ -97,11 +99,13 @@ func TestExtractApplications(t *testing.T) {
 				},
 				Spec: argov1alpha1.ApplicationSpec{},
 			},
+			expectedReason: "",
 		},
 		{
 			name:                "Handles error from the generator",
 			generateParamsError: errors.New("error"),
 			expectErr:           true,
+			expectedReason:      v1alpha1.ApplicationSetReasonApplicationParamsGenerationError,
 		},
 		{
 			name:   "Handles error from the render",
@@ -114,8 +118,9 @@ func TestExtractApplications(t *testing.T) {
 				},
 				Spec: argov1alpha1.ApplicationSpec{},
 			},
-			rendererError: errors.New("error"),
-			expectErr:     true,
+			rendererError:  errors.New("error"),
+			expectErr:      true,
+			expectedReason: v1alpha1.ApplicationSetReasonRenderTemplateParamsError,
 		},
 	} {
 		cc := c
@@ -176,7 +181,7 @@ func TestExtractApplications(t *testing.T) {
 				KubeClientset: kubefake.NewSimpleClientset(),
 			}
 
-			got, err := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
+			got, reason, err := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
 					Namespace: "namespace",
@@ -193,6 +198,7 @@ func TestExtractApplications(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			assert.Equal(t, expectedApps, got)
+			assert.Equal(t, cc.expectedReason, reason)
 			generatorMock.AssertNumberOfCalls(t, "GenerateParams", 1)
 
 			if cc.generateParamsError == nil {
@@ -288,7 +294,7 @@ func TestMergeTemplateApplications(t *testing.T) {
 				KubeClientset: kubefake.NewSimpleClientset(),
 			}
 
-			got, _ := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
+			got, _, _ := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
 					Namespace: "namespace",
@@ -1748,7 +1754,6 @@ func TestValidateGeneratedApplications(t *testing.T) {
 				}
 				// validation message was returned: it should be expected
 				matched = false
-				// for _, validationError := range cc.validationErrors {
 				foundMatch := reflect.DeepEqual(validationErrors, cc.validationErrors)
 				var message string
 				for _, v := range validationErrors {
@@ -1757,7 +1762,6 @@ func TestValidateGeneratedApplications(t *testing.T) {
 				}
 				assert.True(t, foundMatch, "Unble to locate validation message: %s", message)
 				matched = matched || foundMatch
-				// }
 				assert.True(t, matched, "An unexpected error occurrred: %v", err)
 			}
 		})
@@ -1908,8 +1912,8 @@ func TestSetApplicationSetStatusCondition(t *testing.T) {
 		KubeClientset:    kubeclientset,
 	}
 
-	err = r.setApplicationSetStatusCondition(context.TODO(), &appSet, appCondition)
+	err = r.setApplicationSetStatusCondition(context.TODO(), &appSet, appCondition, true)
 	assert.Nil(t, err)
 
-	assert.Len(t, appSet.Status.Conditions, 1)
+	assert.Len(t, appSet.Status.Conditions, 3)
 }
