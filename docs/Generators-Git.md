@@ -38,7 +38,7 @@ spec:
       - path: examples/git-generator-directory/cluster-addons/*
   template:
     metadata:
-      name: '{{path.basename}}'
+      name: '{{path[0]}}'
     spec:
       project: default
       source:
@@ -54,6 +54,7 @@ spec:
 The generator parameters are:
 
 - `{{path}}`: The directory paths within the Git repository that match the `path` wildcard.
+- `{{path[n]}}`: The directory paths within the Git repository that match the `path` wildcard, split into array elements (`n` - array index)
 - `{{path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (e.g. `/directory/directory2` would produce `directory2`).
 
 Whenever a new Helm chart/Kustomize YAML/Application/plain subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
@@ -224,6 +225,7 @@ As with other generators, clusters *must* already be defined within Argo CD, in 
 In addition to the flattened key/value pairs from the configuration file, the following generator parameters are provided:
 
 - `{{path}}`: The path to the matching configuration file within the Git repository. Example: `/cluster-config/staging/config.json`
+- `{{path[n]}}`: The path to the matching configuration file within the Git repository, split into array elements (`n` - array index). Example: `path[0]: cluster-config`, `path[1]: staging`
 - `{{path.basename}}`: The filename of the configuration file. Example: `config.json`
 
 ## Webhook Configuration
