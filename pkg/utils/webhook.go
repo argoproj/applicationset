@@ -34,6 +34,16 @@ type gitGeneratorInfo struct {
 	RepoRegexp  *regexp.Regexp
 }
 
+type prGeneratorInfo struct {
+	Github *prGeneratorGithubInfo
+}
+
+type prGeneratorGithubInfo struct {
+	Repo      string
+	Owner     string
+	APIRegexp *regexp.Regexp
+}
+
 func NewWebhookHandler(namespace string, argocdSettingsMgr *argosettings.SettingsManager, client client.Client) (*WebhookHandler, error) {
 	// register the webhook secrets stored under "argocd-secret" for verifying incoming payloads
 	argocdSettings, err := argocdSettingsMgr.GetSettings()
@@ -59,7 +69,8 @@ func NewWebhookHandler(namespace string, argocdSettingsMgr *argosettings.Setting
 
 func (h *WebhookHandler) HandleEvent(payload interface{}) {
 	gitGenInfo := getGitGeneratorInfo(payload)
-	if gitGenInfo == nil {
+	prGenInfo := getPRGeneratorInfo(payload)
+	if gitGenInfo == nil && prGenInfo == nil {
 		return
 	}
 
@@ -71,15 +82,21 @@ func (h *WebhookHandler) HandleEvent(payload interface{}) {
 	}
 
 	for _, appSet := range appSetList.Items {
+		shouldRefresh := false
 		for _, gen := range appSet.Spec.Generators {
 			// check if the ApplicationSet uses the git generator that is relevant to the payload
-			if shouldRefreshGitGenerator(gen.Git, gitGenInfo) {
-				err := refreshApplicationSet(h.client, &appSet)
-				if err != nil {
-					log.Errorf("Failed to refresh ApplicationSet '%s' for controller reprocessing", appSet.Name)
-					continue
-				}
+			shouldRefresh = shouldRefreshGitGenerator(gen.Git, gitGenInfo) || shouldRefreshPRGenerator(gen.PullRequest, prGenInfo)
+			if shouldRefresh {
+				break
 			}
+		}
+		if shouldRefresh {
+			err := refreshApplicationSet(h.client, &appSet)
+			if err != nil {
+				log.Errorf("Failed to refresh ApplicationSet '%s' for controller reprocessing", appSet.Name)
+				continue
+			}
+			log.Infof("refresh ApplicationSet %v/%v from webhook", appSet.Namespace, appSet.Name)
 		}
 	}
 }
@@ -90,7 +107,7 @@ func (h *WebhookHandler) Handler(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case r.Header.Get("X-GitHub-Event") != "":
-		payload, err = h.github.Parse(r, github.PushEvent)
+		payload, err = h.github.Parse(r, github.PushEvent, github.PullRequestEvent)
 	case r.Header.Get("X-Gitlab-Event") != "":
 		payload, err = h.gitlab.Parse(r, gitlab.PushEvents, gitlab.TagEvents)
 	default:
@@ -155,6 +172,57 @@ func getGitGeneratorInfo(payload interface{}) *gitGeneratorInfo {
 	}
 }
 
+func getPRGeneratorInfo(payload interface{}) *prGeneratorInfo {
+	var info prGeneratorInfo
+	switch payload := payload.(type) {
+	case github.PullRequestPayload:
+		if !isAllowedPullRequestAction(payload.Action) {
+			return nil
+		}
+
+		apiURL := payload.Repository.URL
+		urlObj, err := url.Parse(apiURL)
+		if err != nil {
+			log.Errorf("Failed to parse repoURL '%s'", apiURL)
+			return nil
+		}
+		regexpStr := `(?i)(http://|https://|\w+@|ssh://(\w+@)?)` + urlObj.Hostname() + "(:[0-9]+|)[:/]"
+		apiRegexp, err := regexp.Compile(regexpStr)
+		if err != nil {
+			log.Errorf("Failed to compile regexp for repoURL '%s'", apiURL)
+			return nil
+		}
+		info.Github = &prGeneratorGithubInfo{
+			Repo:      payload.Repository.Name,
+			Owner:     payload.Repository.Owner.Login,
+			APIRegexp: apiRegexp,
+		}
+	default:
+		return nil
+	}
+
+	return &info
+}
+
+// allowedPullRequestActions is a list of actions that allow refresh
+var allowedPullRequestActions = []string{
+	"opened",
+	"closed",
+	"synchronize",
+	"labeled",
+	"reopened",
+	"unlabeled",
+}
+
+func isAllowedPullRequestAction(action string) bool {
+	for _, allow := range allowedPullRequestActions {
+		if allow == action {
+			return true
+		}
+	}
+	return false
+}
+
 func shouldRefreshGitGenerator(gen *v1alpha1.GitGenerator, info *gitGeneratorInfo) bool {
 	if gen == nil || info == nil {
 		return false
@@ -185,6 +253,32 @@ func gitGeneratorUsesURL(gen *v1alpha1.GitGenerator, webURL string, repoRegexp *
 	}
 
 	log.Debugf("%s uses repoURL %s", gen.RepoURL, webURL)
+	return true
+}
+
+func shouldRefreshPRGenerator(gen *v1alpha1.PullRequestGenerator, info *prGeneratorInfo) bool {
+	if gen == nil || info == nil {
+		return false
+	}
+
+	if gen.Github == nil || info.Github == nil {
+		return false
+	}
+	if gen.Github.Owner != info.Github.Owner {
+		return false
+	}
+	if gen.Github.Repo != info.Github.Repo {
+		return false
+	}
+	api := gen.Github.API
+	if api == "" {
+		api = "https://api.github.com/"
+	}
+	if !info.Github.APIRegexp.MatchString(api) {
+		log.Debugf("%s does not match %s", gen.Github.API, info.Github.APIRegexp.String())
+		return false
+	}
+
 	return true
 }
 
