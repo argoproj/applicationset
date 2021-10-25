@@ -28,6 +28,12 @@ type WebhookHandler struct {
 	client    client.Client
 }
 
+type gitGeneratorInfo struct {
+	Revision    string
+	TouchedHead bool
+	RepoRegexp  *regexp.Regexp
+}
+
 func NewWebhookHandler(namespace string, argocdSettingsMgr *argosettings.SettingsManager, client client.Client) (*WebhookHandler, error) {
 	// register the webhook secrets stored under "argocd-secret" for verifying incoming payloads
 	argocdSettings, err := argocdSettingsMgr.GetSettings()
@@ -52,8 +58,10 @@ func NewWebhookHandler(namespace string, argocdSettingsMgr *argosettings.Setting
 }
 
 func (h *WebhookHandler) HandleEvent(payload interface{}) {
-	webURL, revision, touchedHead := getPayloadInfo(payload)
-	log.Infof("Received push event repo: %s, revision: %s, touchedHead: %v", webURL, revision, touchedHead)
+	gitGenInfo := getGitGeneratorInfo(payload)
+	if gitGenInfo == nil {
+		return
+	}
 
 	appSetList := &v1alpha1.ApplicationSetList{}
 	err := h.client.List(context.Background(), appSetList, &client.ListOptions{})
@@ -62,22 +70,10 @@ func (h *WebhookHandler) HandleEvent(payload interface{}) {
 		return
 	}
 
-	urlObj, err := url.Parse(webURL)
-	if err != nil {
-		log.Errorf("Failed to parse repoURL '%s'", webURL)
-		return
-	}
-	regexpStr := `(?i)(http://|https://|\w+@|ssh://(\w+@)?)` + urlObj.Hostname() + "(:[0-9]+|)[:/]" + urlObj.Path[1:] + "(\\.git)?"
-	repoRegexp, err := regexp.Compile(regexpStr)
-	if err != nil {
-		log.Errorf("Failed to compile regexp for repoURL '%s'", webURL)
-		return
-	}
-
 	for _, appSet := range appSetList.Items {
 		for _, gen := range appSet.Spec.Generators {
 			// check if the ApplicationSet uses the git generator that is relevant to the payload
-			if gen.Git != nil && gitGeneratorUsesURL(gen.Git, revision, repoRegexp) && genRevisionHasChanged(gen.Git, revision, touchedHead) {
+			if shouldRefreshGitGenerator(gen.Git, gitGenInfo) {
 				err := refreshApplicationSet(h.client, &appSet)
 				if err != nil {
 					log.Errorf("Failed to refresh ApplicationSet '%s' for controller reprocessing", appSet.Name)
@@ -121,7 +117,12 @@ func parseRevision(ref string) string {
 	return refParts[len(refParts)-1]
 }
 
-func getPayloadInfo(payload interface{}) (webURL, revision string, touchedHead bool) {
+func getGitGeneratorInfo(payload interface{}) *gitGeneratorInfo {
+	var (
+		webURL      string
+		revision    string
+		touchedHead bool
+	)
 	switch payload := payload.(type) {
 	case github.PushPayload:
 		webURL = payload.Repository.HTMLURL
@@ -131,9 +132,41 @@ func getPayloadInfo(payload interface{}) (webURL, revision string, touchedHead b
 		webURL = payload.Project.WebURL
 		revision = parseRevision(payload.Ref)
 		touchedHead = payload.Project.DefaultBranch == revision
+	default:
+		return nil
 	}
 
-	return webURL, revision, touchedHead
+	log.Infof("Received push event repo: %s, revision: %s, touchedHead: %v", webURL, revision, touchedHead)
+	urlObj, err := url.Parse(webURL)
+	if err != nil {
+		log.Errorf("Failed to parse repoURL '%s'", webURL)
+		return nil
+	}
+	regexpStr := `(?i)(http://|https://|\w+@|ssh://(\w+@)?)` + urlObj.Hostname() + "(:[0-9]+|)[:/]" + urlObj.Path[1:] + "(\\.git)?"
+	repoRegexp, err := regexp.Compile(regexpStr)
+	if err != nil {
+		log.Errorf("Failed to compile regexp for repoURL '%s'", webURL)
+		return nil
+	}
+
+	return &gitGeneratorInfo{
+		RepoRegexp:  repoRegexp,
+		TouchedHead: touchedHead,
+	}
+}
+
+func shouldRefreshGitGenerator(gen *v1alpha1.GitGenerator, info *gitGeneratorInfo) bool {
+	if gen == nil || info == nil {
+		return false
+	}
+
+	if !gitGeneratorUsesURL(gen, info.Revision, info.RepoRegexp) {
+		return false
+	}
+	if !genRevisionHasChanged(gen, info.Revision, info.TouchedHead) {
+		return false
+	}
+	return true
 }
 
 func genRevisionHasChanged(gen *v1alpha1.GitGenerator, revision string, touchedHead bool) bool {
