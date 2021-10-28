@@ -292,7 +292,7 @@ func refreshApplicationSet(c client.Client, appSet *v1alpha1.ApplicationSet) err
 		if appSet.Annotations == nil {
 			appSet.Annotations = map[string]string{}
 		}
-		appSet.Annotations[common.AnnotationGitGeneratorRefresh] = "true"
+		appSet.Annotations[common.AnnotationApplicationSetRefresh] = "true"
 		return c.Patch(context.Background(), appSet, client.Merge)
 	})
 }
