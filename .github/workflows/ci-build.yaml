@@ -49,13 +49,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Setup Golang
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.16.4'
       - name: Regenerate the manifests, git diff should report no changes.
         run: |
           make manifests
+          bin/controller-gen --version
           git diff --exit-code -- .
 
   build-go:
