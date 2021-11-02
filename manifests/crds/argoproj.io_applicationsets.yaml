@@ -3024,6 +3024,29 @@ spec:
                                     - spec
                                     type: object
                                 type: object
+                              selector:
+                                properties:
+                                  matchExpressions:
+                                    items:
+                                      properties:
+                                        key:
+                                          type: string
+                                        operator:
+                                          type: string
+                                        values:
+                                          items:
+                                            type: string
+                                          type: array
+                                      required:
+                                      - key
+                                      - operator
+                                      type: object
+                                    type: array
+                                  matchLabels:
+                                    additionalProperties:
+                                      type: string
+                                    type: object
+                                type: object
                             type: object
                           type: array
                         template:
@@ -5110,6 +5133,29 @@ spec:
                                     - spec
                                     type: object
                                 type: object
+                              selector:
+                                properties:
+                                  matchExpressions:
+                                    items:
+                                      properties:
+                                        key:
+                                          type: string
+                                        operator:
+                                          type: string
+                                        values:
+                                          items:
+                                            type: string
+                                          type: array
+                                      required:
+                                      - key
+                                      - operator
+                                      type: object
+                                    type: array
+                                  matchLabels:
+                                    additionalProperties:
+                                      type: string
+                                    type: object
+                                type: object
                             type: object
                           type: array
                         mergeKeys:
@@ -6015,6 +6061,29 @@ spec:
                           required:
                           - metadata
                           - spec
+                          type: object
+                      type: object
+                    selector:
+                      properties:
+                        matchExpressions:
+                          items:
+                            properties:
+                              key:
+                                type: string
+                              operator:
+                                type: string
+                              values:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - key
+                            - operator
+                            type: object
+                          type: array
+                        matchLabels:
+                          additionalProperties:
+                            type: string
                           type: object
                       type: object
                   type: object

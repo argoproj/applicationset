@@ -78,6 +78,8 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator represents a generator at the top level of an ApplicationSet.
 type ApplicationSetGenerator struct {
+	// Selector allows to post-filter all generator.
+	Selector                *metav1.LabelSelector `json:"selector,omitempty"`
 	List                    *ListGenerator        `json:"list,omitempty"`
 	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
 	Git                     *GitGenerator         `json:"git,omitempty"`
@@ -103,6 +105,9 @@ type ApplicationSetNestedGenerator struct {
 
 	// Merge should have the form of NestedMergeGenerator
 	Merge *apiextensionsv1.JSON `json:"merge,omitempty"`
+
+	// Selector allows to post-filter all generator.
+	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 }
 
 type ApplicationSetNestedGenerators []ApplicationSetNestedGenerator

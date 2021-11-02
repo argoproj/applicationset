@@ -153,6 +153,7 @@ func (m *MergeGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Applic
 
 	t, err := Transform(
 		argoprojiov1alpha1.ApplicationSetGenerator{
+			Selector:                appSetBaseGenerator.Selector,
 			List:                    appSetBaseGenerator.List,
 			Clusters:                appSetBaseGenerator.Clusters,
 			Git:                     appSetBaseGenerator.Git,

@@ -16,3 +16,39 @@ As of this writing there are seven generators:
 - [Cluster Decision Resource generator](Generators-Cluster-Decision-Resource.md): The Cluster Decision Resource generator is used to interface with Kubernetes custom resources that use custom resource-specific logic to decide which set of Argo CD clusters to deploy to.
 
 If you are new to generators, begin with the **List** and **Cluster** generators. For more advanced use cases, see the documentation for the remaining generators above.
+
+## Post Selector all generators
+
+The Selector allows to post-filter based on generated values using the kubernetes common labelSelector format. In the example, the list generator generates a set of two application which then filter by the key value to only select the `env` with value `staging`:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: guestbook
+spec:
+  generators:
+  - list:
+      elements:
+        - cluster: engineering-dev
+          url: https://kubernetes.default.svc
+          env: staging
+        - cluster: engineering-prod
+          url: https://kubernetes.default.svc
+          env: prod
+    selector:
+      matchLabels:
+        env: staging
+  template:
+    metadata:
+      name: '{{cluster}}-guestbook'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/argoproj-labs/applicationset.git
+        targetRevision: HEAD
+        path: examples/list-generator/guestbook/{{cluster}}
+      destination:
+        server: '{{url}}'
+        namespace: guestbook
+```
