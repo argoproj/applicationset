@@ -76,6 +76,7 @@ type ApplicationSetGenerator struct {
 	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
 	Git                     *GitGenerator         `json:"git,omitempty"`
 	Matrix                  *MatrixGenerator      `json:"matrix,omitempty"`
+	Union                   *UnionGenerator       `json:"union,omitempty"`
 	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
 	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
 	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
@@ -102,6 +103,13 @@ type ListGenerator struct {
 // MatrixGenerator include Other generators
 type MatrixGenerator struct {
 	Generators []ApplicationSetBaseGenerator `json:"generators"`
+	Template   ApplicationSetTemplate        `json:"template,omitempty"`
+}
+
+// UnionGenerator takes the union of two or more generators, de-duplicated on the given keys
+type UnionGenerator struct {
+	Generators []ApplicationSetBaseGenerator `json:"generators"`
+	MergeKeys  []string                      `json:"mergeKeys"`
 	Template   ApplicationSetTemplate        `json:"template,omitempty"`
 }
 

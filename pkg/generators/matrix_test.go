@@ -95,14 +95,12 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 	}
 
-	for _, c := range testCases {
-		cc := c
-
-		t.Run(cc.name, func(t *testing.T) {
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
 			mock := &generatorMock{}
 			appSet := &argoprojiov1alpha1.ApplicationSet{}
 
-			for _, g := range cc.baseGenerators {
+			for _, g := range testCase.baseGenerators {
 
 				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
 					Git:  g.Git,
@@ -132,16 +130,16 @@ func TestMatrixGenerate(t *testing.T) {
 
 			got, err := matrixGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
 				Matrix: &argoprojiov1alpha1.MatrixGenerator{
-					Generators: cc.baseGenerators,
+					Generators: testCase.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
 			}, appSet)
 
-			if cc.expectedErr != nil {
-				assert.EqualError(t, err, cc.expectedErr.Error())
+			if testCase.expectedErr != nil {
+				assert.EqualError(t, err, testCase.expectedErr.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, cc.expected, got)
+				assert.Equal(t, testCase.expected, got)
 			}
 
 		})
