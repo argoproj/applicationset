@@ -1,10 +1,11 @@
 package generators
 
 import (
+	"testing"
+
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"testing"
 )
 
 func getListGenerator(json string) *argoprojiov1alpha1.ListGenerator {

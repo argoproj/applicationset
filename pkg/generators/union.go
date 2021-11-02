@@ -51,9 +51,7 @@ func (m *UnionGenerator) getParamsForAllGenerators(generators []argoprojiov1alph
 			return nil, err
 		}
 		// concatenate param lists produced by each generator
-		for _, generatorParams := range generatorParamSets {
-			paramSets = append(paramSets, generatorParams)
-		}
+		paramSets = append(paramSets, generatorParamSets...)
 	}
 	return paramSets, nil
 }
