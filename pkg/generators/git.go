@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path"
 	"sort"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
