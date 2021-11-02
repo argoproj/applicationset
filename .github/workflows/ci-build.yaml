@@ -52,7 +52,6 @@ jobs:
       - name: Regenerate the manifests, git diff should report no changes.
         run: |
           make manifests
-          bin/controller-gen --version
           git diff --exit-code -- .
 
   build-go:
