@@ -36,13 +36,13 @@ type generatorMock struct {
 	mock.Mock
 }
 
-func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	args := g.Called(appSetGenerator)
 
 	return args.Get(0).(*argoprojiov1alpha1.ApplicationSetTemplate)
 }
 
-func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	args := g.Called(appSetGenerator)
 
 	return args.Get(0).([]map[string]string), args.Error(1)
@@ -52,7 +52,7 @@ type rendererMock struct {
 	mock.Mock
 }
 
-func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
 	args := g.Called(appSetGenerator)
 
 	return args.Get(0).(time.Duration)
@@ -129,7 +129,7 @@ func TestExtractApplications(t *testing.T) {
 		t.Run(cc.name, func(t *testing.T) {
 
 			generatorMock := generatorMock{}
-			generator := argoprojiov1alpha1.ApplicationSetGenerator{
+			generator := argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 				List: &argoprojiov1alpha1.ListGenerator{},
 			}
 
@@ -174,7 +174,7 @@ func TestExtractApplications(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{generator},
+					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{generator},
 					Template:   cc.template,
 				},
 			})
@@ -254,7 +254,7 @@ func TestMergeTemplateApplications(t *testing.T) {
 		t.Run(cc.name, func(t *testing.T) {
 
 			generatorMock := generatorMock{}
-			generator := argoprojiov1alpha1.ApplicationSetGenerator{
+			generator := argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 				List: &argoprojiov1alpha1.ListGenerator{},
 			}
 
@@ -286,7 +286,7 @@ func TestMergeTemplateApplications(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{generator},
+					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{generator},
 					Template:   cc.template,
 				},
 			},
@@ -1479,7 +1479,7 @@ func TestGetMinRequeueAfter(t *testing.T) {
 
 	client := fake.NewClientBuilder().WithScheme(scheme).Build()
 
-	generator := argoprojiov1alpha1.ApplicationSetGenerator{
+	generator := argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 		List:     &argoprojiov1alpha1.ListGenerator{},
 		Git:      &argoprojiov1alpha1.GitGenerator{},
 		Clusters: &argoprojiov1alpha1.ClusterGenerator{},
@@ -1510,7 +1510,7 @@ func TestGetMinRequeueAfter(t *testing.T) {
 
 	got := r.getMinRequeueAfter(&argoprojiov1alpha1.ApplicationSet{
 		Spec: argoprojiov1alpha1.ApplicationSetSpec{
-			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{generator},
+			Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{generator},
 		},
 	})
 
@@ -1756,7 +1756,7 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 			Namespace: "argocd",
 		},
 		Spec: argoprojiov1alpha1.ApplicationSetSpec{
-			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+			Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 				{List: &argoprojiov1alpha1.ListGenerator{
 					Elements: []apiextensionsv1.JSON{{
 						Raw: []byte(`{"cluster": "good-cluster","url": "https://good-cluster"}`),

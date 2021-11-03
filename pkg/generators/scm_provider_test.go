@@ -100,7 +100,7 @@ func TestSCMProviderGenerateParams(t *testing.T) {
 		},
 	}
 	gen := &SCMProviderGenerator{overrideProvider: mockProvider}
-	params, err := gen.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
+	params, err := gen.GenerateParams(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 		SCMProvider: &argoprojiov1alpha1.SCMProviderGenerator{},
 	}, nil)
 	assert.Nil(t, err)

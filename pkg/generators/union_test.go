@@ -18,18 +18,18 @@ func TestUnionGenerate(t *testing.T) {
 
 	testCases := []struct {
 		name           string
-		baseGenerators []argoprojiov1alpha1.ApplicationSetBaseGenerator
+		baseGenerators []argoprojiov1alpha1.ApplicationSetNestedGenerator
 		expectedErr    error
 		expected       []map[string]string
 	}{
 		{
 			name:           "no generators",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{},
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{},
 			expectedErr:    LessThanTwoGeneratorsInUnion,
 		},
 		{
 			name: "one generator",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					List: getListGenerator(`{"a": "1_1","b": "same","c": "1_3"}`),
 				},
@@ -38,7 +38,7 @@ func TestUnionGenerate(t *testing.T) {
 		},
 		{
 			name: "happy flow - generate params",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					List: getListGenerator(`{"a": "1_1","b": "same","c": "1_3"}`),
 				},
@@ -56,7 +56,7 @@ func TestUnionGenerate(t *testing.T) {
 		},
 		{
 			name: "merge keys absent - do not merge",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					List: getListGenerator(`{"a": "a"}`),
 				},
@@ -71,7 +71,7 @@ func TestUnionGenerate(t *testing.T) {
 		},
 		{
 			name: "merge key present in first set, absent in seconds - do not merge",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					List: getListGenerator(`{"a": "a"}`),
 				},
@@ -98,8 +98,8 @@ func TestUnionGenerate(t *testing.T) {
 				},
 			)
 
-			got, err := UnionGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
-				Union: &argoprojiov1alpha1.UnionGenerator{
+			got, err := UnionGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+				Union: &argoprojiov1alpha1.UnionTopLevelGenerator{
 					Generators: testCaseCopy.baseGenerators,
 					MergeKeys:  []string{"b"},
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},

@@ -50,16 +50,16 @@ func NewClusterGenerator(c client.Client, ctx context.Context, clientset kuberne
 	return g
 }
 
-func (g *ClusterGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (g *ClusterGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
 	return NoRequeueAfter
 }
 
-func (g *ClusterGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (g *ClusterGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	return &appSetGenerator.Clusters.Template
 }
 
 func (g *ClusterGenerator) GenerateParams(
-	appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+	appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
 	if appSetGenerator == nil {
 		return nil, EmptyAppSetGeneratorError
@@ -137,7 +137,7 @@ func (g *ClusterGenerator) GenerateParams(
 	return res, nil
 }
 
-func (g *ClusterGenerator) getSecretsByClusterName(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) (map[string]corev1.Secret, error) {
+func (g *ClusterGenerator) getSecretsByClusterName(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) (map[string]corev1.Secret, error) {
 	// List all Clusters:
 	clusterSecretList := &corev1.SecretList{}
 

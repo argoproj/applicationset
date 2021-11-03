@@ -61,7 +61,7 @@ func TestPullRequestGithubGenerateParams(t *testing.T) {
 		gen := PullRequestGenerator{
 			selectServiceProviderFunc: c.selectFunc,
 		}
-		generatorConfig := argoprojiov1alpha1.ApplicationSetGenerator{
+		generatorConfig := argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 			PullRequest: &argoprojiov1alpha1.PullRequestGenerator{},
 		}
 		got, gotErr := gen.GenerateParams(&generatorConfig, nil)

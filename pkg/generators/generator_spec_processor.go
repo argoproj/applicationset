@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, generators map[string]Generator) []Generator {
+func GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, generators map[string]Generator) []Generator {
 	var res []Generator
 
 	v := reflect.Indirect(reflect.ValueOf(requestedGenerator))
@@ -32,7 +32,7 @@ type TransformResult struct {
 }
 
 //Transform a spec generator to list of params and a template
-func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, allGenerators map[string]Generator, baseTemplate argoprojiov1alpha1.ApplicationSetTemplate, appSet *argoprojiov1alpha1.ApplicationSet) ([]TransformResult, error) {
+func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetTopLevelGenerator, allGenerators map[string]Generator, baseTemplate argoprojiov1alpha1.ApplicationSetTemplate, appSet *argoprojiov1alpha1.ApplicationSet) ([]TransformResult, error) {
 	res := []TransformResult{}
 	var firstError error
 
@@ -70,7 +70,7 @@ func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, al
 
 }
 
-func mergeGeneratorTemplate(g Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) (argoprojiov1alpha1.ApplicationSetTemplate, error) {
+func mergeGeneratorTemplate(g Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) (argoprojiov1alpha1.ApplicationSetTemplate, error) {
 
 	// Make a copy of the value from `GetTemplate()` before merge, rather than copying directly into
 	// the provided parameter (which will touch the original resource object returned by client-go)

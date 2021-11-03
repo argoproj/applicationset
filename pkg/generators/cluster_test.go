@@ -224,7 +224,7 @@ func TestGenerateParams(t *testing.T) {
 
 			var clusterGenerator = NewClusterGenerator(cl, context.Background(), appClientset, "namespace")
 
-			got, err := clusterGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
+			got, err := clusterGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 				Clusters: &argoprojiov1alpha1.ClusterGenerator{
 					Selector: testCase.selector,
 					Values:   testCase.values,

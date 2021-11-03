@@ -42,9 +42,9 @@ type ApplicationSet struct {
 
 // ApplicationSetSpec represents a class of application set state.
 type ApplicationSetSpec struct {
-	Generators []ApplicationSetGenerator `json:"generators"`
-	Template   ApplicationSetTemplate    `json:"template"`
-	SyncPolicy *ApplicationSetSyncPolicy `json:"syncPolicy,omitempty"`
+	Generators []ApplicationSetTopLevelGenerator `json:"generators"`
+	Template   ApplicationSetTemplate            `json:"template"`
+	SyncPolicy *ApplicationSetSyncPolicy         `json:"syncPolicy,omitempty"`
 }
 
 // ApplicationSetSyncPolicy configures how generated Applications will relate to their
@@ -70,28 +70,61 @@ type ApplicationSetTemplateMeta struct {
 	Finalizers  []string          `json:"finalizers,omitempty"`
 }
 
-// ApplicationSetGenerator include list item info
-type ApplicationSetGenerator struct {
+// ApplicationSetTopLevelGenerator include list item info
+type ApplicationSetTopLevelGenerator struct {
+	List                    *ListGenerator           `json:"list,omitempty"`
+	Clusters                *ClusterGenerator        `json:"clusters,omitempty"`
+	Git                     *GitGenerator            `json:"git,omitempty"`
+	Matrix                  *MatrixTopLevelGenerator `json:"matrix,omitempty"`
+	Union                   *UnionTopLevelGenerator  `json:"union,omitempty"`
+	SCMProvider             *SCMProviderGenerator    `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator       `json:"clusterDecisionResource,omitempty"`
+	PullRequest             *PullRequestGenerator    `json:"pullRequest,omitempty"`
+}
+
+// ApplicationSetNestedGenerator include list item info
+// CRD dosn't support recursive types so we need a different type for the matrix generator
+// https://github.com/kubernetes-sigs/controller-tools/issues/477
+type ApplicationSetNestedGenerator struct {
+	List                    *ListGenerator         `json:"list,omitempty"`
+	Clusters                *ClusterGenerator      `json:"clusters,omitempty"`
+	Git                     *GitGenerator          `json:"git,omitempty"`
+	Matrix                  *MatrixNestedGenerator `json:"matrix,omitempty"`
+	Union                   *UnionNestedGenerator  `json:"union,omitempty"`
+	SCMProvider             *SCMProviderGenerator  `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator     `json:"clusterDecisionResource,omitempty"`
+	PullRequest             *PullRequestGenerator  `json:"pullRequest,omitempty"`
+}
+
+type ApplicationSetNestedGenerators []ApplicationSetNestedGenerator
+
+// ApplicationSetNestedGenerator include list item info
+// CRD dosn't support recursive types so we need a different type for the matrix generator
+// https://github.com/kubernetes-sigs/controller-tools/issues/477
+type ApplicationSetTerminalGenerator struct {
 	List                    *ListGenerator        `json:"list,omitempty"`
 	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
 	Git                     *GitGenerator         `json:"git,omitempty"`
-	Matrix                  *MatrixGenerator      `json:"matrix,omitempty"`
-	Union                   *UnionGenerator       `json:"union,omitempty"`
 	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
 	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
 	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
 }
 
-// ApplicationSetBaseGenerator include list item info
-// CRD dosn't support recursive types so we need a different type for the matrix generator
-// https://github.com/kubernetes-sigs/controller-tools/issues/477
-type ApplicationSetBaseGenerator struct {
-	List                    *ListGenerator        `json:"list,omitempty"`
-	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
-	Git                     *GitGenerator         `json:"git,omitempty"`
-	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
-	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
-	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
+type ApplicationSetTerminalGenerators []ApplicationSetTerminalGenerator
+
+func (g ApplicationSetTerminalGenerators) toApplicationSetNestedGenerators() []ApplicationSetNestedGenerator {
+	nestedGenerators := make([]ApplicationSetNestedGenerator, len(g))
+	for _, terminalGenerator := range g {
+		nestedGenerators = append(nestedGenerators, ApplicationSetNestedGenerator{
+			List:                    terminalGenerator.List,
+			Clusters:                terminalGenerator.Clusters,
+			Git:                     terminalGenerator.Git,
+			SCMProvider:             terminalGenerator.SCMProvider,
+			ClusterDecisionResource: terminalGenerator.ClusterDecisionResource,
+			PullRequest:             terminalGenerator.PullRequest,
+		})
+	}
+	return nestedGenerators
 }
 
 // ListGenerator include items info
@@ -100,17 +133,41 @@ type ListGenerator struct {
 	Template ApplicationSetTemplate `json:"template,omitempty"`
 }
 
-// MatrixGenerator include Other generators
-type MatrixGenerator struct {
-	Generators []ApplicationSetBaseGenerator `json:"generators"`
-	Template   ApplicationSetTemplate        `json:"template,omitempty"`
+// MatrixTopLevelGenerator include Other generators
+type MatrixTopLevelGenerator struct {
+	Generators []ApplicationSetNestedGenerator `json:"generators"`
+	Template   ApplicationSetTemplate          `json:"template,omitempty"`
 }
 
-// UnionGenerator takes the union of two or more generators, de-duplicated on the given keys
-type UnionGenerator struct {
-	Generators []ApplicationSetBaseGenerator `json:"generators"`
-	MergeKeys  []string                      `json:"mergeKeys"`
-	Template   ApplicationSetTemplate        `json:"template,omitempty"`
+// MatrixNestedGenerator include Other generators
+type MatrixNestedGenerator struct {
+	Generators ApplicationSetTerminalGenerators `json:"generators"`
+}
+
+func (g MatrixNestedGenerator) ToMatrixTopLevelGenerator() *MatrixTopLevelGenerator {
+	return &MatrixTopLevelGenerator{
+		Generators: g.Generators.toApplicationSetNestedGenerators(),
+	}
+}
+
+// UnionTopLevelGenerator takes the union of two or more generators, de-duplicated on the given keys
+type UnionTopLevelGenerator struct {
+	Generators []ApplicationSetNestedGenerator `json:"generators"`
+	MergeKeys  []string                        `json:"mergeKeys"`
+	Template   ApplicationSetTemplate          `json:"template,omitempty"`
+}
+
+// UnionNestedGenerator takes the union of two or more generators, de-duplicated on the given keys
+type UnionNestedGenerator struct {
+	Generators ApplicationSetTerminalGenerators `json:"generators"`
+	MergeKeys  []string                         `json:"mergeKeys"`
+}
+
+func (g UnionNestedGenerator) ToUnionTopLevelGenerator() *UnionTopLevelGenerator {
+	return &UnionTopLevelGenerator{
+		Generators: g.Generators.toApplicationSetNestedGenerators(),
+		MergeKeys:  g.MergeKeys,
+	}
 }
 
 // ClusterGenerator defines a generator to match against clusters registered with ArgoCD.

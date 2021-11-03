@@ -43,7 +43,7 @@ func keysArePresentAndValuesAreEqual(keys []string, a map[string]string, b map[s
 	return true
 }
 
-func (m *UnionGenerator) getParamsForAllGenerators(generators []argoprojiov1alpha1.ApplicationSetBaseGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (m *UnionGenerator) getParamsForAllGenerators(generators []argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	var paramSets []map[string]string
 	for _, generator := range generators {
 		generatorParamSets, err := m.getParams(generator, appSet)
@@ -69,7 +69,7 @@ func tryMergeParamSets(mergeKeys []string, a map[string]string, b map[string]str
 	return merged, true, nil
 }
 
-func (m *UnionGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (m *UnionGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	if len(appSetGenerator.Union.Generators) < 2 {
 		return nil, LessThanTwoGeneratorsInUnion
 	}
@@ -111,16 +111,27 @@ func (m *UnionGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appl
 	return paramSets, nil
 }
 
-func (m *UnionGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetBaseGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (m *UnionGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+	var matrix *argoprojiov1alpha1.MatrixTopLevelGenerator
+	if appSetBaseGenerator.Matrix != nil {
+		matrix = appSetBaseGenerator.Matrix.ToMatrixTopLevelGenerator()
+	}
+
+	var union *argoprojiov1alpha1.UnionTopLevelGenerator
+	if appSetBaseGenerator.Union != nil {
+		union = appSetBaseGenerator.Union.ToUnionTopLevelGenerator()
+	}
 
 	t, err := Transform(
-		argoprojiov1alpha1.ApplicationSetGenerator{
+		argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 			List:                    appSetBaseGenerator.List,
 			Clusters:                appSetBaseGenerator.Clusters,
 			Git:                     appSetBaseGenerator.Git,
 			SCMProvider:             appSetBaseGenerator.SCMProvider,
 			ClusterDecisionResource: appSetBaseGenerator.ClusterDecisionResource,
 			PullRequest:             appSetBaseGenerator.PullRequest,
+			Matrix:                  matrix,
+			Union:                   union,
 		},
 		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{},
@@ -141,12 +152,12 @@ func (m *UnionGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Applic
 	return t[0].Params, nil
 }
 
-func (m *UnionGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (m *UnionGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
 	res := maxDuration
 	var found bool
 
 	for _, r := range appSetGenerator.Union.Generators {
-		base := &argoprojiov1alpha1.ApplicationSetGenerator{
+		base := &argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 			List:     r.List,
 			Clusters: r.Clusters,
 			Git:      r.Git,
@@ -170,6 +181,6 @@ func (m *UnionGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.App
 
 }
 
-func (m *UnionGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (m *UnionGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	return &appSetGenerator.Union.Template
 }

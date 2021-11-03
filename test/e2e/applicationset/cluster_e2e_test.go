@@ -63,7 +63,7 @@ func TestSimpleClusterGenerator(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetGenerator{
+				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
 					{
 						Clusters: &v1alpha1.ClusterGenerator{
 							Selector: metav1.LabelSelector{
@@ -184,7 +184,7 @@ func TestClusterGeneratorWithLocalCluster(t *testing.T) {
 								Destination: test.appsetDestination,
 							},
 						},
-						Generators: []v1alpha1.ApplicationSetGenerator{
+						Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
 							{
 								Clusters: &v1alpha1.ClusterGenerator{},
 							},
@@ -279,7 +279,7 @@ func TestSimpleClusterGeneratorAddingCluster(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetGenerator{
+				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
 					{
 						Clusters: &v1alpha1.ClusterGenerator{
 							Selector: metav1.LabelSelector{
@@ -362,7 +362,7 @@ func TestSimpleClusterGeneratorDeletingCluster(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetGenerator{
+				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
 					{
 						Clusters: &v1alpha1.ClusterGenerator{
 							Selector: metav1.LabelSelector{

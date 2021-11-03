@@ -29,7 +29,7 @@ func NewSCMProviderGenerator(client client.Client) Generator {
 	return &SCMProviderGenerator{client: client}
 }
 
-func (g *SCMProviderGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (g *SCMProviderGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
 	// Return a requeue default of 30 minutes, if no default is specified.
 
 	if appSetGenerator.SCMProvider.RequeueAfterSeconds != nil {
@@ -39,11 +39,11 @@ func (g *SCMProviderGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alph
 	return DefaultSCMProviderRequeueAfterSeconds
 }
 
-func (g *SCMProviderGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (g *SCMProviderGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	return &appSetGenerator.SCMProvider.Template
 }
 
-func (g *SCMProviderGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetInfo *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (g *SCMProviderGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, applicationSetInfo *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	if appSetGenerator == nil {
 		return nil, EmptyAppSetGeneratorError
 	}

@@ -12,15 +12,15 @@ type Generator interface {
 	// GenerateParams interprets the ApplicationSet and generates all relevant parameters for the application template.
 	// The expected / desired list of parameters is returned, it then will be render and reconciled
 	// against the current state of the Applications in the cluster.
-	GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetInfo *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error)
+	GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, applicationSetInfo *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error)
 
 	// GetRequeueAfter is the the generator can controller the next reconciled loop
 	// In case there is more then one generator the time will be the minimum of the times.
 	// In case NoRequeueAfter is empty, it will be ignored
-	GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration
+	GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration
 
 	// GetTemplate returns the inline template from the spec if there is any, or an empty object otherwise
-	GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate
+	GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate
 }
 
 var EmptyAppSetGeneratorError = errors.New("ApplicationSet is empty")

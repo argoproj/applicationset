@@ -55,7 +55,7 @@ func TestClusterEventHandler(t *testing.T) {
 						Namespace: "argocd",
 					},
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
-						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+						Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 							{
 								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
@@ -85,7 +85,7 @@ func TestClusterEventHandler(t *testing.T) {
 						Namespace: "argocd",
 					},
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
-						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+						Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 							{
 								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
@@ -98,7 +98,7 @@ func TestClusterEventHandler(t *testing.T) {
 						Namespace: "argocd",
 					},
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
-						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+						Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 							{
 								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
@@ -129,7 +129,7 @@ func TestClusterEventHandler(t *testing.T) {
 						Namespace: "another-namespace",
 					},
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
-						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+						Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 							{
 								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
@@ -142,7 +142,7 @@ func TestClusterEventHandler(t *testing.T) {
 						Namespace: "argocd",
 					},
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
-						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+						Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 							{
 								List: &argoprojiov1alpha1.ListGenerator{},
 							},
@@ -173,7 +173,7 @@ func TestClusterEventHandler(t *testing.T) {
 						Namespace: "another-namespace",
 					},
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
-						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+						Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 							{
 								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},

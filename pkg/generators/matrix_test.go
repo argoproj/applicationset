@@ -24,13 +24,13 @@ func TestMatrixGenerate(t *testing.T) {
 
 	testCases := []struct {
 		name           string
-		baseGenerators []argoprojiov1alpha1.ApplicationSetBaseGenerator
+		baseGenerators []argoprojiov1alpha1.ApplicationSetNestedGenerator
 		expectedErr    error
 		expected       []map[string]string
 	}{
 		{
 			name: "happy flow - generate params",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git: gitGenerator,
 				},
@@ -45,7 +45,7 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 		{
 			name: "returns error if there is less than two base generators",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git: gitGenerator,
 				},
@@ -54,7 +54,7 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 		{
 			name: "returns error if there is more than two base generators",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					List: listGenerator,
 				},
@@ -69,7 +69,7 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 		{
 			name: "returns error if there is more than one inner generator in the first base generator",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git:  gitGenerator,
 					List: listGenerator,
@@ -82,7 +82,7 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 		{
 			name: "returns error if there is more than one inner generator in the second base generator",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					List: listGenerator,
 				},
@@ -102,7 +102,7 @@ func TestMatrixGenerate(t *testing.T) {
 
 			for _, g := range testCase.baseGenerators {
 
-				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
+				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 					Git:  g.Git,
 					List: g.List,
 				}
@@ -128,8 +128,8 @@ func TestMatrixGenerate(t *testing.T) {
 				},
 			)
 
-			got, err := matrixGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
-				Matrix: &argoprojiov1alpha1.MatrixGenerator{
+			got, err := matrixGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+				Matrix: &argoprojiov1alpha1.MatrixTopLevelGenerator{
 					Generators: testCase.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
@@ -161,13 +161,13 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 
 	testCases := []struct {
 		name               string
-		baseGenerators     []argoprojiov1alpha1.ApplicationSetBaseGenerator
+		baseGenerators     []argoprojiov1alpha1.ApplicationSetNestedGenerator
 		gitGetRequeueAfter time.Duration
 		expected           time.Duration
 	}{
 		{
 			name: "return NoRequeueAfter if all the inner baseGenerators returns it",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git: gitGenerator,
 				},
@@ -180,7 +180,7 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 		},
 		{
 			name: "returns the minimal time",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git: gitGenerator,
 				},
@@ -200,7 +200,7 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 			mock := &generatorMock{}
 
 			for _, g := range cc.baseGenerators {
-				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
+				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
 					Git:  g.Git,
 					List: g.List,
 				}
@@ -214,8 +214,8 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 				},
 			)
 
-			got := matrixGenerator.GetRequeueAfter(&argoprojiov1alpha1.ApplicationSetGenerator{
-				Matrix: &argoprojiov1alpha1.MatrixGenerator{
+			got := matrixGenerator.GetRequeueAfter(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+				Matrix: &argoprojiov1alpha1.MatrixTopLevelGenerator{
 					Generators: cc.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
@@ -232,19 +232,19 @@ type generatorMock struct {
 	mock.Mock
 }
 
-func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	args := g.Called(appSetGenerator)
 
 	return args.Get(0).(*argoprojiov1alpha1.ApplicationSetTemplate)
 }
 
-func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	args := g.Called(appSetGenerator, appSet)
 
 	return args.Get(0).([]map[string]string), args.Error(1)
 }
 
-func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
+func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
 	args := g.Called(appSetGenerator)
 
 	return args.Get(0).(time.Duration)
