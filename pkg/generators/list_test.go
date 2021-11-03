@@ -26,7 +26,7 @@ func TestGenerateListParams(t *testing.T) {
 
 		var listGenerator = NewListGenerator()
 
-		got, err := listGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{List: &argoprojiov1alpha1.ListGenerator{
+		got, err := listGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{List: &argoprojiov1alpha1.ListGenerator{
 			Elements: testCase.elements,
 		}}, nil)
 

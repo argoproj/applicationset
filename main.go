@@ -158,25 +158,25 @@ func main() {
 	}
 
 	nestedGenerators := map[string]generators.Generator{
-		"List": terminalGenerators["List"],
-		"Clusters": terminalGenerators["Clusters"],
-		"Git": terminalGenerators["Git"],
-		"SCMProvider": terminalGenerators["SCMProvider"],
+		"List":                    terminalGenerators["List"],
+		"Clusters":                terminalGenerators["Clusters"],
+		"Git":                     terminalGenerators["Git"],
+		"SCMProvider":             terminalGenerators["SCMProvider"],
 		"ClusterDecisionResource": terminalGenerators["ClusterDecisionResource"],
-		"PullRequest": terminalGenerators["PullRequest"],
-		"Matrix": generators.NewMatrixGenerator(terminalGenerators),
-		"Union": generators.NewUnionGenerator(terminalGenerators),
+		"PullRequest":             terminalGenerators["PullRequest"],
+		"Matrix":                  generators.NewMatrixGenerator(terminalGenerators),
+		"Union":                   generators.NewUnionGenerator(terminalGenerators),
 	}
 
 	topLevelGenerators := map[string]generators.Generator{
-		"List": terminalGenerators["List"],
-		"Clusters": terminalGenerators["Clusters"],
-		"Git": terminalGenerators["Git"],
-		"SCMProvider": terminalGenerators["SCMProvider"],
+		"List":                    terminalGenerators["List"],
+		"Clusters":                terminalGenerators["Clusters"],
+		"Git":                     terminalGenerators["Git"],
+		"SCMProvider":             terminalGenerators["SCMProvider"],
 		"ClusterDecisionResource": terminalGenerators["ClusterDecisionResource"],
-		"PullRequest": terminalGenerators["PullRequest"],
-		"Matrix": generators.NewMatrixGenerator(nestedGenerators),
-		"Union": generators.NewUnionGenerator(nestedGenerators),
+		"PullRequest":             terminalGenerators["PullRequest"],
+		"Matrix":                  generators.NewMatrixGenerator(nestedGenerators),
+		"Union":                   generators.NewUnionGenerator(nestedGenerators),
 	}
 
 	if err = (&controllers.ApplicationSetReconciler{

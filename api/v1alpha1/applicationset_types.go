@@ -42,9 +42,9 @@ type ApplicationSet struct {
 
 // ApplicationSetSpec represents a class of application set state.
 type ApplicationSetSpec struct {
-	Generators []ApplicationSetTopLevelGenerator `json:"generators"`
-	Template   ApplicationSetTemplate            `json:"template"`
-	SyncPolicy *ApplicationSetSyncPolicy         `json:"syncPolicy,omitempty"`
+	Generators []ApplicationSetGenerator `json:"generators"`
+	Template   ApplicationSetTemplate    `json:"template"`
+	SyncPolicy *ApplicationSetSyncPolicy `json:"syncPolicy,omitempty"`
 }
 
 // ApplicationSetSyncPolicy configures how generated Applications will relate to their
@@ -70,16 +70,16 @@ type ApplicationSetTemplateMeta struct {
 	Finalizers  []string          `json:"finalizers,omitempty"`
 }
 
-// ApplicationSetTopLevelGenerator include list item info
-type ApplicationSetTopLevelGenerator struct {
-	List                    *ListGenerator           `json:"list,omitempty"`
-	Clusters                *ClusterGenerator        `json:"clusters,omitempty"`
-	Git                     *GitGenerator            `json:"git,omitempty"`
-	Matrix                  *MatrixTopLevelGenerator `json:"matrix,omitempty"`
-	Union                   *UnionTopLevelGenerator  `json:"union,omitempty"`
-	SCMProvider             *SCMProviderGenerator    `json:"scmProvider,omitempty"`
-	ClusterDecisionResource *DuckTypeGenerator       `json:"clusterDecisionResource,omitempty"`
-	PullRequest             *PullRequestGenerator    `json:"pullRequest,omitempty"`
+// ApplicationSetGenerator include list item info
+type ApplicationSetGenerator struct {
+	List                    *ListGenerator        `json:"list,omitempty"`
+	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
+	Git                     *GitGenerator         `json:"git,omitempty"`
+	Matrix                  *MatrixGenerator      `json:"matrix,omitempty"`
+	Union                   *UnionGenerator       `json:"union,omitempty"`
+	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
+	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
 }
 
 // ApplicationSetNestedGenerator include list item info
@@ -133,8 +133,8 @@ type ListGenerator struct {
 	Template ApplicationSetTemplate `json:"template,omitempty"`
 }
 
-// MatrixTopLevelGenerator include Other generators
-type MatrixTopLevelGenerator struct {
+// MatrixGenerator include Other generators
+type MatrixGenerator struct {
 	Generators []ApplicationSetNestedGenerator `json:"generators"`
 	Template   ApplicationSetTemplate          `json:"template,omitempty"`
 }
@@ -144,14 +144,14 @@ type MatrixNestedGenerator struct {
 	Generators ApplicationSetTerminalGenerators `json:"generators"`
 }
 
-func (g MatrixNestedGenerator) ToMatrixTopLevelGenerator() *MatrixTopLevelGenerator {
-	return &MatrixTopLevelGenerator{
+func (g MatrixNestedGenerator) ToMatrixTopLevelGenerator() *MatrixGenerator {
+	return &MatrixGenerator{
 		Generators: g.Generators.toApplicationSetNestedGenerators(),
 	}
 }
 
-// UnionTopLevelGenerator takes the union of two or more generators, de-duplicated on the given keys
-type UnionTopLevelGenerator struct {
+// UnionGenerator takes the union of two or more generators, de-duplicated on the given keys
+type UnionGenerator struct {
 	Generators []ApplicationSetNestedGenerator `json:"generators"`
 	MergeKeys  []string                        `json:"mergeKeys"`
 	Template   ApplicationSetTemplate          `json:"template,omitempty"`
@@ -163,8 +163,8 @@ type UnionNestedGenerator struct {
 	MergeKeys  []string                         `json:"mergeKeys"`
 }
 
-func (g UnionNestedGenerator) ToUnionTopLevelGenerator() *UnionTopLevelGenerator {
-	return &UnionTopLevelGenerator{
+func (g UnionNestedGenerator) ToUnionTopLevelGenerator() *UnionGenerator {
+	return &UnionGenerator{
 		Generators: g.Generators.toApplicationSetNestedGenerators(),
 		MergeKeys:  g.MergeKeys,
 	}

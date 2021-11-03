@@ -294,7 +294,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 
 			var duckTypeGenerator = NewDuckTypeGenerator(context.Background(), fakeDynClient, appClientset, "namespace")
 
-			got, err := duckTypeGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+			got, err := duckTypeGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
 				ClusterDecisionResource: &argoprojiov1alpha1.DuckTypeGenerator{
 					ConfigMapRef:  "my-configmap",
 					Name:          testCase.resourceName,

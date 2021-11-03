@@ -121,7 +121,7 @@ func fakeAppWithGitGenerator(name, namespace, repo string) *argoprojiov1alpha1.A
 			Namespace: namespace,
 		},
 		Spec: argoprojiov1alpha1.ApplicationSetSpec{
-			Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 				{
 					Git: &argoprojiov1alpha1.GitGenerator{
 						RepoURL: repo,

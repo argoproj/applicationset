@@ -98,8 +98,8 @@ func TestUnionGenerate(t *testing.T) {
 				},
 			)
 
-			got, err := UnionGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
-				Union: &argoprojiov1alpha1.UnionTopLevelGenerator{
+			got, err := UnionGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
+				Union: &argoprojiov1alpha1.UnionGenerator{
 					Generators: testCaseCopy.baseGenerators,
 					MergeKeys:  []string{"b"},
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},

@@ -44,7 +44,7 @@ func NewDuckTypeGenerator(ctx context.Context, dynClient dynamic.Interface, clie
 	return g
 }
 
-func (g *DuckTypeGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
+func (g *DuckTypeGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 
 	// Return a requeue default of 3 minutes, if no override is specified.
 
@@ -55,11 +55,11 @@ func (g *DuckTypeGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.
 	return DefaultRequeueAfterSeconds
 }
 
-func (g *DuckTypeGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (g *DuckTypeGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	return &appSetGenerator.ClusterDecisionResource.Template
 }
 
-func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
 	if appSetGenerator == nil {
 		return nil, EmptyAppSetGeneratorError

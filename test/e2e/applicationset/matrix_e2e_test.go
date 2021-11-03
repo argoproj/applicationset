@@ -74,9 +74,9 @@ func TestListMatrixGenerator(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						Matrix: &v1alpha1.MatrixTopLevelGenerator{
+						Matrix: &v1alpha1.MatrixGenerator{
 							Generators: []v1alpha1.ApplicationSetNestedGenerator{
 								{
 									List: &v1alpha1.ListGenerator{
@@ -200,9 +200,9 @@ func TestClusterMatrixGenerator(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						Matrix: &v1alpha1.MatrixTopLevelGenerator{
+						Matrix: &v1alpha1.MatrixGenerator{
 							Generators: []v1alpha1.ApplicationSetNestedGenerator{
 								{
 									Clusters: &v1alpha1.ClusterGenerator{

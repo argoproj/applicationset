@@ -27,7 +27,7 @@ func NewMatrixGenerator(supportedGenerators map[string]Generator) Generator {
 	return m
 }
 
-func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
 	if len(appSetGenerator.Matrix.Generators) < 2 {
 		return nil, LessThanTwoGenerators
@@ -62,18 +62,18 @@ func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 }
 
 func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
-	var matrix *argoprojiov1alpha1.MatrixTopLevelGenerator
+	var matrix *argoprojiov1alpha1.MatrixGenerator
 	if appSetBaseGenerator.Matrix != nil {
 		matrix = appSetBaseGenerator.Matrix.ToMatrixTopLevelGenerator()
 	}
 
-	var union *argoprojiov1alpha1.UnionTopLevelGenerator
+	var union *argoprojiov1alpha1.UnionGenerator
 	if appSetBaseGenerator.Union != nil {
 		union = appSetBaseGenerator.Union.ToUnionTopLevelGenerator()
 	}
 
 	t, err := Transform(
-		argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+		argoprojiov1alpha1.ApplicationSetGenerator{
 			List:                    appSetBaseGenerator.List,
 			Clusters:                appSetBaseGenerator.Clusters,
 			Git:                     appSetBaseGenerator.Git,
@@ -104,12 +104,12 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 
 const maxDuration time.Duration = 1<<63 - 1
 
-func (m *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
+func (m *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 	res := maxDuration
 	var found bool
 
 	for _, r := range appSetGenerator.Matrix.Generators {
-		base := &argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+		base := &argoprojiov1alpha1.ApplicationSetGenerator{
 			List:     r.List,
 			Clusters: r.Clusters,
 			Git:      r.Git,
@@ -133,6 +133,6 @@ func (m *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Ap
 
 }
 
-func (m *MatrixGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (m *MatrixGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	return &appSetGenerator.Matrix.Template
 }

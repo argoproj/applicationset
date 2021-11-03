@@ -102,7 +102,7 @@ func TestMatrixGenerate(t *testing.T) {
 
 			for _, g := range testCase.baseGenerators {
 
-				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
 					Git:  g.Git,
 					List: g.List,
 				}
@@ -128,8 +128,8 @@ func TestMatrixGenerate(t *testing.T) {
 				},
 			)
 
-			got, err := matrixGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
-				Matrix: &argoprojiov1alpha1.MatrixTopLevelGenerator{
+			got, err := matrixGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
+				Matrix: &argoprojiov1alpha1.MatrixGenerator{
 					Generators: testCase.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
@@ -200,7 +200,7 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 			mock := &generatorMock{}
 
 			for _, g := range cc.baseGenerators {
-				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
 					Git:  g.Git,
 					List: g.List,
 				}
@@ -214,8 +214,8 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 				},
 			)
 
-			got := matrixGenerator.GetRequeueAfter(&argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
-				Matrix: &argoprojiov1alpha1.MatrixTopLevelGenerator{
+			got := matrixGenerator.GetRequeueAfter(&argoprojiov1alpha1.ApplicationSetGenerator{
+				Matrix: &argoprojiov1alpha1.MatrixGenerator{
 					Generators: cc.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
@@ -232,19 +232,19 @@ type generatorMock struct {
 	mock.Mock
 }
 
-func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (g *generatorMock) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	args := g.Called(appSetGenerator)
 
 	return args.Get(0).(*argoprojiov1alpha1.ApplicationSetTemplate)
 }
 
-func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (g *generatorMock) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	args := g.Called(appSetGenerator, appSet)
 
 	return args.Get(0).([]map[string]string), args.Error(1)
 }
 
-func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
+func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 	args := g.Called(appSetGenerator)
 
 	return args.Get(0).(time.Duration)

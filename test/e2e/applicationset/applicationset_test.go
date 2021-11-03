@@ -63,7 +63,7 @@ func TestSimpleListGenerator(t *testing.T) {
 					},
 				},
 			},
-			Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
 					List: &v1alpha1.ListGenerator{
 						Elements: []apiextensionsv1.JSON{{
@@ -161,7 +161,7 @@ func TestSimpleGitDirectoryGenerator(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						Git: &v1alpha1.GitGenerator{
 							RepoURL: "https://github.com/argoproj/argocd-example-apps.git",
@@ -267,7 +267,7 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						Git: &v1alpha1.GitGenerator{
 							RepoURL: "https://github.com/argoproj-labs/applicationset.git",
@@ -348,7 +348,7 @@ func TestSimpleGitFilesPreserveResourcesOnDeletion(t *testing.T) {
 				SyncPolicy: &v1alpha1.ApplicationSetSyncPolicy{
 					PreserveResourcesOnDeletion: true,
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						Git: &v1alpha1.GitGenerator{
 							RepoURL: "https://github.com/argoproj-labs/applicationset.git",
@@ -425,7 +425,7 @@ func TestSimpleSCMProviderGenerator(t *testing.T) {
 					},
 				},
 			},
-			Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
 					SCMProvider: &v1alpha1.SCMProviderGenerator{
 						Github: &v1alpha1.SCMProviderGeneratorGithub{
@@ -492,7 +492,7 @@ func TestCustomApplicationFinalizers(t *testing.T) {
 					},
 				},
 			},
-			Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
 					List: &v1alpha1.ListGenerator{
 						Elements: []apiextensionsv1.JSON{{
@@ -566,7 +566,7 @@ func TestSimplePullRequestGenerator(t *testing.T) {
 					},
 				},
 			},
-			Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
 					PullRequest: &v1alpha1.PullRequestGenerator{
 						Github: &v1alpha1.PullRequestGeneratorGithub{

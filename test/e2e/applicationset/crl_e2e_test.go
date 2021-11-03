@@ -75,7 +75,7 @@ func TestSimpleClusterResourceListGenerator(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
 							ConfigMapRef: "my-configmap",
@@ -185,7 +185,7 @@ func TestSimpleClusterResourceListGeneratorAddingCluster(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
 							ConfigMapRef:        "my-configmap",
@@ -280,7 +280,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterSecret(t *testing.T) {
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
 							ConfigMapRef:        "my-configmap",
@@ -383,7 +383,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterFromResource(t *testin
 						},
 					},
 				},
-				Generators: []v1alpha1.ApplicationSetTopLevelGenerator{
+				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
 							ConfigMapRef:        "my-configmap",

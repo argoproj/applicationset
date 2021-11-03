@@ -27,11 +27,11 @@ func NewGitGenerator(repos services.Repos) Generator {
 	return g
 }
 
-func (g *GitGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
+func (g *GitGenerator) GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate {
 	return &appSetGenerator.Git.Template
 }
 
-func (g *GitGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) time.Duration {
+func (g *GitGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) time.Duration {
 
 	// Return a requeue default of 3 minutes, if no default is specified.
 
@@ -42,7 +42,7 @@ func (g *GitGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Appli
 	return DefaultRequeueAfterSeconds
 }
 
-func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, _ *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
 	if appSetGenerator == nil {
 		return nil, EmptyAppSetGeneratorError
@@ -68,7 +68,7 @@ func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Applic
 	return res, nil
 }
 
-func (g *GitGenerator) generateParamsForGitDirectories(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) ([]map[string]string, error) {
+func (g *GitGenerator) generateParamsForGitDirectories(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 
 	// Directories, not files
 	allPaths, err := g.repos.GetDirectories(context.TODO(), appSetGenerator.Git.RepoURL, appSetGenerator.Git.Revision)
@@ -90,7 +90,7 @@ func (g *GitGenerator) generateParamsForGitDirectories(appSetGenerator *argoproj
 	return res, nil
 }
 
-func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) ([]map[string]string, error) {
+func (g *GitGenerator) generateParamsForGitFiles(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) ([]map[string]string, error) {
 
 	// Get all files that match the requested path string, removing duplicates
 	allFiles := make(map[string][]byte)
@@ -194,7 +194,7 @@ func (g *GitGenerator) filterApps(Directories []argoprojiov1alpha1.GitDirectoryG
 	return res
 }
 
-func (g *GitGenerator) generateParamsFromApps(requestedApps []string, _ *argoprojiov1alpha1.ApplicationSetTopLevelGenerator) []map[string]string {
+func (g *GitGenerator) generateParamsFromApps(requestedApps []string, _ *argoprojiov1alpha1.ApplicationSetGenerator) []map[string]string {
 	// TODO: At some point, the appicationSetGenerator param should be used
 
 	res := make([]map[string]string, len(requestedApps))

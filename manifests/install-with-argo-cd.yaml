@@ -1836,7 +1836,7 @@ spec:
             properties:
               generators:
                 items:
-                  description: ApplicationSetTopLevelGenerator include list item info
+                  description: ApplicationSetGenerator include list item info
                   properties:
                     clusterDecisionResource:
                       description: DuckType defines a generator to match against clusters registered with ArgoCD.
@@ -3314,7 +3314,7 @@ spec:
                       - elements
                       type: object
                     matrix:
-                      description: MatrixTopLevelGenerator include Other generators
+                      description: MatrixGenerator include Other generators
                       properties:
                         generators:
                           items:
@@ -11312,7 +11312,7 @@ spec:
                           type: object
                       type: object
                     union:
-                      description: UnionTopLevelGenerator takes the union of two or more generators, de-duplicated on the given keys
+                      description: UnionGenerator takes the union of two or more generators, de-duplicated on the given keys
                       properties:
                         generators:
                           items:

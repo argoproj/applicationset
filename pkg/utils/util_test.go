@@ -293,7 +293,7 @@ func TestCheckInvalidGenerators(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     &argoprojiov1alpha1.ListGenerator{},
 							Clusters: nil,
@@ -334,7 +334,7 @@ func TestCheckInvalidGenerators(t *testing.T) {
 					},
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     &argoprojiov1alpha1.ListGenerator{},
 							Clusters: nil,
@@ -406,7 +406,7 @@ func TestInvalidGenerators(t *testing.T) {
 					},
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     &argoprojiov1alpha1.ListGenerator{},
 							Clusters: nil,
@@ -436,7 +436,7 @@ func TestInvalidGenerators(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     nil,
 							Clusters: nil,
@@ -461,7 +461,7 @@ func TestInvalidGenerators(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     nil,
 							Clusters: &argoprojiov1alpha1.ClusterGenerator{},
@@ -503,7 +503,7 @@ func TestInvalidGenerators(t *testing.T) {
 					},
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     nil,
 							Clusters: &argoprojiov1alpha1.ClusterGenerator{},
@@ -545,7 +545,7 @@ func TestInvalidGenerators(t *testing.T) {
 					},
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     nil,
 							Clusters: nil,
@@ -571,7 +571,7 @@ func TestInvalidGenerators(t *testing.T) {
 					},
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     nil,
 							Clusters: nil,
@@ -599,7 +599,7 @@ func TestInvalidGenerators(t *testing.T) {
 					},
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     nil,
 							Clusters: nil,
@@ -628,7 +628,7 @@ func TestInvalidGenerators(t *testing.T) {
 					},
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Generators: []argoprojiov1alpha1.ApplicationSetTopLevelGenerator{
+					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
 							List:     nil,
 							Clusters: nil,
