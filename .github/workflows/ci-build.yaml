@@ -252,10 +252,7 @@ jobs:
         run: |
           set -x
           cd "$GITHUB_WORKSPACE/applicationsets"
-          if ! kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml; then
-            # Try replace, because apply might have failed with an annotation length error.
-            kubectl replace -f manifests/crds/argoproj.io_applicationsets.yaml
-          fi
+          kubectl create -f manifests/crds/argoproj.io_applicationsets.yaml
           make build
           make start-e2e 2>&1 | tee /tmp/appset-e2e-server.log &
           # Uncomment this to see the Argo CD output alongside test output:
