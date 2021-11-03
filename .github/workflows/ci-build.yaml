@@ -252,7 +252,7 @@ jobs:
         run: |
           set -x
           cd "$GITHUB_WORKSPACE/applicationsets"
-          if [ ! kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml ]; then
+          if ! kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml; then
             # Try replace, because apply might have failed with an annotation length error.
             kubectl replace -f manifests/crds/argoproj.io_applicationsets.yaml
           fi
