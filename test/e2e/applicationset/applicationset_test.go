@@ -17,7 +17,7 @@ import (
 var (
 	ExpectedConditions = []v1alpha1.ApplicationSetCondition{
 		{
-			Type:    v1alpha1.ApplicationSetConditionErrorOccured,
+			Type:    v1alpha1.ApplicationSetConditionErrorOccurred,
 			Status:  v1alpha1.ApplicationSetConditionStatusFalse,
 			Message: "Successfully generated parameters for all Applications",
 			Reason:  v1alpha1.ApplicationSetReasonApplicationSetUpToDate,

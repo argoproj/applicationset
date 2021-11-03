@@ -276,7 +276,7 @@ type ApplicationSetConditionType string
 
 //ErrorOccurred / ParametersGenerated / TemplateRendered / ResourcesUpToDate
 const (
-	ApplicationSetConditionErrorOccured        ApplicationSetConditionType = "ErrorOccured"
+	ApplicationSetConditionErrorOccurred       ApplicationSetConditionType = "ErrorOccurred"
 	ApplicationSetConditionParametersGenerated ApplicationSetConditionType = "ParametersGenerated"
 	ApplicationSetConditionResourcesUpToDate   ApplicationSetConditionType = "ResourcesUpToDate"
 )
@@ -284,7 +284,7 @@ const (
 type ApplicationSetReasonType string
 
 const (
-	ApplicationSetReasonErrorOccured                     = "ErrorOccured"
+	ApplicationSetReasonErrorOccurred                    = "ErrorOccurred"
 	ApplicationSetReasonApplicationSetUpToDate           = "ApplicationSetUpToDate"
 	ApplicationSetReasonParametersGenerated              = "ParametersGenerated"
 	ApplicationSetReasonApplicationGenerated             = "ApplicationGeneratedSuccessfully"
@@ -327,8 +327,8 @@ func (status *ApplicationSetStatus) SetConditions(conditions []ApplicationSetCon
 		if condition.LastTransitionTime == nil {
 			condition.LastTransitionTime = &now
 		}
-		eci := findConditionIndex(status.Conditions, condition.Type, condition.Status, condition.Reason)
-		if eci >= 0 && status.Conditions[eci].Message == condition.Message {
+		eci := findConditionIndex(status.Conditions, condition.Type)
+		if eci >= 0 && status.Conditions[eci].Message == condition.Message && status.Conditions[eci].Reason == condition.Reason && status.Conditions[eci].Status == condition.Status {
 			// If we already have a condition of this type, status and reason, only update the timestamp if something
 			// has changed.
 			applicationSetConditions = append(applicationSetConditions, status.Conditions[eci])
@@ -340,14 +340,14 @@ func (status *ApplicationSetStatus) SetConditions(conditions []ApplicationSetCon
 	sort.Slice(applicationSetConditions, func(i, j int) bool {
 		left := applicationSetConditions[i]
 		right := applicationSetConditions[j]
-		return fmt.Sprintf("%s/%s/%v", left.Type, left.Message, left.LastTransitionTime) < fmt.Sprintf("%s/%s/%v", right.Type, right.Message, right.LastTransitionTime)
+		return fmt.Sprintf("%s/%s/%s/%s/%v", left.Type, left.Message, left.Status, left.Reason, left.LastTransitionTime) < fmt.Sprintf("%s/%s/%s/%s/%v", right.Type, right.Message, right.Status, right.Reason, right.LastTransitionTime)
 	})
 	status.Conditions = applicationSetConditions
 }
 
-func findConditionIndex(conditions []ApplicationSetCondition, t ApplicationSetConditionType, status ApplicationSetConditionStatus, reason string) int {
+func findConditionIndex(conditions []ApplicationSetCondition, t ApplicationSetConditionType) int {
 	for i := range conditions {
-		if conditions[i].Type == t && conditions[i].Status == status && conditions[i].Reason == reason {
+		if conditions[i].Type == t {
 			return i
 		}
 	}
