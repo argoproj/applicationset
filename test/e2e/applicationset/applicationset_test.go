@@ -31,7 +31,7 @@ var (
 		{
 			Type:    v1alpha1.ApplicationSetConditionResourcesUpToDate,
 			Status:  v1alpha1.ApplicationSetConditionStatusTrue,
-			Message: "Application Set up to date",
+			Message: "ApplicationSet up to date",
 			Reason:  v1alpha1.ApplicationSetReasonApplicationSetUpToDate,
 		},
 	}

@@ -278,7 +278,7 @@ func getResourceUpToDateCondition(errorOccurred bool, message string, reason str
 	} else {
 		resourceUpToDateCondition = argoprojiov1alpha1.ApplicationSetCondition{
 			Type:    argoprojiov1alpha1.ApplicationSetConditionResourcesUpToDate,
-			Message: "Application Set up to date",
+			Message: "ApplicationSet up to date",
 			Reason:  argoprojiov1alpha1.ApplicationSetReasonApplicationSetUpToDate,
 			Status:  argoprojiov1alpha1.ApplicationSetConditionStatusTrue,
 		}
