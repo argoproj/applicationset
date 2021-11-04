@@ -32,12 +32,17 @@ type TransformResult struct {
 }
 
 //Transform a spec generator to list of params and a template
-func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, allGenerators map[string]Generator, baseTemplate argoprojiov1alpha1.ApplicationSetTemplate, appSet *argoprojiov1alpha1.ApplicationSet) ([]TransformResult, error) {
+func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, allGenerators map[string]Generator, baseTemplate argoprojiov1alpha1.ApplicationSetTemplate, appSet *argoprojiov1alpha1.ApplicationSet, disallowOverrideTemplates bool) ([]TransformResult, error) {
 	res := []TransformResult{}
 	var firstError error
 
 	generators := GetRelevantGenerators(&requestedGenerator, allGenerators)
 	for _, g := range generators {
+		if g.GetTemplate(&requestedGenerator) != nil && disallowOverrideTemplates {
+			log.WithField("generator", g).
+				Warn("override templates defined on nested generators within this combination-type generator are not meaningful and will be ignored")
+		}
+
 		// we call mergeGeneratorTemplate first because GenerateParams might be more costly so we want to fail fast if there is an error
 		mergedTemplate, err := mergeGeneratorTemplate(g, &requestedGenerator, baseTemplate)
 		if err != nil {

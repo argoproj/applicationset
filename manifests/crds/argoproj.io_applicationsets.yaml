@@ -42,7 +42,8 @@ spec:
             properties:
               generators:
                 items:
-                  description: ApplicationSetGenerator include list item info
+                  description: ApplicationSetGenerator represents a generator at the
+                    top level of an ApplicationSet.
                   properties:
                     clusterDecisionResource:
                       description: DuckType defines a generator to match against clusters
@@ -50,7 +51,7 @@ spec:
                       properties:
                         configMapRef:
                           description: ConfigMapRef is a ConfigMap with the duck type
-                            definitions needed to retreive the data              this
+                            definitions needed to retrieve the data              this
                             includes apiVersion(group/version), kind, matchKey and
                             validation settings Name is the resource name of the kind,
                             group and version, defined in the ConfigMapRef RequeueAfterSeconds
@@ -2050,13 +2051,15 @@ spec:
                       - elements
                       type: object
                     matrix:
-                      description: MatrixGenerator include Other generators
+                      description: MatrixGenerator generates the cartesian product
+                        of two sets of parameters. The parameters are defined by two
+                        nested generators.
                       properties:
                         generators:
                           items:
-                            description: ApplicationSetNestedGenerator include list
-                              item info CRD dosn't support recursive types so we need
-                              a different type for the matrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
+                            description: ApplicationSetNestedGenerator represents
+                              a generator nested within a combination-type generator
+                              (MatrixGenerator or UnionGenerator).
                             properties:
                               clusterDecisionResource:
                                 description: DuckType defines a generator to match
@@ -2064,7 +2067,7 @@ spec:
                                 properties:
                                   configMapRef:
                                     description: ConfigMapRef is a ConfigMap with
-                                      the duck type definitions needed to retreive
+                                      the duck type definitions needed to retrieve
                                       the data              this includes apiVersion(group/version),
                                       kind, matchKey and validation settings Name
                                       is the resource name of the kind, group and
@@ -4285,14 +4288,23 @@ spec:
                                 - elements
                                 type: object
                               matrix:
-                                description: MatrixNestedGenerator include Other generators
+                                description: NestedMatrixGenerator is a MatrixGenerator
+                                  nested under another combination-type generator
+                                  (MatrixGenerator or UnionGenerator). NestedMatrixGenerator
+                                  does not have an override template, because template
+                                  overriding has no meaning within the constituent
+                                  generators of combination-type generators.
                                 properties:
                                   generators:
                                     items:
-                                      description: ApplicationSetNestedGenerator include
-                                        list item info CRD dosn't support recursive
-                                        types so we need a different type for the
-                                        matrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
+                                      description: ApplicationSetTerminalGenerator
+                                        represents a generator nested within a nested
+                                        generator (for example, a list within a union
+                                        within a matrix). A generator at this level
+                                        may not be a combination-type generator (MatrixGenerator
+                                        or UnionGenerator). ApplicationSet enforces
+                                        this nesting depth limit because CRDs do not
+                                        support recursive types. https://github.com/kubernetes-sigs/controller-tools/issues/477
                                       properties:
                                         clusterDecisionResource:
                                           description: DuckType defines a generator
@@ -4302,7 +4314,7 @@ spec:
                                             configMapRef:
                                               description: ConfigMapRef is a ConfigMap
                                                 with the duck type definitions needed
-                                                to retreive the data              this
+                                                to retrieve the data              this
                                                 includes apiVersion(group/version),
                                                 kind, matchKey and validation settings
                                                 Name is the resource name of the kind,
@@ -9393,16 +9405,23 @@ spec:
                                     type: object
                                 type: object
                               union:
-                                description: UnionNestedGenerator takes the union
-                                  of two or more generators, de-duplicated on the
-                                  given keys
+                                description: NestedUnionGenerator is a UnionGenerator
+                                  nested under another combination-type generator
+                                  (MatrixGenerator or UnionGenerator). NestedUnionGenerator
+                                  does not have an override template, because template
+                                  overriding has no meaning within the constituent
+                                  generators of combination-type generators.
                                 properties:
                                   generators:
                                     items:
-                                      description: ApplicationSetNestedGenerator include
-                                        list item info CRD dosn't support recursive
-                                        types so we need a different type for the
-                                        matrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
+                                      description: ApplicationSetTerminalGenerator
+                                        represents a generator nested within a nested
+                                        generator (for example, a list within a union
+                                        within a matrix). A generator at this level
+                                        may not be a combination-type generator (MatrixGenerator
+                                        or UnionGenerator). ApplicationSet enforces
+                                        this nesting depth limit because CRDs do not
+                                        support recursive types. https://github.com/kubernetes-sigs/controller-tools/issues/477
                                       properties:
                                         clusterDecisionResource:
                                           description: DuckType defines a generator
@@ -9412,7 +9431,7 @@ spec:
                                             configMapRef:
                                               description: ConfigMapRef is a ConfigMap
                                                 with the duck type definitions needed
-                                                to retreive the data              this
+                                                to retrieve the data              this
                                                 includes apiVersion(group/version),
                                                 kind, matchKey and validation settings
                                                 Name is the resource name of the kind,
@@ -14858,14 +14877,23 @@ spec:
                           type: object
                       type: object
                     union:
-                      description: UnionGenerator takes the union of two or more generators,
-                        de-duplicated on the given keys
+                      description: "UnionGenerator takes the union of two or more
+                        generators. Where the values for all specified merge keys
+                        are equal between two sets of generated parameters, the parameter
+                        sets will be merged with the parameters from the latter generator
+                        taking precedence. For example, if the first generator produced
+                        [{a: '1', b: '2'}, {c: '1', d: '1'}] and the second generator
+                        produced [{'a': 'override'}], the united parameters would
+                        be [{a: 'override', b: '1'}, {c: '1', d: '1'}]. \n UnionGenerator
+                        supports template overriding. If a UnionGenerator is one of
+                        multiple top-level generators, its template will be merged
+                        with the top-level generator before the parameters are applied."
                       properties:
                         generators:
                           items:
-                            description: ApplicationSetNestedGenerator include list
-                              item info CRD dosn't support recursive types so we need
-                              a different type for the matrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
+                            description: ApplicationSetNestedGenerator represents
+                              a generator nested within a combination-type generator
+                              (MatrixGenerator or UnionGenerator).
                             properties:
                               clusterDecisionResource:
                                 description: DuckType defines a generator to match
@@ -14873,7 +14901,7 @@ spec:
                                 properties:
                                   configMapRef:
                                     description: ConfigMapRef is a ConfigMap with
-                                      the duck type definitions needed to retreive
+                                      the duck type definitions needed to retrieve
                                       the data              this includes apiVersion(group/version),
                                       kind, matchKey and validation settings Name
                                       is the resource name of the kind, group and
@@ -17094,14 +17122,23 @@ spec:
                                 - elements
                                 type: object
                               matrix:
-                                description: MatrixNestedGenerator include Other generators
+                                description: NestedMatrixGenerator is a MatrixGenerator
+                                  nested under another combination-type generator
+                                  (MatrixGenerator or UnionGenerator). NestedMatrixGenerator
+                                  does not have an override template, because template
+                                  overriding has no meaning within the constituent
+                                  generators of combination-type generators.
                                 properties:
                                   generators:
                                     items:
-                                      description: ApplicationSetNestedGenerator include
-                                        list item info CRD dosn't support recursive
-                                        types so we need a different type for the
-                                        matrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
+                                      description: ApplicationSetTerminalGenerator
+                                        represents a generator nested within a nested
+                                        generator (for example, a list within a union
+                                        within a matrix). A generator at this level
+                                        may not be a combination-type generator (MatrixGenerator
+                                        or UnionGenerator). ApplicationSet enforces
+                                        this nesting depth limit because CRDs do not
+                                        support recursive types. https://github.com/kubernetes-sigs/controller-tools/issues/477
                                       properties:
                                         clusterDecisionResource:
                                           description: DuckType defines a generator
@@ -17111,7 +17148,7 @@ spec:
                                             configMapRef:
                                               description: ConfigMapRef is a ConfigMap
                                                 with the duck type definitions needed
-                                                to retreive the data              this
+                                                to retrieve the data              this
                                                 includes apiVersion(group/version),
                                                 kind, matchKey and validation settings
                                                 Name is the resource name of the kind,
@@ -22202,16 +22239,23 @@ spec:
                                     type: object
                                 type: object
                               union:
-                                description: UnionNestedGenerator takes the union
-                                  of two or more generators, de-duplicated on the
-                                  given keys
+                                description: NestedUnionGenerator is a UnionGenerator
+                                  nested under another combination-type generator
+                                  (MatrixGenerator or UnionGenerator). NestedUnionGenerator
+                                  does not have an override template, because template
+                                  overriding has no meaning within the constituent
+                                  generators of combination-type generators.
                                 properties:
                                   generators:
                                     items:
-                                      description: ApplicationSetNestedGenerator include
-                                        list item info CRD dosn't support recursive
-                                        types so we need a different type for the
-                                        matrix generator https://github.com/kubernetes-sigs/controller-tools/issues/477
+                                      description: ApplicationSetTerminalGenerator
+                                        represents a generator nested within a nested
+                                        generator (for example, a list within a union
+                                        within a matrix). A generator at this level
+                                        may not be a combination-type generator (MatrixGenerator
+                                        or UnionGenerator). ApplicationSet enforces
+                                        this nesting depth limit because CRDs do not
+                                        support recursive types. https://github.com/kubernetes-sigs/controller-tools/issues/477
                                       properties:
                                         clusterDecisionResource:
                                           description: DuckType defines a generator
@@ -22221,7 +22265,7 @@ spec:
                                             configMapRef:
                                               description: ConfigMapRef is a ConfigMap
                                                 with the duck type definitions needed
-                                                to retreive the data              this
+                                                to retrieve the data              this
                                                 includes apiVersion(group/version),
                                                 kind, matchKey and validation settings
                                                 Name is the resource name of the kind,

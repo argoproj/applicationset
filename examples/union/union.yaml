@@ -8,19 +8,40 @@ spec:
         mergeKeys:
           - cluster
         generators:
-          - list:
-              elements:
-                - cluster: engineering-dev
-                  url: https://kubernetes.default.svc
-                  name: dev-original
-                - cluster: engineering-prod
-                  url: https://kubernetes.default.svc
-                  name: prod-original
-          - list:
-              elements:
-                - cluster: engineering-dev
-                  url: https://kubernetes.default.svc
-                  name: dev-new
+          - union:
+              mergeKeys:
+                - cluster
+              generators:
+                - list:
+                    elements:
+                      - cluster: a
+                        url: https://kubernetes.default.svc
+                        name: a-original
+                      - cluster: b
+                        url: https://kubernetes.default.svc
+                        name: b-original
+                - list:
+                    elements:
+                      - cluster: a
+                        url: https://kubernetes.default.svc
+                        name: a-new
+          - union:
+              mergeKeys:
+                - cluster
+              generators:
+                - list:
+                    elements:
+                      - cluster: c
+                        url: https://kubernetes.default.svc
+                        name: c-original
+                      - cluster: d
+                        url: https://kubernetes.default.svc
+                        name: d-original
+                - list:
+                    elements:
+                      - cluster: c
+                        url: https://kubernetes.default.svc
+                        name: c-new
   template:
     metadata:
       name: '{{cluster}}-{{name}}'

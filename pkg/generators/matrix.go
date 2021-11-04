@@ -64,12 +64,12 @@ func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	var matrix *argoprojiov1alpha1.MatrixGenerator
 	if appSetBaseGenerator.Matrix != nil {
-		matrix = appSetBaseGenerator.Matrix.ToMatrixTopLevelGenerator()
+		matrix = appSetBaseGenerator.Matrix.ToMatrixGenerator()
 	}
 
 	var union *argoprojiov1alpha1.UnionGenerator
 	if appSetBaseGenerator.Union != nil {
-		union = appSetBaseGenerator.Union.ToUnionTopLevelGenerator()
+		union = appSetBaseGenerator.Union.ToUnionGenerator()
 	}
 
 	t, err := Transform(
@@ -85,7 +85,8 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 		},
 		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{},
-		appSet)
+		appSet,
+		true)
 
 	if err != nil {
 		return nil, fmt.Errorf("child generator returned an error on parameter generation: %v", err)

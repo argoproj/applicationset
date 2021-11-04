@@ -70,7 +70,7 @@ type ApplicationSetTemplateMeta struct {
 	Finalizers  []string          `json:"finalizers,omitempty"`
 }
 
-// ApplicationSetGenerator include list item info
+// ApplicationSetGenerator represents a generator at the top level of an ApplicationSet.
 type ApplicationSetGenerator struct {
 	List                    *ListGenerator        `json:"list,omitempty"`
 	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
@@ -82,15 +82,14 @@ type ApplicationSetGenerator struct {
 	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
 }
 
-// ApplicationSetNestedGenerator include list item info
-// CRD dosn't support recursive types so we need a different type for the matrix generator
-// https://github.com/kubernetes-sigs/controller-tools/issues/477
+// ApplicationSetNestedGenerator represents a generator nested within a combination-type generator (MatrixGenerator or
+// UnionGenerator).
 type ApplicationSetNestedGenerator struct {
 	List                    *ListGenerator         `json:"list,omitempty"`
 	Clusters                *ClusterGenerator      `json:"clusters,omitempty"`
 	Git                     *GitGenerator          `json:"git,omitempty"`
-	Matrix                  *MatrixNestedGenerator `json:"matrix,omitempty"`
-	Union                   *UnionNestedGenerator  `json:"union,omitempty"`
+	Matrix                  *NestedMatrixGenerator `json:"matrix,omitempty"`
+	Union                   *NestedUnionGenerator  `json:"union,omitempty"`
 	SCMProvider             *SCMProviderGenerator  `json:"scmProvider,omitempty"`
 	ClusterDecisionResource *DuckTypeGenerator     `json:"clusterDecisionResource,omitempty"`
 	PullRequest             *PullRequestGenerator  `json:"pullRequest,omitempty"`
@@ -98,8 +97,9 @@ type ApplicationSetNestedGenerator struct {
 
 type ApplicationSetNestedGenerators []ApplicationSetNestedGenerator
 
-// ApplicationSetNestedGenerator include list item info
-// CRD dosn't support recursive types so we need a different type for the matrix generator
+// ApplicationSetTerminalGenerator represents a generator nested within a nested generator (for example, a list within
+// a union within a matrix). A generator at this level may not be a combination-type generator (MatrixGenerator or
+// UnionGenerator). ApplicationSet enforces this nesting depth limit because CRDs do not support recursive types.
 // https://github.com/kubernetes-sigs/controller-tools/issues/477
 type ApplicationSetTerminalGenerator struct {
 	List                    *ListGenerator        `json:"list,omitempty"`
@@ -112,17 +112,20 @@ type ApplicationSetTerminalGenerator struct {
 
 type ApplicationSetTerminalGenerators []ApplicationSetTerminalGenerator
 
+// toApplicationSetNestedGenerators converts a terminal generator (a generator which cannot be a combination-type
+// generator) to a "nested" generator. The conversion is for convenience, allowing generator g to be used where a nested
+// generator is expected.
 func (g ApplicationSetTerminalGenerators) toApplicationSetNestedGenerators() []ApplicationSetNestedGenerator {
 	nestedGenerators := make([]ApplicationSetNestedGenerator, len(g))
-	for _, terminalGenerator := range g {
-		nestedGenerators = append(nestedGenerators, ApplicationSetNestedGenerator{
+	for i, terminalGenerator := range g {
+		nestedGenerators[i] = ApplicationSetNestedGenerator{
 			List:                    terminalGenerator.List,
 			Clusters:                terminalGenerator.Clusters,
 			Git:                     terminalGenerator.Git,
 			SCMProvider:             terminalGenerator.SCMProvider,
 			ClusterDecisionResource: terminalGenerator.ClusterDecisionResource,
 			PullRequest:             terminalGenerator.PullRequest,
-		})
+		}
 	}
 	return nestedGenerators
 }
@@ -133,37 +136,55 @@ type ListGenerator struct {
 	Template ApplicationSetTemplate `json:"template,omitempty"`
 }
 
-// MatrixGenerator include Other generators
+// MatrixGenerator generates the cartesian product of two sets of parameters. The parameters are defined by two nested
+// generators.
 type MatrixGenerator struct {
 	Generators []ApplicationSetNestedGenerator `json:"generators"`
 	Template   ApplicationSetTemplate          `json:"template,omitempty"`
 }
 
-// MatrixNestedGenerator include Other generators
-type MatrixNestedGenerator struct {
+// NestedMatrixGenerator is a MatrixGenerator nested under another combination-type generator (MatrixGenerator or
+// UnionGenerator). NestedMatrixGenerator does not have an override template, because template overriding has no meaning
+// within the constituent generators of combination-type generators.
+type NestedMatrixGenerator struct {
 	Generators ApplicationSetTerminalGenerators `json:"generators"`
 }
 
-func (g MatrixNestedGenerator) ToMatrixTopLevelGenerator() *MatrixGenerator {
+// ToMatrixGenerator converts a NestedMatrixGenerator to a MatrixGenerator. This conversion is for convenience, allowing
+// a NestedMatrixGenerator to be used where a MatrixGenerator is expected (of course, the converted generator will have
+// no override template).
+func (g NestedMatrixGenerator) ToMatrixGenerator() *MatrixGenerator {
 	return &MatrixGenerator{
 		Generators: g.Generators.toApplicationSetNestedGenerators(),
 	}
 }
 
-// UnionGenerator takes the union of two or more generators, de-duplicated on the given keys
+// UnionGenerator takes the union of two or more generators. Where the values for all specified merge keys are equal
+// between two sets of generated parameters, the parameter sets will be merged with the parameters from the latter
+// generator taking precedence.
+// For example, if the first generator produced [{a: '1', b: '2'}, {c: '1', d: '1'}] and the second generator produced
+// [{'a': 'override'}], the united parameters would be [{a: 'override', b: '1'}, {c: '1', d: '1'}].
+//
+// UnionGenerator supports template overriding. If a UnionGenerator is one of multiple top-level generators, its
+// template will be merged with the top-level generator before the parameters are applied.
 type UnionGenerator struct {
 	Generators []ApplicationSetNestedGenerator `json:"generators"`
 	MergeKeys  []string                        `json:"mergeKeys"`
 	Template   ApplicationSetTemplate          `json:"template,omitempty"`
 }
 
-// UnionNestedGenerator takes the union of two or more generators, de-duplicated on the given keys
-type UnionNestedGenerator struct {
+// NestedUnionGenerator is a UnionGenerator nested under another combination-type generator (MatrixGenerator or
+// UnionGenerator). NestedUnionGenerator does not have an override template, because template overriding has no meaning
+// within the constituent generators of combination-type generators.
+type NestedUnionGenerator struct {
 	Generators ApplicationSetTerminalGenerators `json:"generators"`
 	MergeKeys  []string                         `json:"mergeKeys"`
 }
 
-func (g UnionNestedGenerator) ToUnionTopLevelGenerator() *UnionGenerator {
+// ToUnionGenerator converts a NestedUnionGenerator to a UnionGenerator. This conversion is for convenience, allowing
+// a NestedUnionGenerator to be used where a UnionGenerator is expected (of course, the converted generator will have
+// no override template).
+func (g NestedUnionGenerator) ToUnionGenerator() *UnionGenerator {
 	return &UnionGenerator{
 		Generators: g.Generators.toApplicationSetNestedGenerators(),
 		MergeKeys:  g.MergeKeys,
@@ -184,7 +205,7 @@ type ClusterGenerator struct {
 
 // DuckType defines a generator to match against clusters registered with ArgoCD.
 type DuckTypeGenerator struct {
-	// ConfigMapRef is a ConfigMap with the duck type definitions needed to retreive the data
+	// ConfigMapRef is a ConfigMap with the duck type definitions needed to retrieve the data
 	//              this includes apiVersion(group/version), kind, matchKey and validation settings
 	// Name is the resource name of the kind, group and version, defined in the ConfigMapRef
 	// RequeueAfterSeconds is how long before the duckType will be rechecked for a change
