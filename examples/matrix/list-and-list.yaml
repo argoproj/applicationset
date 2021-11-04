@@ -22,16 +22,6 @@ spec:
                     suffix: '1'
                 - values:
                     suffix: '2'
-        template:
-          metadata:
-            name: '{{cluster}}-{{values.suffix}}-override'
-          spec:
-            project: '{{values.project}}'
-            source:
-              repoURL: https://github.com/argoproj-labs/applicationset.git
-              targetRevision: HEAD
-              path: '{{path}}'
-            destination: {}
   template:
     metadata:
       name: '{{cluster}}-{{values.suffix}}'
