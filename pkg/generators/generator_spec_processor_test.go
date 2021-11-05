@@ -1,8 +1,9 @@
 package generators
 
 import (
-	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"testing"
+
+	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 )
 
 func TestGetRelevantGenerators(t *testing.T) {

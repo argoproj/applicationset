@@ -125,8 +125,8 @@ func (m *UnionGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Applic
 	t, err := Transform(
 		argoprojiov1alpha1.ApplicationSetGenerator{
 			ApplicationSetTerminalGenerator: appSetBaseGenerator.ApplicationSetTerminalGenerator,
-			Matrix: matrix,
-			Union:  union,
+			Matrix:                          matrix,
+			Union:                           union,
 		},
 		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{},
