@@ -19,6 +19,29 @@ func GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSet
 		}
 
 		if !reflect.ValueOf(field.Interface()).IsNil() {
+			fieldName := v.Type().Field(i).Name
+			if fieldName == "ApplicationSetTerminalGenerator" {
+				res = append(res, getRelevantGenerators(requestedGenerator.ApplicationSetTerminalGenerator, generators)...)
+			} else {
+				res = append(res, generators[fieldName])
+			}
+		}
+	}
+
+	return res
+}
+
+func getRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetTerminalGenerator, generators map[string]Generator) []Generator {
+	var res []Generator
+
+	v := reflect.Indirect(reflect.ValueOf(requestedGenerator))
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if !field.CanInterface() {
+			continue
+		}
+
+		if !reflect.ValueOf(field.Interface()).IsNil() {
 			res = append(res, generators[v.Type().Field(i).Name])
 		}
 	}

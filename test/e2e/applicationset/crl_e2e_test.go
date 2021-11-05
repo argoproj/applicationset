@@ -77,9 +77,11 @@ func TestSimpleClusterResourceListGenerator(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
-							ConfigMapRef: "my-configmap",
-							Name:         "my-placementdecision",
+						ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
+							ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
+								ConfigMapRef: "my-configmap",
+								Name:         "my-placementdecision",
+							},
 						},
 					},
 				},
@@ -187,10 +189,12 @@ func TestSimpleClusterResourceListGeneratorAddingCluster(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
-							ConfigMapRef:        "my-configmap",
-							Name:                "my-placementdecision",
-							RequeueAfterSeconds: &tenSec,
+						ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
+							ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
+								ConfigMapRef:        "my-configmap",
+								Name:                "my-placementdecision",
+								RequeueAfterSeconds: &tenSec,
+							},
 						},
 					},
 				},
@@ -282,10 +286,12 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterSecret(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
-							ConfigMapRef:        "my-configmap",
-							Name:                "my-placementdecision",
-							RequeueAfterSeconds: &tenSec,
+						ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
+							ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
+								ConfigMapRef:        "my-configmap",
+								Name:                "my-placementdecision",
+								RequeueAfterSeconds: &tenSec,
+							},
 						},
 					},
 				},
@@ -385,10 +391,12 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterFromResource(t *testin
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
-							ConfigMapRef:        "my-configmap",
-							Name:                "my-placementdecision",
-							RequeueAfterSeconds: &tenSec,
+						ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
+							ClusterDecisionResource: &v1alpha1.DuckTypeGenerator{
+								ConfigMapRef:        "my-configmap",
+								Name:                "my-placementdecision",
+								RequeueAfterSeconds: &tenSec,
+							},
 						},
 					},
 				},

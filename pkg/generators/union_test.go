@@ -8,9 +8,13 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
-func getListGenerator(json string) *argoprojiov1alpha1.ListGenerator {
-	return &argoprojiov1alpha1.ListGenerator{
-		Elements: []apiextensionsv1.JSON{{Raw: []byte(json)}},
+func getListGenerator(json string) *argoprojiov1alpha1.ApplicationSetNestedGenerator {
+	return &argoprojiov1alpha1.ApplicationSetNestedGenerator{
+		ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
+			List: &argoprojiov1alpha1.ListGenerator{
+				Elements: []apiextensionsv1.JSON{{Raw: []byte(json)}},
+			},
+		},
 	}
 }
 
@@ -30,24 +34,16 @@ func TestUnionGenerate(t *testing.T) {
 		{
 			name: "one generator",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
-				{
-					List: getListGenerator(`{"a": "1_1","b": "same","c": "1_3"}`),
-				},
+				*getListGenerator(`{"a": "1_1","b": "same","c": "1_3"}`),
 			},
 			expectedErr: LessThanTwoGeneratorsInUnion,
 		},
 		{
 			name: "happy flow - generate params",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
-				{
-					List: getListGenerator(`{"a": "1_1","b": "same","c": "1_3"}`),
-				},
-				{
-					List: getListGenerator(`{"a": "2_1","b": "same"}`),
-				},
-				{
-					List: getListGenerator(`{"a": "3_1","b": "3_2","c": "3_3"}`),
-				},
+				*getListGenerator(`{"a": "1_1","b": "same","c": "1_3"}`),
+				*getListGenerator(`{"a": "2_1","b": "same"}`),
+				*getListGenerator(`{"a": "3_1","b": "3_2","c": "3_3"}`),
 			},
 			expected: []map[string]string{
 				{"a": "2_1", "b": "same", "c": "1_3"},
@@ -57,12 +53,8 @@ func TestUnionGenerate(t *testing.T) {
 		{
 			name: "merge keys absent - do not merge",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
-				{
-					List: getListGenerator(`{"a": "a"}`),
-				},
-				{
-					List: getListGenerator(`{"a": "a"}`),
-				},
+				*getListGenerator(`{"a": "a"}`),
+				*getListGenerator(`{"a": "a"}`),
 			},
 			expected: []map[string]string{
 				{"a": "a"},
@@ -72,12 +64,8 @@ func TestUnionGenerate(t *testing.T) {
 		{
 			name: "merge key present in first set, absent in seconds - do not merge",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
-				{
-					List: getListGenerator(`{"a": "a"}`),
-				},
-				{
-					List: getListGenerator(`{"b": "b"}`),
-				},
+				*getListGenerator(`{"a": "a"}`),
+				*getListGenerator(`{"b": "b"}`),
 			},
 			expected: []map[string]string{
 				{"a": "a"},

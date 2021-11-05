@@ -119,24 +119,46 @@ func invalidGenerators(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) (b
 	names := make(map[string]bool)
 	hasInvalidGenerators := false
 	for index, generator := range applicationSetInfo.Spec.Generators {
-		v := reflect.Indirect(reflect.ValueOf(generator))
-		found := false
-		for i := 0; i < v.NumField(); i++ {
-			field := v.Field(i)
-			if !field.CanInterface() {
-				continue
-			}
-			if !reflect.ValueOf(field.Interface()).IsNil() {
-				found = true
-				break
-			}
-		}
+		found := isGeneratorValid(generator)
 		if !found {
 			hasInvalidGenerators = true
 			addInvalidGeneratorNames(names, applicationSetInfo, index)
 		}
 	}
 	return hasInvalidGenerators, names
+}
+
+func isGeneratorValid(generator argoprojiov1alpha1.ApplicationSetGenerator) bool {
+	v := reflect.Indirect(reflect.ValueOf(generator))
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if !field.CanInterface() {
+			continue
+		}
+		fieldName := v.Type().Field(i).Name
+		if fieldName == "ApplicationSetTerminalGenerator" {
+			if isTerminalGeneratorValid(generator.ApplicationSetTerminalGenerator) {
+				return true
+			}
+		} else if !reflect.ValueOf(field.Interface()).IsNil() {
+			return true
+		}
+	}
+	return false
+}
+
+func isTerminalGeneratorValid(generator *argoprojiov1alpha1.ApplicationSetTerminalGenerator) bool {
+	v := reflect.Indirect(reflect.ValueOf(generator))
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if !field.CanInterface() {
+			continue
+		}
+		if !reflect.ValueOf(field.Interface()).IsNil() {
+			return true
+		}
+	}
+	return false
 }
 
 func addInvalidGeneratorNames(names map[string]bool, applicationSetInfo *argoprojiov1alpha1.ApplicationSet, index int) {

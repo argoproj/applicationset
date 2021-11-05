@@ -155,10 +155,12 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{{
-						Git: &argoprojiov1alpha1.GitGenerator{
-							RepoURL:     "RepoURL",
-							Revision:    "Revision",
-							Directories: c.directories,
+						ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
+							Git: &argoprojiov1alpha1.GitGenerator{
+								RepoURL:     "RepoURL",
+								Revision:    "Revision",
+								Directories: c.directories,
+							},
 						},
 					}},
 				},
@@ -401,10 +403,12 @@ cluster:
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{{
-						Git: &argoprojiov1alpha1.GitGenerator{
-							RepoURL:  "RepoURL",
-							Revision: "Revision",
-							Files:    c.files,
+						ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
+							Git: &argoprojiov1alpha1.GitGenerator{
+								RepoURL:  "RepoURL",
+								Revision: "Revision",
+								Files:    c.files,
+							},
 						},
 					}},
 				},
