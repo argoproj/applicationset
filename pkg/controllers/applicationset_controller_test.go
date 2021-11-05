@@ -1752,6 +1752,7 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					assert.True(t, foundMatch, "Unble to locate expected error: %s", cc.expectedErrors)
 					matched = matched || foundMatch
 				}
+				assert.True(t, matched, "An unexpected error occurrred: %v", err)
 				// validation message was returned: it should be expected
 				matched = false
 				foundMatch := reflect.DeepEqual(validationErrors, cc.validationErrors)
