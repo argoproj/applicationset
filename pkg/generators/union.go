@@ -124,14 +124,7 @@ func (m *UnionGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Applic
 
 	t, err := Transform(
 		argoprojiov1alpha1.ApplicationSetGenerator{
-			ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-				List:                    appSetBaseGenerator.List,
-				Clusters:                appSetBaseGenerator.Clusters,
-				Git:                     appSetBaseGenerator.Git,
-				SCMProvider:             appSetBaseGenerator.SCMProvider,
-				ClusterDecisionResource: appSetBaseGenerator.ClusterDecisionResource,
-				PullRequest:             appSetBaseGenerator.PullRequest,
-			},
+			ApplicationSetTerminalGenerator: appSetBaseGenerator.ApplicationSetTerminalGenerator,
 			Matrix: matrix,
 			Union:  union,
 		},
