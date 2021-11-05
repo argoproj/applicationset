@@ -103,6 +103,41 @@ func EnsureCleanState(t *testing.T) {
 	CheckError(fixtureClient.KubeClientset.CoreV1().Secrets(ArgoCDNamespace).DeleteCollection(context.Background(),
 		v1.DeleteOptions{PropagationPolicy: &policy}, v1.ListOptions{LabelSelector: TestingLabel + "=true"}))
 
+	// First we wait up to 30 seconds for all the ApplicationSets to delete, but we don't fail if they don't.
+	// Why? We want to give Argo CD time to delete the Application's child resources, before we remove the finalizers below.
+	_ = waitForSuccess(func() error {
+		list, err := fixtureClient.AppSetClientset.List(context.Background(), v1.ListOptions{})
+		if err != nil {
+			return err
+		}
+		if list != nil && len(list.Items) > 0 {
+			// Fail
+			msg := fmt.Sprintf("Waiting for list of ApplicationSets to be size zero: %d", len(list.Items))
+			// Intentionally not making this an Errorf, so it can be printf-ed for debugging purposes.
+			return errors.New(msg)
+		}
+
+		return nil // Pass
+	}, time.Now().Add(30*time.Second))
+
+	// Remove finalizers from Argo CD Application resources in the namespace
+	err = waitForSuccess(func() error {
+		appList, err := fixtureClient.AppClientset.ArgoprojV1alpha1().Applications(ArgoCDNamespace).List(context.Background(), v1.ListOptions{})
+		if err != nil {
+			return err
+		}
+		for _, app := range appList.Items {
+			t.Log("Removing finalizer for: ", app.Name)
+			app.Finalizers = []string{}
+			_, err := fixtureClient.AppClientset.ArgoprojV1alpha1().Applications(ArgoCDNamespace).Update(context.TODO(), &app, v1.UpdateOptions{})
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}, time.Now().Add(120*time.Second))
+	CheckError(err)
+
 	CheckError(waitForExpectedClusterState())
 
 	// remove tmp dir
