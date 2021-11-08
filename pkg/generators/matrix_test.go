@@ -48,6 +48,37 @@ func TestMatrixGenerate(t *testing.T) {
 			},
 		},
 		{
+			name: "happy flow - generate params from two lists",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
+				{
+					ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
+						List: &argoprojiov1alpha1.ListGenerator{
+							Elements: []apiextensionsv1.JSON{
+								{Raw: []byte(`{"a": "1"}`)},
+								{Raw: []byte(`{"a": "2"}`)},
+							},
+						},
+					},
+				},
+				{
+					ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
+						List: &argoprojiov1alpha1.ListGenerator{
+							Elements: []apiextensionsv1.JSON{
+								{Raw: []byte(`{"b": "1"}`)},
+								{Raw: []byte(`{"b": "2"}`)},
+							},
+						},
+					},
+				},
+			},
+			expected: []map[string]string{
+				{"a": "1", "b": "1"},
+				{"a": "1", "b": "2"},
+				{"a": "2", "b": "1"},
+				{"a": "2", "b": "2"},
+			},
+		},
+		{
 			name: "returns error if there is less than two base generators",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{

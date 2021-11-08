@@ -1,6 +1,7 @@
 package generators
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -12,6 +13,8 @@ import (
 var _ Generator = (*UnionGenerator)(nil)
 
 var LessThanTwoGeneratorsInUnion = errors.New("found less than two generators, Union requires two or more")
+var NoMergeKeys = errors.New("no merge keys were specified, Union requires at least one")
+var NonUniqueParamSets = errors.New("the parameters from a generator were not unique by the given mergeKeys, Union requires all param sets to be unique")
 
 type UnionGenerator struct {
 	// The inner generators supported by the union generator (cluster, git, list...)
@@ -43,15 +46,15 @@ func keysArePresentAndValuesAreEqual(keys []string, a map[string]string, b map[s
 	return true
 }
 
-func (m *UnionGenerator) getParamsForAllGenerators(generators []argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
-	var paramSets []map[string]string
+func (m *UnionGenerator) getParamSetsForAllGenerators(generators []argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([][]map[string]string, error) {
+	var paramSets [][]map[string]string
 	for _, generator := range generators {
 		generatorParamSets, err := m.getParams(generator, appSet)
 		if err != nil {
 			return nil, err
 		}
 		// concatenate param lists produced by each generator
-		paramSets = append(paramSets, generatorParamSets...)
+		paramSets = append(paramSets, generatorParamSets)
 	}
 	return paramSets, nil
 }
@@ -74,41 +77,68 @@ func (m *UnionGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appl
 		return nil, LessThanTwoGeneratorsInUnion
 	}
 
-	var paramSets []map[string]string
-
-	paramSetsFromGenerators, err := m.getParamsForAllGenerators(appSetGenerator.Union.Generators, appSet)
+	paramSetsFromGenerators, err := m.getParamSetsForAllGenerators(appSetGenerator.Union.Generators, appSet)
 	if err != nil {
 		return nil, err
 	}
 
-	paramSetAlreadyHandled := make([]bool, len(paramSetsFromGenerators))
+	baseParamSetsByMergeKey, err := getParamSetsByMergeKey(appSetGenerator.Union.MergeKeys, paramSetsFromGenerators[0])
 
-	// merge any param sets which have matching merge keys
-	for i, paramsFromGenerator := range paramSetsFromGenerators {
-		if paramSetAlreadyHandled[i] {
-			continue
+	for _, paramSets := range paramSetsFromGenerators {
+		paramSetsByMergeKey, err := getParamSetsByMergeKey(appSetGenerator.Union.MergeKeys, paramSets)
+		if err != nil {
+			return nil, err
 		}
 
-		var paramsToUse = paramsFromGenerator
-
-		// look in remaining param sets for a set which can be merged
-		for j, paramsToMaybeMerge := range paramSetsFromGenerators[i+1:] {
-			if paramSetAlreadyHandled[j] {
-				continue
-			}
-			var wasMerged bool
-			paramsToUse, wasMerged, err = tryMergeParamSets(appSetGenerator.Union.MergeKeys, paramsToUse, paramsToMaybeMerge)
-			if err != nil {
-				return nil, err
-			}
-			if wasMerged {
-				paramSetAlreadyHandled[j+1] = true
+		for mergeKeyValue, baseParamSet := range baseParamSetsByMergeKey {
+			if overrideParamSet, exists := paramSetsByMergeKey[mergeKeyValue]; exists {
+				overriddenParamSet, err := utils.CombineStringMapsAllowDuplicates(baseParamSet, overrideParamSet)
+				if err != nil {
+					return nil, err
+				}
+				baseParamSetsByMergeKey[mergeKeyValue] = overriddenParamSet
 			}
 		}
-		paramSets = append(paramSets, paramsToUse)
 	}
 
-	return paramSets, nil
+	mergedParamSets := make([]map[string]string, len(baseParamSetsByMergeKey))
+	var i = 0
+	for _, mergedParamSet := range baseParamSetsByMergeKey {
+		mergedParamSets[i] = mergedParamSet
+		i += 1
+	}
+
+	return mergedParamSets, nil
+}
+
+func getParamSetsByMergeKey(mergeKeys []string, paramSets []map[string]string) (map[string]map[string]string, error) {
+	if len(mergeKeys) < 1 {
+		return nil, NoMergeKeys
+	}
+
+	deDuplicatedMergeKeys := make(map[string]bool, len(mergeKeys))
+	for _, mergeKey := range mergeKeys {
+		deDuplicatedMergeKeys[mergeKey] = false
+	}
+
+	paramSetsByMergeKey := make(map[string]map[string]string, len(paramSets))
+	for _, paramSet := range paramSets {
+		paramSetKey := make(map[string]string)
+		for mergeKey, _ := range deDuplicatedMergeKeys {
+			paramSetKey[mergeKey] = paramSet[mergeKey]
+		}
+		paramSetKeyJson, err := json.Marshal(paramSetKey)
+		if err != nil {
+			return nil, err
+		}
+		paramSetKeyString := string(paramSetKeyJson)
+		if _, exists := paramSetsByMergeKey[paramSetKeyString]; exists {
+			return nil, NonUniqueParamSets
+		}
+		paramSetsByMergeKey[paramSetKeyString] = paramSet
+	}
+
+	return paramSetsByMergeKey, nil
 }
 
 func (m *UnionGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
