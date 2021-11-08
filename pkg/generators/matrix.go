@@ -29,6 +29,10 @@ func NewMatrixGenerator(supportedGenerators map[string]Generator) Generator {
 
 func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
+	if appSetGenerator.Matrix == nil {
+		return nil, nil
+	}
+
 	if len(appSetGenerator.Matrix.Generators) < 2 {
 		return nil, LessThanTwoGenerators
 	}

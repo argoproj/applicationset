@@ -51,8 +51,8 @@ func (g *PullRequestGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha
 		return nil, EmptyAppSetGeneratorError
 	}
 
-	if appSetGenerator.PullRequest == nil {
-		return nil, EmptyAppSetGeneratorError
+	if appSetGenerator.ApplicationSetTerminalGenerator == nil || appSetGenerator.ApplicationSetTerminalGenerator.PullRequest == nil {
+		return nil, nil
 	}
 
 	ctx := context.Background()

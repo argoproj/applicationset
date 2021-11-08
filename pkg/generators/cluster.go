@@ -65,7 +65,7 @@ func (g *ClusterGenerator) GenerateParams(
 		return nil, EmptyAppSetGeneratorError
 	}
 
-	if appSetGenerator.Clusters == nil {
+	if appSetGenerator.ApplicationSetTerminalGenerator == nil || appSetGenerator.ApplicationSetTerminalGenerator.Clusters == nil {
 		return nil, nil
 	}
 

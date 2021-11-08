@@ -66,7 +66,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 	}
 
 	// Not likely to happen
-	if appSetGenerator.ClusterDecisionResource == nil {
+	if appSetGenerator.ApplicationSetTerminalGenerator == nil || appSetGenerator.ApplicationSetTerminalGenerator.ClusterDecisionResource == nil {
 		return nil, nil
 	}
 

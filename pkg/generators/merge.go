@@ -73,6 +73,10 @@ func tryMergeParamSets(mergeKeys []string, a map[string]string, b map[string]str
 }
 
 func (m *MergeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+	if appSetGenerator.Merge == nil {
+		return nil, nil
+	}
+
 	if len(appSetGenerator.Merge.Generators) < 2 {
 		return nil, LessThanTwoGeneratorsInMerge
 	}
@@ -84,7 +88,7 @@ func (m *MergeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appl
 
 	baseParamSetsByMergeKey, err := getParamSetsByMergeKey(appSetGenerator.Merge.MergeKeys, paramSetsFromGenerators[0])
 
-	for _, paramSets := range paramSetsFromGenerators {
+	for _, paramSets := range paramSetsFromGenerators[1:] {
 		paramSetsByMergeKey, err := getParamSetsByMergeKey(appSetGenerator.Merge.MergeKeys, paramSets)
 		if err != nil {
 			return nil, err

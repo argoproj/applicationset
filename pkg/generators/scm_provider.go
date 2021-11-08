@@ -48,8 +48,8 @@ func (g *SCMProviderGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha
 		return nil, EmptyAppSetGeneratorError
 	}
 
-	if appSetGenerator.SCMProvider == nil {
-		return nil, EmptyAppSetGeneratorError
+	if appSetGenerator.ApplicationSetTerminalGenerator == nil || appSetGenerator.ApplicationSetTerminalGenerator.SCMProvider == nil {
+		return nil, nil
 	}
 
 	ctx := context.Background()

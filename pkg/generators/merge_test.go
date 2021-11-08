@@ -1,6 +1,7 @@
 package generators
 
 import (
+	"encoding/json"
 	"testing"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
@@ -36,6 +37,19 @@ func getTerminalListGeneratorMultiple(jsons []string) argoprojiov1alpha1.Applica
 	}
 
 	return generator
+}
+
+func listOfMapsToSet(maps []map[string]string) (map[string]bool, error) {
+	set := make(map[string]bool, len(maps))
+	for _, paramMap := range maps {
+		paramMapAsJson, err := json.Marshal(paramMap)
+		if err != nil {
+			return nil, err
+		}
+
+		set[string(paramMapAsJson)] = false
+	}
+	return set, nil
 }
 
 func TestMergeGenerate(t *testing.T) {
@@ -146,12 +160,16 @@ func TestMergeGenerate(t *testing.T) {
 			if testCaseCopy.expectedErr != nil {
 				assert.EqualError(t, err, testCaseCopy.expectedErr.Error())
 			} else {
+				expectedSet, err := listOfMapsToSet(testCaseCopy.expected)
 				assert.NoError(t, err)
-				assert.Equal(t, testCaseCopy.expected, got)
+
+				actualSet, err := listOfMapsToSet(got)
+				assert.NoError(t, err)
+
+				assert.NoError(t, err)
+				assert.Equal(t, expectedSet, actualSet)
 			}
-
 		})
-
 	}
 }
 
