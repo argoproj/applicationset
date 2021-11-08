@@ -403,15 +403,32 @@ func (a *Actions) get() (*v1alpha1.ApplicationSet, error) {
 func (a *Actions) Update(toUpdate func(*v1alpha1.ApplicationSet)) *Actions {
 	a.context.t.Helper()
 
-	appSet, err := a.get()
-	if err == nil {
-		toUpdate(appSet)
-		a.describeAction = fmt.Sprintf("updating ApplicationSet '%s'", appSet.Name)
+	timeout := 30 * time.Second
 
-		fixtureClient := utils.GetE2EFixtureK8sClient()
-		_, err = fixtureClient.AppSetClientset.Update(context.Background(), utils.MustToUnstructured(&appSet), metav1.UpdateOptions{})
+	var mostRecentError error
+
+	for start := time.Now(); time.Since(start) < timeout; time.Sleep(3 * time.Second) {
+
+		appSet, err := a.get()
+		mostRecentError = err
+		if err == nil {
+			// Keep trying to update until it succeeds, or the test times out
+			toUpdate(appSet)
+			a.describeAction = fmt.Sprintf("updating ApplicationSet '%s'", appSet.Name)
+
+			fixtureClient := utils.GetE2EFixtureK8sClient()
+			_, err = fixtureClient.AppSetClientset.Update(context.Background(), utils.MustToUnstructured(&appSet), metav1.UpdateOptions{})
+
+			if err != nil {
+				mostRecentError = err
+			} else {
+				mostRecentError = nil
+				break
+			}
+		}
 	}
-	a.lastOutput, a.lastError = "", err
+
+	a.lastOutput, a.lastError = "", mostRecentError
 	a.verifyAction()
 
 	return a

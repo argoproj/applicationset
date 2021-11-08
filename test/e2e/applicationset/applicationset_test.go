@@ -14,6 +14,29 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var (
+	ExpectedConditions = []v1alpha1.ApplicationSetCondition{
+		{
+			Type:    v1alpha1.ApplicationSetConditionErrorOccurred,
+			Status:  v1alpha1.ApplicationSetConditionStatusFalse,
+			Message: "Successfully generated parameters for all Applications",
+			Reason:  v1alpha1.ApplicationSetReasonApplicationSetUpToDate,
+		},
+		{
+			Type:    v1alpha1.ApplicationSetConditionParametersGenerated,
+			Status:  v1alpha1.ApplicationSetConditionStatusTrue,
+			Message: "Successfully generated parameters for all Applications",
+			Reason:  v1alpha1.ApplicationSetReasonParametersGenerated,
+		},
+		{
+			Type:    v1alpha1.ApplicationSetConditionResourcesUpToDate,
+			Status:  v1alpha1.ApplicationSetConditionStatusTrue,
+			Message: "ApplicationSet up to date",
+			Reason:  v1alpha1.ApplicationSetReasonApplicationSetUpToDate,
+		},
+	}
+)
+
 func TestSimpleListGenerator(t *testing.T) {
 
 	expectedApp := argov1alpha1.Application{
@@ -96,6 +119,9 @@ func TestSimpleListGenerator(t *testing.T) {
 			appset.Spec.Template.Annotations = map[string]string{"annotation-key": "annotation-value"}
 			appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
 		}).Then().Expect(ApplicationsExist([]argov1alpha1.Application{*expectedAppNewMetadata})).
+
+		// verify the ApplicationSet status conditions were set correctly
+		Expect(ApplicationSetHasConditions("simple-list-generator", ExpectedConditions)).
 
 		// Delete the ApplicationSet, and verify it deletes the Applications
 		When().
@@ -204,6 +230,9 @@ func TestSimpleGitDirectoryGenerator(t *testing.T) {
 			appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
 		}).Then().Expect(ApplicationsExist(expectedAppsNewMetadata)).
 
+		// verify the ApplicationSet status conditions were set correctly
+		Expect(ApplicationSetHasConditions("simple-git-generator", ExpectedConditions)).
+
 		// Delete the ApplicationSet, and verify it deletes the Applications
 		When().
 		Delete().Then().Expect(ApplicationsDoNotExist(expectedAppsNewNamespace))
@@ -309,6 +338,9 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 			appset.Spec.Template.Annotations = map[string]string{"annotation-key": "annotation-value"}
 			appset.Spec.Template.Labels = map[string]string{"label-key": "label-value"}
 		}).Then().Expect(ApplicationsExist(expectedAppsNewMetadata)).
+
+		// verify the ApplicationSet status conditions were set correctly
+		Expect(ApplicationSetHasConditions("simple-git-generator", ExpectedConditions)).
 
 		// Delete the ApplicationSet, and verify it deletes the Applications
 		When().
