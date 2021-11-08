@@ -74,22 +74,22 @@ type ApplicationSetTemplateMeta struct {
 type ApplicationSetGenerator struct {
 	*ApplicationSetTerminalGenerator `json:",inline"`
 	Matrix                           *MatrixGenerator `json:"matrix,omitempty"`
-	Union                            *UnionGenerator  `json:"union,omitempty"`
+	Merge                            *MergeGenerator  `json:"merge,omitempty"`
 }
 
 // ApplicationSetNestedGenerator represents a generator nested within a combination-type generator (MatrixGenerator or
-// UnionGenerator).
+// MergeGenerator).
 type ApplicationSetNestedGenerator struct {
 	*ApplicationSetTerminalGenerator `json:",inline"`
 	Matrix                           *NestedMatrixGenerator `json:"matrix,omitempty"`
-	Union                            *NestedUnionGenerator  `json:"union,omitempty"`
+	Merge                            *NestedMergeGenerator  `json:"merge,omitempty"`
 }
 
 type ApplicationSetNestedGenerators []ApplicationSetNestedGenerator
 
 // ApplicationSetTerminalGenerator represents a generator nested within a nested generator (for example, a list within
-// a union within a matrix). A generator at this level may not be a combination-type generator (MatrixGenerator or
-// UnionGenerator). ApplicationSet enforces this nesting depth limit because CRDs do not support recursive types.
+// a merge within a matrix). A generator at this level may not be a combination-type generator (MatrixGenerator or
+// MergeGenerator). ApplicationSet enforces this nesting depth limit because CRDs do not support recursive types.
 // https://github.com/kubernetes-sigs/controller-tools/issues/477
 type ApplicationSetTerminalGenerator struct {
 	List                    *ListGenerator        `json:"list,omitempty"`
@@ -136,7 +136,7 @@ type MatrixGenerator struct {
 }
 
 // NestedMatrixGenerator is a MatrixGenerator nested under another combination-type generator (MatrixGenerator or
-// UnionGenerator). NestedMatrixGenerator does not have an override template, because template overriding has no meaning
+// MergeGenerator). NestedMatrixGenerator does not have an override template, because template overriding has no meaning
 // within the constituent generators of combination-type generators.
 type NestedMatrixGenerator struct {
 	Generators ApplicationSetTerminalGenerators `json:"generators"`
@@ -151,33 +151,34 @@ func (g NestedMatrixGenerator) ToMatrixGenerator() *MatrixGenerator {
 	}
 }
 
-// UnionGenerator takes the union of two or more generators. Where the values for all specified merge keys are equal
+// MergeGenerator merges the output of two or more generators. Where the values for all specified merge keys are equal
 // between two sets of generated parameters, the parameter sets will be merged with the parameters from the latter
-// generator taking precedence.
+// generator taking precedence. Parameter sets with merge keys not present in the base generator's params will be
+// ignored.
 // For example, if the first generator produced [{a: '1', b: '2'}, {c: '1', d: '1'}] and the second generator produced
 // [{'a': 'override'}], the united parameters would be [{a: 'override', b: '1'}, {c: '1', d: '1'}].
 //
-// UnionGenerator supports template overriding. If a UnionGenerator is one of multiple top-level generators, its
+// MergeGenerator supports template overriding. If a MergeGenerator is one of multiple top-level generators, its
 // template will be merged with the top-level generator before the parameters are applied.
-type UnionGenerator struct {
+type MergeGenerator struct {
 	Generators []ApplicationSetNestedGenerator `json:"generators"`
 	MergeKeys  []string                        `json:"mergeKeys"`
 	Template   ApplicationSetTemplate          `json:"template,omitempty"`
 }
 
-// NestedUnionGenerator is a UnionGenerator nested under another combination-type generator (MatrixGenerator or
-// UnionGenerator). NestedUnionGenerator does not have an override template, because template overriding has no meaning
+// NestedMergeGenerator is a MergeGenerator nested under another combination-type generator (MatrixGenerator or
+// MergeGenerator). NestedMergeGenerator does not have an override template, because template overriding has no meaning
 // within the constituent generators of combination-type generators.
-type NestedUnionGenerator struct {
+type NestedMergeGenerator struct {
 	Generators ApplicationSetTerminalGenerators `json:"generators"`
 	MergeKeys  []string                         `json:"mergeKeys"`
 }
 
-// ToUnionGenerator converts a NestedUnionGenerator to a UnionGenerator. This conversion is for convenience, allowing
-// a NestedUnionGenerator to be used where a UnionGenerator is expected (of course, the converted generator will have
+// ToMergeGenerator converts a NestedMergeGenerator to a MergeGenerator. This conversion is for convenience, allowing
+// a NestedMergeGenerator to be used where a MergeGenerator is expected (of course, the converted generator will have
 // no override template).
-func (g NestedUnionGenerator) ToUnionGenerator() *UnionGenerator {
-	return &UnionGenerator{
+func (g NestedMergeGenerator) ToMergeGenerator() *MergeGenerator {
+	return &MergeGenerator{
 		Generators: g.Generators.toApplicationSetNestedGenerators(),
 		MergeKeys:  g.MergeKeys,
 	}

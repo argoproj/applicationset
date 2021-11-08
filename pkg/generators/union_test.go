@@ -38,7 +38,7 @@ func getTerminalListGeneratorMultiple(jsons []string) argoprojiov1alpha1.Applica
 	return generator
 }
 
-func TestUnionGenerate(t *testing.T) {
+func TestMergeGenerate(t *testing.T) {
 
 	testCases := []struct {
 		name           string
@@ -51,7 +51,7 @@ func TestUnionGenerate(t *testing.T) {
 			name:           "no generators",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{},
 			mergeKeys:      []string{"b"},
-			expectedErr:    LessThanTwoGeneratorsInUnion,
+			expectedErr:    LessThanTwoGeneratorsInMerge,
 		},
 		{
 			name: "one generator",
@@ -59,7 +59,7 @@ func TestUnionGenerate(t *testing.T) {
 				*getNestedListGenerator(`{"a": "1_1","b": "same","c": "1_3"}`),
 			},
 			mergeKeys:   []string{"b"},
-			expectedErr: LessThanTwoGeneratorsInUnion,
+			expectedErr: LessThanTwoGeneratorsInMerge,
 		},
 		{
 			name: "happy flow - generate paramSets",
@@ -124,7 +124,7 @@ func TestUnionGenerate(t *testing.T) {
 		t.Run(testCaseCopy.name, func(t *testing.T) {
 			appSet := &argoprojiov1alpha1.ApplicationSet{}
 
-			var UnionGenerator = NewUnionGenerator(
+			var mergeGenerator = NewMergeGenerator(
 				map[string]Generator{
 					"List": &ListGenerator{},
 					"Matrix": &MatrixGenerator{
@@ -135,8 +135,8 @@ func TestUnionGenerate(t *testing.T) {
 				},
 			)
 
-			got, err := UnionGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
-				Union: &argoprojiov1alpha1.UnionGenerator{
+			got, err := mergeGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
+				Merge: &argoprojiov1alpha1.MergeGenerator{
 					Generators: testCaseCopy.baseGenerators,
 					MergeKeys:  testCaseCopy.mergeKeys,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},

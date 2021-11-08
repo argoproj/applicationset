@@ -165,7 +165,7 @@ func main() {
 		"ClusterDecisionResource": terminalGenerators["ClusterDecisionResource"],
 		"PullRequest":             terminalGenerators["PullRequest"],
 		"Matrix":                  generators.NewMatrixGenerator(terminalGenerators),
-		"Union":                   generators.NewUnionGenerator(terminalGenerators),
+		"Merge":                   generators.NewMergeGenerator(terminalGenerators),
 	}
 
 	topLevelGenerators := map[string]generators.Generator{
@@ -176,7 +176,7 @@ func main() {
 		"ClusterDecisionResource": terminalGenerators["ClusterDecisionResource"],
 		"PullRequest":             terminalGenerators["PullRequest"],
 		"Matrix":                  generators.NewMatrixGenerator(nestedGenerators),
-		"Union":                   generators.NewUnionGenerator(nestedGenerators),
+		"Merge":                   generators.NewMergeGenerator(nestedGenerators),
 	}
 
 	if err = (&controllers.ApplicationSetReconciler{

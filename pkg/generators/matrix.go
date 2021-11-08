@@ -67,16 +67,16 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 		matrix = appSetBaseGenerator.Matrix.ToMatrixGenerator()
 	}
 
-	var union *argoprojiov1alpha1.UnionGenerator
-	if appSetBaseGenerator.Union != nil {
-		union = appSetBaseGenerator.Union.ToUnionGenerator()
+	var mergeGenerator *argoprojiov1alpha1.MergeGenerator
+	if appSetBaseGenerator.Merge != nil {
+		mergeGenerator = appSetBaseGenerator.Merge.ToMergeGenerator()
 	}
 
 	t, err := Transform(
 		argoprojiov1alpha1.ApplicationSetGenerator{
 			ApplicationSetTerminalGenerator: appSetBaseGenerator.ApplicationSetTerminalGenerator,
 			Matrix:                          matrix,
-			Union:                           union,
+			Merge:                           mergeGenerator,
 		},
 		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{},
