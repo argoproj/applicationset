@@ -156,7 +156,8 @@ func (g NestedMatrixGenerator) ToMatrixGenerator() *MatrixGenerator {
 // generator taking precedence. Parameter sets with merge keys not present in the base generator's params will be
 // ignored.
 // For example, if the first generator produced [{a: '1', b: '2'}, {c: '1', d: '1'}] and the second generator produced
-// [{'a': 'override'}], the united parameters would be [{a: 'override', b: '1'}, {c: '1', d: '1'}].
+// [{'a': 'override'}], the united parameters for merge keys = ['a'] would be
+// [{a: 'override', b: '1'}, {c: '1', d: '1'}].
 //
 // MergeGenerator supports template overriding. If a MergeGenerator is one of multiple top-level generators, its
 // template will be merged with the top-level generator before the parameters are applied.
