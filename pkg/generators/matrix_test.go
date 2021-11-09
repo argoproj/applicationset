@@ -123,11 +123,13 @@ func TestMatrixGenerate(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
+		testCaseCopy := testCase  // Since tests may run in parallel
+
+		t.Run(testCaseCopy.name, func(t *testing.T) {
 			mock := &generatorMock{}
 			appSet := &argoprojiov1alpha1.ApplicationSet{}
 
-			for _, g := range testCase.baseGenerators {
+			for _, g := range testCaseCopy.baseGenerators {
 
 				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
 					Git:  g.Git,
@@ -157,16 +159,16 @@ func TestMatrixGenerate(t *testing.T) {
 
 			got, err := matrixGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
 				Matrix: &argoprojiov1alpha1.MatrixGenerator{
-					Generators: testCase.baseGenerators,
+					Generators: testCaseCopy.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
 			}, appSet)
 
-			if testCase.expectedErr != nil {
-				assert.EqualError(t, err, testCase.expectedErr.Error())
+			if testCaseCopy.expectedErr != nil {
+				assert.EqualError(t, err, testCaseCopy.expectedErr.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, testCase.expected, got)
+				assert.Equal(t, testCaseCopy.expected, got)
 			}
 
 		})
@@ -220,18 +222,18 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 		},
 	}
 
-	for _, c := range testCases {
-		cc := c
+	for _, testCase := range testCases {
+		testCaseCopy := testCase  // Since tests may run in parallel
 
-		t.Run(cc.name, func(t *testing.T) {
+		t.Run(testCaseCopy.name, func(t *testing.T) {
 			mock := &generatorMock{}
 
-			for _, g := range cc.baseGenerators {
+			for _, g := range testCaseCopy.baseGenerators {
 				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
 					Git:  g.Git,
 					List: g.List,
 				}
-				mock.On("GetRequeueAfter", &gitGeneratorSpec).Return(cc.gitGetRequeueAfter, nil)
+				mock.On("GetRequeueAfter", &gitGeneratorSpec).Return(testCaseCopy.gitGetRequeueAfter, nil)
 			}
 
 			var matrixGenerator = NewMatrixGenerator(
@@ -243,12 +245,12 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 
 			got := matrixGenerator.GetRequeueAfter(&argoprojiov1alpha1.ApplicationSetGenerator{
 				Matrix: &argoprojiov1alpha1.MatrixGenerator{
-					Generators: cc.baseGenerators,
+					Generators: testCaseCopy.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
 			})
 
-			assert.Equal(t, cc.expected, got)
+			assert.Equal(t, testCaseCopy.expected, got)
 
 		})
 
