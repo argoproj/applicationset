@@ -26,24 +26,6 @@ func GetRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSet
 	return res
 }
 
-func getRelevantGenerators(requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, generators map[string]Generator) []Generator {
-	var res []Generator
-
-	v := reflect.Indirect(reflect.ValueOf(requestedGenerator))
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if !field.CanInterface() {
-			continue
-		}
-
-		if !reflect.ValueOf(field.Interface()).IsNil() {
-			res = append(res, generators[v.Type().Field(i).Name])
-		}
-	}
-
-	return res
-}
-
 type TransformResult struct {
 	Params   []map[string]string
 	Template argoprojiov1alpha1.ApplicationSetTemplate
