@@ -4,15 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
 	argocommon "github.com/argoproj/argo-cd/v2/common"
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
 )
 
 // this implements the "when" part of given/when/then
@@ -55,10 +60,51 @@ func (a *Actions) Then() *Consequences {
 	return &Consequences{a.context, a}
 }
 
+// GetServiceAccountBearerToken will attempt to get the provided service account until it
+// exists, iterate the secrets associated with it looking for one of type
+// kubernetes.io/service-account-token, and return it's token if found.
+// (function based on 'GetServiceAccountBearerToken' from Argo CD's 'clusterauth.go')
+func GetServiceAccountBearerToken(clientset kubernetes.Interface, ns string, sa string) (string, error) {
+	var serviceAccount *corev1.ServiceAccount
+	var secret *corev1.Secret
+	var err error
+	err = wait.Poll(500*time.Millisecond, 30*time.Second, func() (bool, error) {
+		serviceAccount, err = clientset.CoreV1().ServiceAccounts(ns).Get(context.Background(), sa, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		// Scan all secrets looking for one of the correct type:
+		for _, oRef := range serviceAccount.Secrets {
+			var getErr error
+			secret, err = clientset.CoreV1().Secrets(ns).Get(context.Background(), oRef.Name, metav1.GetOptions{})
+			if err != nil {
+				return false, fmt.Errorf("failed to retrieve secret %q: %v", oRef.Name, getErr)
+			}
+			if secret.Type == corev1.SecretTypeServiceAccountToken {
+				return true, nil
+			}
+		}
+		return false, nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to wait for service account secret: %v", err)
+	}
+	token, ok := secret.Data["token"]
+	if !ok {
+		return "", fmt.Errorf("secret %q for service account %q did not have a token", secret.Name, serviceAccount)
+	}
+	return string(token), nil
+}
+
 // CreateClusterSecret creates a faux cluster secret, with the given cluster server and cluster name (this cluster
 // will not actually be used by the Argo CD controller, but that's not needed for our E2E tests)
 func (a *Actions) CreateClusterSecret(secretName string, clusterName string, clusterServer string) *Actions {
 
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+
+	bearerToken, err := GetServiceAccountBearerToken(fixtureClient.KubeClientset, utils.ArgoCDNamespace, "argocd-applicationset-controller")
+
+	// bearerToken
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
@@ -75,8 +121,16 @@ func (a *Actions) CreateClusterSecret(secretName string, clusterName string, clu
 		},
 	}
 
-	fixtureClient := utils.GetE2EFixtureK8sClient()
-	_, err := fixtureClient.KubeClientset.CoreV1().Secrets(secret.Namespace).Create(context.Background(), secret, metav1.CreateOptions{})
+	// If the bearer token is available, use it rather than the fake username/password
+	if bearerToken != "" && err == nil {
+		secret.Data = map[string][]byte{
+			"name":   []byte(clusterName),
+			"server": []byte(clusterServer),
+			"config": []byte("{\"bearerToken\":\"" + bearerToken + "\"}"),
+		}
+	}
+
+	_, err = fixtureClient.KubeClientset.CoreV1().Secrets(secret.Namespace).Create(context.Background(), secret, metav1.CreateOptions{})
 
 	a.describeAction = fmt.Sprintf("creating cluster Secret '%s'", secretName)
 	a.lastOutput, a.lastError = "", err
@@ -153,6 +207,55 @@ func (a *Actions) Create(appSet v1alpha1.ApplicationSet) *Actions {
 	}
 
 	a.describeAction = fmt.Sprintf("creating ApplicationSet '%s'", appSet.Name)
+	a.lastOutput, a.lastError = "", err
+	a.verifyAction()
+
+	return a
+}
+
+// Create Role/RoleBinding to allow ApplicationSet to list the PlacementDecisions
+func (a *Actions) CreatePlacementRoleAndRoleBinding() *Actions {
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+
+	var err error
+
+	_, err = fixtureClient.KubeClientset.RbacV1().Roles(utils.ArgoCDNamespace).Create(context.Background(), &v1.Role{
+		ObjectMeta: metav1.ObjectMeta{Name: "placement-role", Namespace: utils.ArgoCDNamespace},
+		Rules: []v1.PolicyRule{
+			{
+				Verbs:     []string{"get", "list", "watch"},
+				APIGroups: []string{"cluster.open-cluster-management.io"},
+				Resources: []string{"placementdecisions"},
+			},
+		},
+	}, metav1.CreateOptions{})
+	if err != nil && strings.Contains(err.Error(), "already exists") {
+		err = nil
+	}
+
+	if err == nil {
+		_, err = fixtureClient.KubeClientset.RbacV1().RoleBindings(utils.ArgoCDNamespace).Create(context.Background(),
+			&v1.RoleBinding{
+				ObjectMeta: metav1.ObjectMeta{Name: "placement-role-binding", Namespace: utils.ArgoCDNamespace},
+				Subjects: []v1.Subject{
+					{
+						Name:      "argocd-applicationset-controller",
+						Namespace: utils.ArgoCDNamespace,
+						Kind:      "ServiceAccount",
+					},
+				},
+				RoleRef: v1.RoleRef{
+					Kind:     "Role",
+					APIGroup: "rbac.authorization.k8s.io",
+					Name:     "placement-role",
+				},
+			}, metav1.CreateOptions{})
+	}
+	if err != nil && strings.Contains(err.Error(), "already exists") {
+		err = nil
+	}
+
+	a.describeAction = "creating placement role/rolebinding"
 	a.lastOutput, a.lastError = "", err
 	a.verifyAction()
 
@@ -300,15 +403,32 @@ func (a *Actions) get() (*v1alpha1.ApplicationSet, error) {
 func (a *Actions) Update(toUpdate func(*v1alpha1.ApplicationSet)) *Actions {
 	a.context.t.Helper()
 
-	appSet, err := a.get()
-	if err == nil {
-		toUpdate(appSet)
-		a.describeAction = fmt.Sprintf("updating ApplicationSet '%s'", appSet.Name)
+	timeout := 30 * time.Second
 
-		fixtureClient := utils.GetE2EFixtureK8sClient()
-		_, err = fixtureClient.AppSetClientset.Update(context.Background(), utils.MustToUnstructured(&appSet), metav1.UpdateOptions{})
+	var mostRecentError error
+
+	for start := time.Now(); time.Since(start) < timeout; time.Sleep(3 * time.Second) {
+
+		appSet, err := a.get()
+		mostRecentError = err
+		if err == nil {
+			// Keep trying to update until it succeeds, or the test times out
+			toUpdate(appSet)
+			a.describeAction = fmt.Sprintf("updating ApplicationSet '%s'", appSet.Name)
+
+			fixtureClient := utils.GetE2EFixtureK8sClient()
+			_, err = fixtureClient.AppSetClientset.Update(context.Background(), utils.MustToUnstructured(&appSet), metav1.UpdateOptions{})
+
+			if err != nil {
+				mostRecentError = err
+			} else {
+				mostRecentError = nil
+				break
+			}
+		}
 	}
-	a.lastOutput, a.lastError = "", err
+
+	a.lastOutput, a.lastError = "", mostRecentError
 	a.verifyAction()
 
 	return a

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -25,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
 	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned/fake"
 	dbmocks "github.com/argoproj/argo-cd/v2/util/db/mocks"
@@ -77,8 +79,6 @@ func TestExtractApplications(t *testing.T) {
 	err = argov1alpha1.AddToScheme(scheme)
 	assert.Nil(t, err)
 
-	client := fake.NewClientBuilder().WithScheme(scheme).Build()
-
 	for _, c := range []struct {
 		name                string
 		params              []map[string]string
@@ -86,6 +86,7 @@ func TestExtractApplications(t *testing.T) {
 		generateParamsError error
 		rendererError       error
 		expectErr           bool
+		expectedReason      v1alpha1.ApplicationSetReasonType
 	}{
 		{
 			name:   "Generate two applications",
@@ -98,11 +99,13 @@ func TestExtractApplications(t *testing.T) {
 				},
 				Spec: argov1alpha1.ApplicationSpec{},
 			},
+			expectedReason: "",
 		},
 		{
 			name:                "Handles error from the generator",
 			generateParamsError: errors.New("error"),
 			expectErr:           true,
+			expectedReason:      v1alpha1.ApplicationSetReasonApplicationParamsGenerationError,
 		},
 		{
 			name:   "Handles error from the render",
@@ -115,8 +118,9 @@ func TestExtractApplications(t *testing.T) {
 				},
 				Spec: argov1alpha1.ApplicationSpec{},
 			},
-			rendererError: errors.New("error"),
-			expectErr:     true,
+			rendererError:  errors.New("error"),
+			expectErr:      true,
+			expectedReason: v1alpha1.ApplicationSetReasonRenderTemplateParamsError,
 		},
 	} {
 		cc := c
@@ -127,6 +131,15 @@ func TestExtractApplications(t *testing.T) {
 		}
 
 		t.Run(cc.name, func(t *testing.T) {
+
+			appSet := &argoprojiov1alpha1.ApplicationSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "name",
+					Namespace: "namespace",
+				},
+			}
+
+			client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(appSet).Build()
 
 			generatorMock := generatorMock{}
 			generator := argoprojiov1alpha1.ApplicationSetGenerator{
@@ -168,7 +181,7 @@ func TestExtractApplications(t *testing.T) {
 				KubeClientset: kubefake.NewSimpleClientset(),
 			}
 
-			got, err := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
+			got, reason, err := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
 					Namespace: "namespace",
@@ -185,6 +198,7 @@ func TestExtractApplications(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			assert.Equal(t, expectedApps, got)
+			assert.Equal(t, cc.expectedReason, reason)
 			generatorMock.AssertNumberOfCalls(t, "GenerateParams", 1)
 
 			if cc.generateParamsError == nil {
@@ -280,7 +294,7 @@ func TestMergeTemplateApplications(t *testing.T) {
 				KubeClientset: kubefake.NewSimpleClientset(),
 			}
 
-			got, _ := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
+			got, _, _ := r.generateApplications(argoprojiov1alpha1.ApplicationSet{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "name",
 					Namespace: "namespace",
@@ -1556,9 +1570,10 @@ func TestValidateGeneratedApplications(t *testing.T) {
 
 	// Test a subset of the validations that 'validateGeneratedApplications' performs
 	for _, cc := range []struct {
-		name           string
-		apps           []argov1alpha1.Application
-		expectedErrors []string
+		name             string
+		apps             []argov1alpha1.Application
+		expectedErrors   []string
+		validationErrors map[int]error
 	}{
 		{
 			name: "valid app should return true",
@@ -1580,7 +1595,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors: []string{},
+			expectedErrors:   []string{},
+			validationErrors: map[int]error{},
 		},
 		{
 			name: "can't have both name and server defined",
@@ -1603,7 +1619,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors: []string{"application destination can't have both name and server defined"},
+			expectedErrors:   []string{"application destination can't have both name and server defined"},
+			validationErrors: map[int]error{0: errors.New("application destination spec is invalid: application destination can't have both name and server defined: my-cluster my-server")},
 		},
 		{
 			name: "project mismatch should return error",
@@ -1625,7 +1642,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors: []string{"application references project DOES-NOT-EXIST which does not exist"},
+			expectedErrors:   []string{"application references project DOES-NOT-EXIST which does not exist"},
+			validationErrors: map[int]error{0: errors.New("application references project DOES-NOT-EXIST which does not exist")},
 		},
 		{
 			name: "valid app should return true",
@@ -1647,7 +1665,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors: []string{},
+			expectedErrors:   []string{},
+			validationErrors: map[int]error{},
 		},
 		{
 			name: "cluster should match",
@@ -1669,7 +1688,8 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					},
 				},
 			},
-			expectedErrors: []string{"there are no clusters with this name: nonexistent-cluster"},
+			expectedErrors:   []string{"there are no clusters with this name: nonexistent-cluster"},
+			validationErrors: map[int]error{0: errors.New("application destination spec is invalid: unable to find destination server: there are no clusters with this name: nonexistent-cluster")},
 		},
 	} {
 
@@ -1716,7 +1736,7 @@ func TestValidateGeneratedApplications(t *testing.T) {
 
 			appSetInfo := argoprojiov1alpha1.ApplicationSet{}
 
-			validationErrors, err := r.validateGeneratedApplications(context.TODO(), cc.apps, appSetInfo, "namespace")
+			validationErrors, _ := r.validateGeneratedApplications(context.TODO(), cc.apps, appSetInfo, "namespace")
 			var errorMessages []string
 			for _, v := range validationErrors {
 				errorMessages = append(errorMessages, v.Error())
@@ -1732,6 +1752,17 @@ func TestValidateGeneratedApplications(t *testing.T) {
 					assert.True(t, foundMatch, "Unble to locate expected error: %s", cc.expectedErrors)
 					matched = matched || foundMatch
 				}
+				assert.True(t, matched, "An unexpected error occurrred: %v", err)
+				// validation message was returned: it should be expected
+				matched = false
+				foundMatch := reflect.DeepEqual(validationErrors, cc.validationErrors)
+				var message string
+				for _, v := range validationErrors {
+					message = v.Error()
+					break
+				}
+				assert.True(t, foundMatch, "Unble to locate validation message: %s", message)
+				matched = matched || foundMatch
 				assert.True(t, matched, "An unexpected error occurrred: %v", err)
 			}
 		})
@@ -1831,4 +1862,61 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 	// make sure bad app was not created
 	err = r.Client.Get(context.TODO(), crtclient.ObjectKey{Namespace: "argocd", Name: "bad-cluster"}, &app)
 	assert.Error(t, err)
+}
+
+func TestSetApplicationSetStatusCondition(t *testing.T) {
+	scheme := runtime.NewScheme()
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
+	appSet := argoprojiov1alpha1.ApplicationSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "name",
+			Namespace: "argocd",
+		},
+		Spec: argoprojiov1alpha1.ApplicationSetSpec{
+			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+				{List: &argoprojiov1alpha1.ListGenerator{
+					Elements: []apiextensionsv1.JSON{{
+						Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
+					}},
+				}},
+			},
+			Template: argoprojiov1alpha1.ApplicationSetTemplate{},
+		},
+	}
+
+	appCondition := argoprojiov1alpha1.ApplicationSetCondition{
+		Type:    argoprojiov1alpha1.ApplicationSetConditionResourcesUpToDate,
+		Message: "All applications have been generated successfully",
+		Reason:  argoprojiov1alpha1.ApplicationSetReasonApplicationSetUpToDate,
+		Status:  argoprojiov1alpha1.ApplicationSetConditionStatusTrue,
+	}
+
+	kubeclientset := kubefake.NewSimpleClientset([]runtime.Object{}...)
+	argoDBMock := dbmocks.ArgoDB{}
+	argoObjs := []runtime.Object{}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&appSet).Build()
+
+	r := ApplicationSetReconciler{
+		Log:      ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
+		Client:   client,
+		Scheme:   scheme,
+		Renderer: &utils.Render{},
+		Recorder: record.NewFakeRecorder(1),
+		Generators: map[string]generators.Generator{
+			"List": generators.NewListGenerator(),
+		},
+		ArgoDB:           &argoDBMock,
+		ArgoAppClientset: appclientset.NewSimpleClientset(argoObjs...),
+		KubeClientset:    kubeclientset,
+	}
+
+	err = r.setApplicationSetStatusCondition(context.TODO(), &appSet, appCondition, true)
+	assert.Nil(t, err)
+
+	assert.Len(t, appSet.Status.Conditions, 3)
 }
