@@ -124,6 +124,26 @@ func TestMergeGenerate(t *testing.T) {
 				{"a": "2", "b": "2"},
 			},
 		},
+		{
+			name: "merge nested merge with some lists",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
+				{
+					Merge: &argoprojiov1alpha1.NestedMergeGenerator{
+						MergeKeys: []string{"a"},
+						Generators: []argoprojiov1alpha1.ApplicationSetTerminalGenerator{
+							getTerminalListGeneratorMultiple([]string{`{"a": "1", "b": "1"}`, `{"a": "2", "b": "2"}`}),
+							getTerminalListGeneratorMultiple([]string{`{"a": "1", "b": "3", "c": "added"}`, `{"a": "3", "b": "2"}`}), // First gets merged, second gets ignored
+						},
+					},
+				},
+				*getNestedListGenerator(`{"a": "1", "b": "3", "d": "added"}`),
+			},
+			mergeKeys: []string{"a", "b"},
+			expected: []map[string]string{
+				{"a": "1", "b": "3", "c": "added", "d": "added"},
+				{"a": "2", "b": "2"},
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -136,6 +156,11 @@ func TestMergeGenerate(t *testing.T) {
 				map[string]Generator{
 					"List": &ListGenerator{},
 					"Matrix": &MatrixGenerator{
+						supportedGenerators: map[string]Generator{
+							"List": &ListGenerator{},
+						},
+					},
+					"Merge": &MergeGenerator{
 						supportedGenerators: map[string]Generator{
 							"List": &ListGenerator{},
 						},
