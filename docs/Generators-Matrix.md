@@ -107,7 +107,7 @@ Finally, the Matrix generator will combine both sets of outputs, and produce:
 ## Restrictions
 
 1. The Matrix generator currently only supports combining the outputs of only two child generators (eg does not support generating combinations for 3 or more).
-2. You should specify only a single generator per array entry, eg this is not valid:
+1. You should specify only a single generator per array entry, eg this is not valid:
 ```yaml
 - matrix:
     generators:
@@ -115,7 +115,7 @@ Finally, the Matrix generator will combine both sets of outputs, and produce:
        git: # (...)
 ```
     - While this *will* be accepted by Kubernetes API validation, the controller will report an error on generation. Each generator should be specified in a separate array element, as in the examples above.
-3. The Matrix generator does not currently support [`template` overrides](Template.md#generator-templates) specified on child generators, eg this `template` will not be processed:
+1. The Matrix generator does not currently support [`template` overrides](Template.md#generator-templates) specified on child generators, eg this `template` will not be processed:
 ```yaml
 - matrix:
     generators:
@@ -124,4 +124,15 @@ Finally, the Matrix generator will combine both sets of outputs, and produce:
             - # (...)
           template: { } # Not processed
 ```
-4. The Matrix generator itself is not supported as a child generator (no recursion).
+1. Combination-type generators (matrix or merge) can only be nested once. For example, this will not work:
+```yaml
+- matrix:
+    generators:
+      - matrix:
+          generators:
+            - matrix:  # This third level is invalid.
+                generators:
+                  - list:
+                      elements:
+                        - # (...)
+```
