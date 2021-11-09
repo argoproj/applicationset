@@ -69,7 +69,7 @@ func (h *clusterSecretEventHandler) queueRelatedAppGenerators(q addRateLimitingI
 
 		foundClusterGenerator := false
 		for _, generator := range appSet.Spec.Generators {
-			if generator.ApplicationSetTerminalGenerator != nil && generator.ApplicationSetTerminalGenerator.Clusters != nil {
+			if generator.Clusters != nil {
 				foundClusterGenerator = true
 				break
 			}

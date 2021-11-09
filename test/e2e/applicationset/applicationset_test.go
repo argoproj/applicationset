@@ -65,12 +65,10 @@ func TestSimpleListGenerator(t *testing.T) {
 			},
 			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
-					ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-						List: &v1alpha1.ListGenerator{
-							Elements: []apiextensionsv1.JSON{{
-								Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
-							}},
-						},
+					List: &v1alpha1.ListGenerator{
+						Elements: []apiextensionsv1.JSON{{
+							Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
+						}},
 					},
 				},
 			},
@@ -165,13 +163,11 @@ func TestSimpleGitDirectoryGenerator(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-							Git: &v1alpha1.GitGenerator{
-								RepoURL: "https://github.com/argoproj/argocd-example-apps.git",
-								Directories: []v1alpha1.GitDirectoryGeneratorItem{
-									{
-										Path: "*guestbook*",
-									},
+						Git: &v1alpha1.GitGenerator{
+							RepoURL: "https://github.com/argoproj/argocd-example-apps.git",
+							Directories: []v1alpha1.GitDirectoryGeneratorItem{
+								{
+									Path: "*guestbook*",
 								},
 							},
 						},
@@ -273,13 +269,11 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-							Git: &v1alpha1.GitGenerator{
-								RepoURL: "https://github.com/argoproj-labs/applicationset.git",
-								Files: []v1alpha1.GitFileGeneratorItem{
-									{
-										Path: "examples/git-generator-files-discovery/cluster-config/**/config.json",
-									},
+						Git: &v1alpha1.GitGenerator{
+							RepoURL: "https://github.com/argoproj-labs/applicationset.git",
+							Files: []v1alpha1.GitFileGeneratorItem{
+								{
+									Path: "examples/git-generator-files-discovery/cluster-config/**/config.json",
 								},
 							},
 						},
@@ -356,13 +350,11 @@ func TestSimpleGitFilesPreserveResourcesOnDeletion(t *testing.T) {
 				},
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
-						ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-							Git: &v1alpha1.GitGenerator{
-								RepoURL: "https://github.com/argoproj-labs/applicationset.git",
-								Files: []v1alpha1.GitFileGeneratorItem{
-									{
-										Path: "examples/git-generator-files-discovery/cluster-config/**/config.json",
-									},
+						Git: &v1alpha1.GitGenerator{
+							RepoURL: "https://github.com/argoproj-labs/applicationset.git",
+							Files: []v1alpha1.GitFileGeneratorItem{
+								{
+									Path: "examples/git-generator-files-discovery/cluster-config/**/config.json",
 								},
 							},
 						},
@@ -435,15 +427,13 @@ func TestSimpleSCMProviderGenerator(t *testing.T) {
 			},
 			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
-					ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-						SCMProvider: &v1alpha1.SCMProviderGenerator{
-							Github: &v1alpha1.SCMProviderGeneratorGithub{
-								Organization: "argoproj",
-							},
-							Filters: []v1alpha1.SCMProviderGeneratorFilter{
-								{
-									RepositoryMatch: &repoMatch,
-								},
+					SCMProvider: &v1alpha1.SCMProviderGenerator{
+						Github: &v1alpha1.SCMProviderGeneratorGithub{
+							Organization: "argoproj",
+						},
+						Filters: []v1alpha1.SCMProviderGeneratorFilter{
+							{
+								RepositoryMatch: &repoMatch,
 							},
 						},
 					},
@@ -504,12 +494,10 @@ func TestCustomApplicationFinalizers(t *testing.T) {
 			},
 			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
-					ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-						List: &v1alpha1.ListGenerator{
-							Elements: []apiextensionsv1.JSON{{
-								Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
-							}},
-						},
+					List: &v1alpha1.ListGenerator{
+						Elements: []apiextensionsv1.JSON{{
+							Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc"}`),
+						}},
 					},
 				},
 			},
@@ -580,14 +568,12 @@ func TestSimplePullRequestGenerator(t *testing.T) {
 			},
 			Generators: []v1alpha1.ApplicationSetGenerator{
 				{
-					ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-						PullRequest: &v1alpha1.PullRequestGenerator{
-							Github: &v1alpha1.PullRequestGeneratorGithub{
-								Owner: "applicationset-test-org",
-								Repo:  "argocd-example-apps",
-								Labels: []string{
-									"preview",
-								},
+					PullRequest: &v1alpha1.PullRequestGenerator{
+						Github: &v1alpha1.PullRequestGeneratorGithub{
+							Owner: "applicationset-test-org",
+							Repo:  "argocd-example-apps",
+							Labels: []string{
+								"preview",
 							},
 						},
 					},

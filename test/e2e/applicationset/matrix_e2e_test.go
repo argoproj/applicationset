@@ -79,23 +79,19 @@ func TestListMatrixGenerator(t *testing.T) {
 						Matrix: &v1alpha1.MatrixGenerator{
 							Generators: []v1alpha1.ApplicationSetNestedGenerator{
 								{
-									ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-										List: &v1alpha1.ListGenerator{
-											Elements: []apiextensionsv1.JSON{
-												{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster1"}}`)},
-												{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster2"}}`)},
-											},
+									List: &v1alpha1.ListGenerator{
+										Elements: []apiextensionsv1.JSON{
+											{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster1"}}`)},
+											{Raw: []byte(`{"cluster": "my-cluster","url": "https://kubernetes.default.svc", "values": {"name": "cluster2"}}`)},
 										},
 									},
 								},
 								{
-									ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-										Git: &v1alpha1.GitGenerator{
-											RepoURL: "https://github.com/argoproj/argocd-example-apps.git",
-											Directories: []v1alpha1.GitDirectoryGeneratorItem{
-												{
-													Path: "*guestbook*",
-												},
+									Git: &v1alpha1.GitGenerator{
+										RepoURL: "https://github.com/argoproj/argocd-example-apps.git",
+										Directories: []v1alpha1.GitDirectoryGeneratorItem{
+											{
+												Path: "*guestbook*",
 											},
 										},
 									},
@@ -209,24 +205,20 @@ func TestClusterMatrixGenerator(t *testing.T) {
 						Matrix: &v1alpha1.MatrixGenerator{
 							Generators: []v1alpha1.ApplicationSetNestedGenerator{
 								{
-									ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-										Clusters: &v1alpha1.ClusterGenerator{
-											Selector: metav1.LabelSelector{
-												MatchLabels: map[string]string{
-													"argocd.argoproj.io/secret-type": "cluster",
-												},
+									Clusters: &v1alpha1.ClusterGenerator{
+										Selector: metav1.LabelSelector{
+											MatchLabels: map[string]string{
+												"argocd.argoproj.io/secret-type": "cluster",
 											},
 										},
 									},
 								},
 								{
-									ApplicationSetTerminalGenerator: &v1alpha1.ApplicationSetTerminalGenerator{
-										Git: &v1alpha1.GitGenerator{
-											RepoURL: "https://github.com/argoproj/argocd-example-apps.git",
-											Directories: []v1alpha1.GitDirectoryGeneratorItem{
-												{
-													Path: "*guestbook*",
-												},
+									Git: &v1alpha1.GitGenerator{
+										RepoURL: "https://github.com/argoproj/argocd-example-apps.git",
+										Directories: []v1alpha1.GitDirectoryGeneratorItem{
+											{
+												Path: "*guestbook*",
 											},
 										},
 									},

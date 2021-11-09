@@ -11,12 +11,6 @@ import (
 
 func getNestedListGenerator(json string) *argoprojiov1alpha1.ApplicationSetNestedGenerator {
 	return &argoprojiov1alpha1.ApplicationSetNestedGenerator{
-		ApplicationSetTerminalGenerator: getTerminalListGenerator(json),
-	}
-}
-
-func getTerminalListGenerator(json string) *argoprojiov1alpha1.ApplicationSetTerminalGenerator {
-	return &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
 		List: &argoprojiov1alpha1.ListGenerator{
 			Elements: []apiextensionsv1.JSON{{Raw: []byte(json)}},
 		},

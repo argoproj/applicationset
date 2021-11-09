@@ -78,9 +78,14 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 
 	t, err := Transform(
 		argoprojiov1alpha1.ApplicationSetGenerator{
-			ApplicationSetTerminalGenerator: appSetBaseGenerator.ApplicationSetTerminalGenerator,
-			Matrix:                          matrix,
-			Merge:                           mergeGenerator,
+			List:                    appSetBaseGenerator.List,
+			Clusters:                appSetBaseGenerator.Clusters,
+			Git:                     appSetBaseGenerator.Git,
+			SCMProvider:             appSetBaseGenerator.SCMProvider,
+			ClusterDecisionResource: appSetBaseGenerator.ClusterDecisionResource,
+			PullRequest:             appSetBaseGenerator.PullRequest,
+			Matrix:                  matrix,
+			Merge:                   mergeGenerator,
 		},
 		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{},
@@ -108,16 +113,10 @@ func (m *MatrixGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Ap
 	var found bool
 
 	for _, r := range appSetGenerator.Matrix.Generators {
-		var terminalGenerator *argoprojiov1alpha1.ApplicationSetTerminalGenerator
-		if r.ApplicationSetTerminalGenerator != nil {
-			terminalGenerator = &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-				List:     r.ApplicationSetTerminalGenerator.List,
-				Clusters: r.ApplicationSetTerminalGenerator.Clusters,
-				Git:      r.ApplicationSetTerminalGenerator.Git,
-			}
-		}
 		base := &argoprojiov1alpha1.ApplicationSetGenerator{
-			ApplicationSetTerminalGenerator: terminalGenerator,
+			List:     r.List,
+			Clusters: r.Clusters,
+			Git:      r.Git,
 		}
 		generators := GetRelevantGenerators(base, m.supportedGenerators)
 

@@ -57,9 +57,7 @@ func TestClusterEventHandler(t *testing.T) {
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
 						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 							{
-								ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-									Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-								},
+								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
 						},
 					},
@@ -89,9 +87,7 @@ func TestClusterEventHandler(t *testing.T) {
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
 						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 							{
-								ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-									Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-								},
+								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
 						},
 					},
@@ -104,9 +100,7 @@ func TestClusterEventHandler(t *testing.T) {
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
 						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 							{
-								ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-									Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-								},
+								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
 						},
 					},
@@ -137,9 +131,7 @@ func TestClusterEventHandler(t *testing.T) {
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
 						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 							{
-								ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-									Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-								},
+								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
 						},
 					},
@@ -152,9 +144,7 @@ func TestClusterEventHandler(t *testing.T) {
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
 						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 							{
-								ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-									List: &argoprojiov1alpha1.ListGenerator{},
-								},
+								List: &argoprojiov1alpha1.ListGenerator{},
 							},
 						},
 					},
@@ -185,9 +175,7 @@ func TestClusterEventHandler(t *testing.T) {
 					Spec: argoprojiov1alpha1.ApplicationSetSpec{
 						Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 							{
-								ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-									Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-								},
+								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 							},
 						},
 					},

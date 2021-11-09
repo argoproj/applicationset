@@ -295,25 +295,19 @@ func TestCheckInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     &argoprojiov1alpha1.ListGenerator{},
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     &argoprojiov1alpha1.ListGenerator{},
+							Clusters: nil,
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      &argoprojiov1alpha1.GitGenerator{},
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      &argoprojiov1alpha1.GitGenerator{},
 						},
 					},
 				},
@@ -342,32 +336,24 @@ func TestCheckInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     &argoprojiov1alpha1.ListGenerator{},
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     &argoprojiov1alpha1.ListGenerator{},
+							Clusters: nil,
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      &argoprojiov1alpha1.GitGenerator{},
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      &argoprojiov1alpha1.GitGenerator{},
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 					},
 				},
@@ -425,25 +411,19 @@ func TestInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     &argoprojiov1alpha1.ListGenerator{},
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     &argoprojiov1alpha1.ListGenerator{},
+							Clusters: nil,
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: &argoprojiov1alpha1.ClusterGenerator{},
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      &argoprojiov1alpha1.GitGenerator{},
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      &argoprojiov1alpha1.GitGenerator{},
 						},
 					},
 				},
@@ -461,18 +441,14 @@ func TestInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 					},
 				},
@@ -490,25 +466,19 @@ func TestInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: &argoprojiov1alpha1.ClusterGenerator{},
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      &argoprojiov1alpha1.GitGenerator{},
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      &argoprojiov1alpha1.GitGenerator{},
 						},
 					},
 				},
@@ -538,32 +508,24 @@ func TestInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: &argoprojiov1alpha1.ClusterGenerator{},
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      &argoprojiov1alpha1.GitGenerator{},
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      &argoprojiov1alpha1.GitGenerator{},
 						},
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 					},
 				},
@@ -588,11 +550,9 @@ func TestInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 					},
 				},
@@ -616,11 +576,9 @@ func TestInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 					},
 				},
@@ -646,11 +604,9 @@ func TestInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 					},
 				},
@@ -677,11 +633,9 @@ func TestInvalidGenerators(t *testing.T) {
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 						{
-							ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-								List:     nil,
-								Clusters: nil,
-								Git:      nil,
-							},
+							List:     nil,
+							Clusters: nil,
+							Git:      nil,
 						},
 					},
 				},

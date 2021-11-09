@@ -130,9 +130,7 @@ func TestExtractApplications(t *testing.T) {
 
 			generatorMock := generatorMock{}
 			generator := argoprojiov1alpha1.ApplicationSetGenerator{
-				ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-					List: &argoprojiov1alpha1.ListGenerator{},
-				},
+				List: &argoprojiov1alpha1.ListGenerator{},
 			}
 
 			generatorMock.On("GenerateParams", &generator).
@@ -257,9 +255,7 @@ func TestMergeTemplateApplications(t *testing.T) {
 
 			generatorMock := generatorMock{}
 			generator := argoprojiov1alpha1.ApplicationSetGenerator{
-				ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-					List: &argoprojiov1alpha1.ListGenerator{},
-				},
+				List: &argoprojiov1alpha1.ListGenerator{},
 			}
 
 			generatorMock.On("GenerateParams", &generator).
@@ -1484,11 +1480,9 @@ func TestGetMinRequeueAfter(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(scheme).Build()
 
 	generator := argoprojiov1alpha1.ApplicationSetGenerator{
-		ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-			List:     &argoprojiov1alpha1.ListGenerator{},
-			Git:      &argoprojiov1alpha1.GitGenerator{},
-			Clusters: &argoprojiov1alpha1.ClusterGenerator{},
-		},
+		List:     &argoprojiov1alpha1.ListGenerator{},
+		Git:      &argoprojiov1alpha1.GitGenerator{},
+		Clusters: &argoprojiov1alpha1.ClusterGenerator{},
 	}
 
 	generatorMock0 := generatorMock{}
@@ -1764,14 +1758,12 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 		Spec: argoprojiov1alpha1.ApplicationSetSpec{
 			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 				{
-					ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-						List: &argoprojiov1alpha1.ListGenerator{
-							Elements: []apiextensionsv1.JSON{{
-								Raw: []byte(`{"cluster": "good-cluster","url": "https://good-cluster"}`),
-							}, {
-								Raw: []byte(`{"cluster": "bad-cluster","url": "https://bad-cluster"}`),
-							}},
-						},
+					List: &argoprojiov1alpha1.ListGenerator{
+						Elements: []apiextensionsv1.JSON{{
+							Raw: []byte(`{"cluster": "good-cluster","url": "https://good-cluster"}`),
+						}, {
+							Raw: []byte(`{"cluster": "bad-cluster","url": "https://bad-cluster"}`),
+						}},
 					},
 				},
 			},

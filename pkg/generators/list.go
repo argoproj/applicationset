@@ -31,7 +31,7 @@ func (g *ListGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appli
 		return nil, EmptyAppSetGeneratorError
 	}
 
-	if appSetGenerator.ApplicationSetTerminalGenerator == nil || appSetGenerator.ApplicationSetTerminalGenerator.List == nil {
+	if appSetGenerator.List == nil {
 		return nil, nil
 	}
 

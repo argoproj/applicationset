@@ -77,7 +77,7 @@ func (h *WebhookHandler) HandleEvent(payload interface{}) {
 	for _, appSet := range appSetList.Items {
 		for _, gen := range appSet.Spec.Generators {
 			// check if the ApplicationSet uses the git generator that is relevant to the payload
-			if gen.ApplicationSetTerminalGenerator != nil && gen.ApplicationSetTerminalGenerator.Git != nil && gitGeneratorUsesURL(gen.Git, revision, repoRegexp) && genRevisionHasChanged(gen.Git, revision, touchedHead) {
+			if gen.Git != nil && gitGeneratorUsesURL(gen.Git, revision, repoRegexp) && genRevisionHasChanged(gen.Git, revision, touchedHead) {
 				err := refreshApplicationSet(h.client, &appSet)
 				if err != nil {
 					log.Errorf("Failed to refresh ApplicationSet '%s' for controller reprocessing", appSet.Name)

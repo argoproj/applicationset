@@ -123,10 +123,8 @@ func fakeAppWithGitGenerator(name, namespace, repo string) *argoprojiov1alpha1.A
 		Spec: argoprojiov1alpha1.ApplicationSetSpec{
 			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
 				{
-					ApplicationSetTerminalGenerator: &argoprojiov1alpha1.ApplicationSetTerminalGenerator{
-						Git: &argoprojiov1alpha1.GitGenerator{
-							RepoURL: repo,
-						},
+					Git: &argoprojiov1alpha1.GitGenerator{
+						RepoURL: repo,
 					},
 				},
 			},

@@ -135,25 +135,6 @@ func isGeneratorValid(generator argoprojiov1alpha1.ApplicationSetGenerator) bool
 		if !field.CanInterface() {
 			continue
 		}
-		fieldName := v.Type().Field(i).Name
-		if fieldName == "ApplicationSetTerminalGenerator" {
-			if generator.ApplicationSetTerminalGenerator != nil && isTerminalGeneratorValid(generator.ApplicationSetTerminalGenerator) {
-				return true
-			}
-		} else if !reflect.ValueOf(field.Interface()).IsNil() {
-			return true
-		}
-	}
-	return false
-}
-
-func isTerminalGeneratorValid(generator *argoprojiov1alpha1.ApplicationSetTerminalGenerator) bool {
-	v := reflect.Indirect(reflect.ValueOf(generator))
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if !field.CanInterface() {
-			continue
-		}
 		if !reflect.ValueOf(field.Interface()).IsNil() {
 			return true
 		}

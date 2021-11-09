@@ -72,17 +72,27 @@ type ApplicationSetTemplateMeta struct {
 
 // ApplicationSetGenerator represents a generator at the top level of an ApplicationSet.
 type ApplicationSetGenerator struct {
-	*ApplicationSetTerminalGenerator `json:",inline"`
-	Matrix                           *MatrixGenerator `json:"matrix,omitempty"`
-	Merge                            *MergeGenerator  `json:"merge,omitempty"`
+	List                    *ListGenerator        `json:"list,omitempty"`
+	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
+	Git                     *GitGenerator         `json:"git,omitempty"`
+	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
+	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
+	Matrix                  *MatrixGenerator      `json:"matrix,omitempty"`
+	Merge                   *MergeGenerator       `json:"merge,omitempty"`
 }
 
 // ApplicationSetNestedGenerator represents a generator nested within a combination-type generator (MatrixGenerator or
 // MergeGenerator).
 type ApplicationSetNestedGenerator struct {
-	*ApplicationSetTerminalGenerator `json:",inline"`
-	Matrix                           *NestedMatrixGenerator `json:"matrix,omitempty"`
-	Merge                            *NestedMergeGenerator  `json:"merge,omitempty"`
+	List                    *ListGenerator         `json:"list,omitempty"`
+	Clusters                *ClusterGenerator      `json:"clusters,omitempty"`
+	Git                     *GitGenerator          `json:"git,omitempty"`
+	SCMProvider             *SCMProviderGenerator  `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator     `json:"clusterDecisionResource,omitempty"`
+	PullRequest             *PullRequestGenerator  `json:"pullRequest,omitempty"`
+	Matrix                  *NestedMatrixGenerator `json:"matrix,omitempty"`
+	Merge                   *NestedMergeGenerator  `json:"merge,omitempty"`
 }
 
 type ApplicationSetNestedGenerators []ApplicationSetNestedGenerator
@@ -109,14 +119,12 @@ func (g ApplicationSetTerminalGenerators) toApplicationSetNestedGenerators() []A
 	nestedGenerators := make([]ApplicationSetNestedGenerator, len(g))
 	for i, terminalGenerator := range g {
 		nestedGenerators[i] = ApplicationSetNestedGenerator{
-			ApplicationSetTerminalGenerator: &ApplicationSetTerminalGenerator{
-				List:                    terminalGenerator.List,
-				Clusters:                terminalGenerator.Clusters,
-				Git:                     terminalGenerator.Git,
-				SCMProvider:             terminalGenerator.SCMProvider,
-				ClusterDecisionResource: terminalGenerator.ClusterDecisionResource,
-				PullRequest:             terminalGenerator.PullRequest,
-			},
+			List:                    terminalGenerator.List,
+			Clusters:                terminalGenerator.Clusters,
+			Git:                     terminalGenerator.Git,
+			SCMProvider:             terminalGenerator.SCMProvider,
+			ClusterDecisionResource: terminalGenerator.ClusterDecisionResource,
+			PullRequest:             terminalGenerator.PullRequest,
 		}
 	}
 	return nestedGenerators

@@ -48,7 +48,7 @@ func (g *GitGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Applic
 		return nil, EmptyAppSetGeneratorError
 	}
 
-	if appSetGenerator.ApplicationSetTerminalGenerator == nil || appSetGenerator.ApplicationSetTerminalGenerator.Git == nil {
+	if appSetGenerator.Git == nil {
 		return nil, nil
 	}
 
