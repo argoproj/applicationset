@@ -123,7 +123,7 @@ func TestMatrixGenerate(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCaseCopy := testCase  // Since tests may run in parallel
+		testCaseCopy := testCase // Since tests may run in parallel
 
 		t.Run(testCaseCopy.name, func(t *testing.T) {
 			mock := &generatorMock{}
@@ -223,7 +223,7 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCaseCopy := testCase  // Since tests may run in parallel
+		testCaseCopy := testCase // Since tests may run in parallel
 
 		t.Run(testCaseCopy.name, func(t *testing.T) {
 			mock := &generatorMock{}

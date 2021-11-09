@@ -28,24 +28,6 @@ func NewMergeGenerator(supportedGenerators map[string]Generator) Generator {
 	return m
 }
 
-// keysArePresentAndValuesAreEqual returns true if each key is present in both maps and the respective values for each key are equal between the two maps
-func keysArePresentAndValuesAreEqual(keys []string, a map[string]string, b map[string]string) bool {
-	for _, key := range keys {
-		aValue, aPresent := a[key]
-		if !aPresent {
-			return false
-		}
-		bValue, bPresent := b[key]
-		if !bPresent {
-			return false
-		}
-		if aValue != bValue {
-			return false
-		}
-	}
-	return true
-}
-
 func (m *MergeGenerator) getParamSetsForAllGenerators(generators []argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([][]map[string]string, error) {
 	var paramSets [][]map[string]string
 	for _, generator := range generators {
@@ -57,19 +39,6 @@ func (m *MergeGenerator) getParamSetsForAllGenerators(generators []argoprojiov1a
 		paramSets = append(paramSets, generatorParamSets)
 	}
 	return paramSets, nil
-}
-
-// tryMergeParamSets merges `a` and `b` if and only if all merge keys are present in both maps and their respective values are equal.
-// If the maps aren't merged, returns `a` unchanged.
-func tryMergeParamSets(mergeKeys []string, a map[string]string, b map[string]string) (params map[string]string, wasMerged bool, err error) {
-	if !keysArePresentAndValuesAreEqual(mergeKeys, a, b) {
-		return a, false, nil
-	}
-	merged, err := utils.CombineStringMapsAllowDuplicates(a, b)
-	if err != nil {
-		return a, false, err
-	}
-	return merged, true, nil
 }
 
 func (m *MergeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
@@ -87,6 +56,9 @@ func (m *MergeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appl
 	}
 
 	baseParamSetsByMergeKey, err := getParamSetsByMergeKey(appSetGenerator.Merge.MergeKeys, paramSetsFromGenerators[0])
+	if err != nil {
+		return nil, err
+	}
 
 	for _, paramSets := range paramSetsFromGenerators[1:] {
 		paramSetsByMergeKey, err := getParamSetsByMergeKey(appSetGenerator.Merge.MergeKeys, paramSets)
