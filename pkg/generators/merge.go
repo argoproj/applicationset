@@ -194,18 +194,18 @@ func (m *MergeGenerator) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.App
 				Git:      r.Git,
 			}
 		}
-			base := &argoprojiov1alpha1.ApplicationSetGenerator{
-				ApplicationSetTerminalGenerator: terminalGenerator,
-			}
-			generators := GetRelevantGenerators(base, m.supportedGenerators)
+		base := &argoprojiov1alpha1.ApplicationSetGenerator{
+			ApplicationSetTerminalGenerator: terminalGenerator,
+		}
+		generators := GetRelevantGenerators(base, m.supportedGenerators)
 
-			for _, g := range generators {
-				temp := g.GetRequeueAfter(base)
-				if temp < res && temp != NoRequeueAfter {
-					found = true
-					res = temp
-				}
+		for _, g := range generators {
+			temp := g.GetRequeueAfter(base)
+			if temp < res && temp != NoRequeueAfter {
+				found = true
+				res = temp
 			}
+		}
 	}
 
 	if found {

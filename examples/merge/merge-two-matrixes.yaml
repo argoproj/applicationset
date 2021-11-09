@@ -27,7 +27,7 @@ spec:
                   values.replicaCount: '1'
   template:
     metadata:
-      name: '{{name}}-guestbook'
+      name: '{{name}}-guestbook-{{environment}}'
     spec:
       project: default
       source:
