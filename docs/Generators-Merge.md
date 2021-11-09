@@ -136,7 +136,7 @@ When merged with the updated base parameters, the `values.redis` value for the p
     generators:
       - merge:
           generators:
-            - merge:
+            - merge:  # This third level is invalid.
                 generators:
                   - list:
                       elements:

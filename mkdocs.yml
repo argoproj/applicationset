@@ -32,6 +32,7 @@ nav:
     - Generators-Cluster.md
     - Generators-Git.md
     - Generators-Matrix.md
+    - Generators-Merge.md
     - Generators-SCM-Provider.md
     - Generators-Cluster-Decision-Resource.md
     - Generators-Pull-Request.md
