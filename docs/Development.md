@@ -9,7 +9,7 @@ The following assumes you have:
     - For example, by creating a repository "(your username)/argocd-applicationset" using [Docker Hub](https://hub.docker.com/) or [Red Hat Quay.io](https://quay.io/).
 3. Ran `docker login` from the CLI, and provided your registry credentials.
 4. Deployed ArgoCD into the `argocd` namespace.
-    - To install Argo CD, follow the [Argo CD Getting Started](https://argoproj.github.io/argo-cd/getting_started/) guide.
+    - To install Argo CD, follow the [Argo CD Getting Started](https://argo-cd.readthedocs.io/en/stable/getting_started/) guide.
 
 To build and push a container with your current code, and deploy Kubernetes manifests for the controller Deployment:
 
@@ -30,9 +30,9 @@ When iteratively developing a Kubernetes controller, it is often easier to run t
 
 1. First, setup a local Argo CD development environment:
     - Clone the Argo CD source, and setup an Argo CD dev environment:
-        - [Setting up your development environment](https://argoproj.github.io/argo-cd/developer-guide/contributing/#setting-up-your-development-environment)
-        - [Install the must-have requirements](https://argoproj.github.io/argo-cd/developer-guide/contributing/#install-the-must-have-requirements)
-        - [Build your code and run unit tests](https://argoproj.github.io/argo-cd/developer-guide/contributing/#build-your-code-and-run-unit-tests)
+        - [Setting up your development environment](https://argo-cd.readthedocs.io/en/stable/developer-guide/contributing/#setting-up-your-development-environment)
+        - [Install the must-have requirements](https://argo-cd.readthedocs.io/en/stable/developer-guide/contributing/#install-the-must-have-requirements)
+        - [Build your code and run unit tests](https://argo-cd.readthedocs.io/en/stable/developer-guide/contributing/#build-your-code-and-run-unit-tests)
  
 2. Ensure that port 8081 is exposed in the Argo CD test server container:
     - In the `Makefile` file at the root of the Argo CD repo:

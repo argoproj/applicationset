@@ -1,6 +1,6 @@
 # Cluster Generator
 
-In Argo CD, managed clusters [are stored within Secrets](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) in the Argo CD namespace. The ApplicationSet controller uses those same Secrets to generate parameters to identify and target available clusters.
+In Argo CD, managed clusters [are stored within Secrets](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters) in the Argo CD namespace. The ApplicationSet controller uses those same Secrets to generate parameters to identify and target available clusters.
 
 For each cluster registered with Argo CD, the Cluster generator produces parameters based on the list of items found within the cluster secret. 
 
@@ -11,7 +11,7 @@ It automatically provides the following parameter values to the Application temp
 - `metadata.labels.<key>` *(for each label in the Secret)*
 - `metadata.annotations.<key>` *(for each annotation in the Secret)*
 
-Within [Argo CD cluster Secrets](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) are data fields describing the cluster:
+Within [Argo CD cluster Secrets](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters) are data fields describing the cluster:
 ```yaml
 kind: Secret
 data:
@@ -85,7 +85,7 @@ The cluster selector also supports set-based requirements, as used by [several c
 
 ### Deploying to the local cluster
 
-In Argo CD, the 'local cluster' is the cluster upon which Argo CD (and the ApplicationSet controller) is installed. This is to distinguish it from 'remote clusters', which are those that are added to Argo CD [declaratively](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters) or via the [Argo CD CLI](https://argoproj.github.io/argo-cd/getting_started/#5-register-a-cluster-to-deploy-apps-to-optional).
+In Argo CD, the 'local cluster' is the cluster upon which Argo CD (and the ApplicationSet controller) is installed. This is to distinguish it from 'remote clusters', which are those that are added to Argo CD [declaratively](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters) or via the [Argo CD CLI](https://argo-cd.readthedocs.io/en/stable/getting_started/#5-register-a-cluster-to-deploy-apps-to-optional).
  
 The cluster generator will automatically target both local and non-local clusters, for every cluster that matches the cluster selector.
 
@@ -109,7 +109,7 @@ However, if you do wish to target both local and non-local clusters, while also 
 4. Leave all other fields unchanged.
 5. Click *Save*.
 
-These steps might seem counterintuitive, but the act of changing one of the default values for the local cluster causes the Argo CD Web UI to create a new secret for this cluster. In the Argo CD namespace, you should now see a Secret resource named `cluster-(cluster suffix)` with label `argocd.argoproj.io/secret-type": "cluster"`. You may also create a local [cluster secret declaratively](https://argoproj.github.io/argo-cd/operator-manual/declarative-setup/#clusters), or with the CLI using `argocd cluster add "(context name)" --in-cluster`, rather than through the Web UI.
+These steps might seem counterintuitive, but the act of changing one of the default values for the local cluster causes the Argo CD Web UI to create a new secret for this cluster. In the Argo CD namespace, you should now see a Secret resource named `cluster-(cluster suffix)` with label `argocd.argoproj.io/secret-type": "cluster"`. You may also create a local [cluster secret declaratively](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters), or with the CLI using `argocd cluster add "(context name)" --in-cluster`, rather than through the Web UI.
 
 ### Pass additional key-value pairs via `values` field
 

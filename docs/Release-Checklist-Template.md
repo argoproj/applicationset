@@ -66,7 +66,7 @@ Once complete, this is a set of checks to perform once you have a commit, tags, 
 - [ ] Ensure that the Getting Start page at rtd.io includes references to `kubectl apply` which points to the correct applicationset controller version
     - On [Stable](https://argocd-applicationset.readthedocs.io/en/stable/Getting-Started/)
     - On the version-specific page: `https://argocd-applicationset.readthedocs.io/en/(version)/Getting-Started/`
-        - Example: `https://argocd-applicationset.readthedocs.io/en/v0.1.0/Getting-Started/`
+        - Example: `https://argocd-applicationset.readthedocs.io/en/v0.2.0/Getting-Started/`
 
 ## Changelog and release notes
 
