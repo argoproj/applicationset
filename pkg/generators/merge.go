@@ -107,7 +107,7 @@ func getParamSetsByMergeKey(mergeKeys []string, paramSets []map[string]string) (
 	paramSetsByMergeKey := make(map[string]map[string]string, len(paramSets))
 	for _, paramSet := range paramSets {
 		paramSetKey := make(map[string]string)
-		for mergeKey, _ := range deDuplicatedMergeKeys {
+		for mergeKey := range deDuplicatedMergeKeys {
 			paramSetKey[mergeKey] = paramSet[mergeKey]
 		}
 		paramSetKeyJson, err := json.Marshal(paramSetKey)
