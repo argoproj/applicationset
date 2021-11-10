@@ -50,7 +50,7 @@ func TestNoGeneratorNilReferenceError(t *testing.T) {
 		t.Run(fmt.Sprintf("%s does not throw a nil reference error when all generator fields are nil", generatorName), func(t *testing.T) {
 			params, err := generator.GenerateParams(&v1alpha1.ApplicationSetGenerator{}, &v1alpha1.ApplicationSet{})
 
-			assert.NoError(t, err)
+			assert.ErrorIs(t, err, EmptyAppSetGeneratorError)
 			assert.Nil(t, params)
 		})
 	}

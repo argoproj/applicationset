@@ -66,7 +66,7 @@ func (g *ClusterGenerator) GenerateParams(
 	}
 
 	if appSetGenerator.Clusters == nil {
-		return nil, nil
+		return nil, EmptyAppSetGeneratorError
 	}
 
 	// Do not include the local cluster in the cluster parameters IF there is a non-empty selector

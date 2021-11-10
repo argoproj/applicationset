@@ -32,7 +32,7 @@ func (g *ListGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appli
 	}
 
 	if appSetGenerator.List == nil {
-		return nil, nil
+		return nil, EmptyAppSetGeneratorError
 	}
 
 	res := make([]map[string]string, len(appSetGenerator.List.Elements))
