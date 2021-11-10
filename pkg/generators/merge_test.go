@@ -150,6 +150,8 @@ func TestMergeGenerate(t *testing.T) {
 		testCaseCopy := testCase // since tests may run in parallel
 
 		t.Run(testCaseCopy.name, func(t *testing.T) {
+			t.Parallel()
+
 			appSet := &argoprojiov1alpha1.ApplicationSet{}
 
 			var mergeGenerator = NewMergeGenerator(
@@ -294,6 +296,8 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 		testCaseCopy := testCase // since tests may run in parallel
 
 		t.Run(testCaseCopy.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := getParamSetsByMergeKey(testCaseCopy.mergeKeys, testCaseCopy.paramSets)
 
 			if testCaseCopy.expectedErr != nil {

@@ -48,6 +48,8 @@ func TestNoGeneratorNilReferenceError(t *testing.T) {
 
 		generatorName := reflect.TypeOf(testCaseCopy).Elem().Name()
 		t.Run(fmt.Sprintf("%s does not throw a nil reference error when all generator fields are nil", generatorName), func(t *testing.T) {
+			t.Parallel()
+
 			params, err := generator.GenerateParams(&v1alpha1.ApplicationSetGenerator{}, &v1alpha1.ApplicationSet{})
 
 			assert.ErrorIs(t, err, EmptyAppSetGeneratorError)

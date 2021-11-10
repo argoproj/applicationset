@@ -25,30 +25,32 @@ func TestCombineStringMaps(t *testing.T) {
 		{
 			name:        "fails if keys are the same but value isn't",
 			left:        map[string]string{"foo": "bar", "a": "fail"},
-			right:       map[string]string{"a": "b", "c": "d"},
+			right:       map[string]string{"a": "b", "testCase": "d"},
 			expected:    map[string]string{"a": "b", "foo": "bar"},
 			expectedErr: errors.New("found duplicate key a with different value, a: fail ,b: b"),
 		},
 		{
 			name:        "pass if keys & values are the same",
 			left:        map[string]string{"foo": "bar", "a": "b"},
-			right:       map[string]string{"a": "b", "c": "d"},
-			expected:    map[string]string{"a": "b", "c": "d", "foo": "bar"},
+			right:       map[string]string{"a": "b", "testCase": "d"},
+			expected:    map[string]string{"a": "b", "testCase": "d", "foo": "bar"},
 			expectedErr: nil,
 		},
 	}
 
-	for _, c := range testCases {
-		cc := c
-		t.Run(cc.name, func(t *testing.T) {
+	for _, testCase := range testCases {
+		testCaseCopy := testCase
 
-			got, err := CombineStringMaps(cc.left, cc.right)
+		t.Run(testCaseCopy.name, func(t *testing.T) {
+			t.Parallel()
 
-			if cc.expectedErr != nil {
-				assert.EqualError(t, err, cc.expectedErr.Error())
+			got, err := CombineStringMaps(testCaseCopy.left, testCaseCopy.right)
+
+			if testCaseCopy.expectedErr != nil {
+				assert.EqualError(t, err, testCaseCopy.expectedErr.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, cc.expected, got)
+				assert.Equal(t, testCaseCopy.expected, got)
 			}
 
 		})
