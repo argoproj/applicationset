@@ -20,7 +20,7 @@ jobs:
         comment: false
 
   lint-docs:
-    name: Make sure docs linting passes
+    name: Ensure docs are linted
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
