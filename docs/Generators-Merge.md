@@ -18,7 +18,7 @@ metadata:
   name: cluster-git
 spec:
   generators:
-    # matrix 'parent' generator
+    # merge 'parent' generator
     - merge:
         mergeKeys:
           - server
