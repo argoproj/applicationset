@@ -149,7 +149,7 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 
 			argoCDServiceMock := argoCDServiceMock{mock: &mock.Mock{}}
 
-			argoCDServiceMock.mock.On("GetDirectories", mock.Anything, mock.Anything, mock.Anything).Return(testCase.repoApps, testCase.repoError)
+			argoCDServiceMock.mock.On("GetDirectories", mock.Anything, mock.Anything, mock.Anything).Return(testCaseCopy.repoApps, testCaseCopy.repoError)
 
 			var gitGenerator = NewGitGenerator(argoCDServiceMock)
 			applicationSetInfo := argoprojiov1alpha1.ApplicationSet{
@@ -161,7 +161,7 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 						Git: &argoprojiov1alpha1.GitGenerator{
 							RepoURL:     "RepoURL",
 							Revision:    "Revision",
-							Directories: testCase.directories,
+							Directories: testCaseCopy.directories,
 						},
 					}},
 				},
@@ -169,11 +169,11 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 
 			got, err := gitGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0], nil)
 
-			if testCase.expectedError != nil {
-				assert.EqualError(t, err, testCase.expectedError.Error())
+			if testCaseCopy.expectedError != nil {
+				assert.EqualError(t, err, testCaseCopy.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, testCase.expected, got)
+				assert.Equal(t, testCaseCopy.expected, got)
 			}
 
 			argoCDServiceMock.mock.AssertExpectations(t)
@@ -398,7 +398,7 @@ cluster:
 
 			argoCDServiceMock := argoCDServiceMock{mock: &mock.Mock{}}
 			argoCDServiceMock.mock.On("GetFiles", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-				Return(testCase.repoFileContents, testCase.repoPathsError)
+				Return(testCaseCopy.repoFileContents, testCaseCopy.repoPathsError)
 
 			var gitGenerator = NewGitGenerator(argoCDServiceMock)
 			applicationSetInfo := argoprojiov1alpha1.ApplicationSet{
@@ -410,7 +410,7 @@ cluster:
 						Git: &argoprojiov1alpha1.GitGenerator{
 							RepoURL:  "RepoURL",
 							Revision: "Revision",
-							Files:    testCase.files,
+							Files:    testCaseCopy.files,
 						},
 					}},
 				},
@@ -419,11 +419,11 @@ cluster:
 			got, err := gitGenerator.GenerateParams(&applicationSetInfo.Spec.Generators[0], nil)
 			fmt.Println(got, err)
 
-			if testCase.expectedError != nil {
-				assert.EqualError(t, err, testCase.expectedError.Error())
+			if testCaseCopy.expectedError != nil {
+				assert.EqualError(t, err, testCaseCopy.expectedError.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.ElementsMatch(t, testCase.expected, got)
+				assert.ElementsMatch(t, testCaseCopy.expected, got)
 			}
 
 			argoCDServiceMock.mock.AssertExpectations(t)
