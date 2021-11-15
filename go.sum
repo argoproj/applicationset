@@ -94,8 +94,8 @@ github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYU
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
 github.com/apache/thrift v0.13.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
-github.com/argoproj/argo-cd/v2 v2.0.0-20211108174900-a3517d594ba9 h1:n2EvkcNkoBoSphBk3KA+v8sEUL0XIVso4h+QkAuTKcU=
-github.com/argoproj/argo-cd/v2 v2.0.0-20211108174900-a3517d594ba9/go.mod h1:WQqRr6PykO7CL/5mAyiVD6MgUbrFHd/fq9TKCWJ5TPE=
+github.com/argoproj/argo-cd/v2 v2.2.0-rc1 h1:Z/MRCgtPj25r0A70mZsd5mtzvsjsIYqSi3yIXWjITzY=
+github.com/argoproj/argo-cd/v2 v2.2.0-rc1/go.mod h1:WQqRr6PykO7CL/5mAyiVD6MgUbrFHd/fq9TKCWJ5TPE=
 github.com/argoproj/gitops-engine v0.4.1-0.20211103220110-c7bab2eeca22 h1:2i8r5XiuBDf7uYP4R5ZuSNsPebPw15g/LePNIX7YYi8=
 github.com/argoproj/gitops-engine v0.4.1-0.20211103220110-c7bab2eeca22/go.mod h1:K2RYpGXh11VdFwDksS23SyFTOJaPcsF+MVJ/FHlqEOE=
 github.com/argoproj/pkg v0.9.1 h1:osfOS3QkzfRf+W43lbCZb0o0bzrBweQhL+U3rgEg+5M=

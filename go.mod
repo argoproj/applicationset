@@ -3,7 +3,7 @@ module github.com/argoproj-labs/applicationset
 go 1.16
 
 require (
-	github.com/argoproj/argo-cd/v2 v2.0.0-20211108174900-a3517d594ba9
+	github.com/argoproj/argo-cd/v2 v2.2.0-rc1
 	github.com/argoproj/gitops-engine v0.4.1-0.20211103220110-c7bab2eeca22
 	github.com/argoproj/pkg v0.9.1
 	github.com/go-logr/logr v0.4.0
