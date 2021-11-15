@@ -49,6 +49,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Setup Golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.16.4'
       - name: Regenerate the manifests, git diff should report no changes.
         run: |
           make manifests
@@ -238,13 +242,13 @@ jobs:
           count=1
           until curl -f http://127.0.0.1:8088/healthz; do
             sleep 10;
-            if test $count -ge 60; then
+            if test $count -ge 180; then
               echo "Timeout"
               exit 1
             fi
             count=$((count+1))
           done
-      - name: Checkout latest applicationsets code
+      - name: Checkout latest applicationset code
         uses: actions/checkout@v2
         with:
           path: applicationsets
