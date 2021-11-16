@@ -97,9 +97,8 @@ func main() {
 
 	json := strings.ToLower(logFormat) == JsonFormat
 
-	ctrl.SetLogger(zap.New(zap.UseDevMode(!json)))
-
 	if json {
+		ctrl.SetLogger(zap.New(zap.UseDevMode(!json)))
 		log.SetFormatter(&log.JSONFormatter{})
 	}
 
