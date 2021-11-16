@@ -224,7 +224,7 @@ As with other generators, clusters *must* already be defined within Argo CD, in 
 In addition to the flattened key/value pairs from the configuration file, the following generator parameters are provided:
 
 - `{{path}}`: The path to the folder containing matching configuration file within the Git repository. Example: `/clusters/clusterA`, if the config file was `/clusters/clusterA/config.json`
-- `{{ path.basename }}`: basename of path to the folder containing the configuration file (eg clusterA)
+- `{{path.basename}}`: basename of path to the folder containing the configuration file (eg clusterA)
 
 ## Webhook Configuration
 
