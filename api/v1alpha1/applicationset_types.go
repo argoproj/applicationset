@@ -311,7 +311,7 @@ func init() {
 
 // RefreshRequired checks if the ApplicationSet needs to be refreshed
 func (a *ApplicationSet) RefreshRequired() bool {
-	_, found := a.Annotations[common.AnnotationGitGeneratorRefresh]
+	_, found := a.Annotations[common.AnnotationApplicationSetRefresh]
 	return found
 }
 
