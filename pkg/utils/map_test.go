@@ -25,15 +25,15 @@ func TestCombineStringMaps(t *testing.T) {
 		{
 			name:        "fails if keys are the same but value isn't",
 			left:        map[string]string{"foo": "bar", "a": "fail"},
-			right:       map[string]string{"a": "b", "testCase": "d"},
+			right:       map[string]string{"a": "b", "c": "d"},
 			expected:    map[string]string{"a": "b", "foo": "bar"},
 			expectedErr: errors.New("found duplicate key a with different value, a: fail ,b: b"),
 		},
 		{
 			name:        "pass if keys & values are the same",
 			left:        map[string]string{"foo": "bar", "a": "b"},
-			right:       map[string]string{"a": "b", "testCase": "d"},
-			expected:    map[string]string{"a": "b", "testCase": "d", "foo": "bar"},
+			right:       map[string]string{"a": "b", "c": "d"},
+			expected:    map[string]string{"a": "b", "c": "d", "foo": "bar"},
 			expectedErr: nil,
 		},
 	}
