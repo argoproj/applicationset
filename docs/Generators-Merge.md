@@ -1,6 +1,6 @@
 # Merge Generator
 
-The merge generator combines parameters produced by the base (first) generator with matching parameter sets produced by other generators. A _matching_ parameter set has the same values for the configured _merge keys_. _Non-matching_ parameter sets are discarded. Override precedence is bottom-to-top. The values from a matching parameter set produced by generator 3 will take precedence over the values from the corresponding parameter set produced by generator 2.
+The merge generator combines parameters produced by the base (first) generator with matching parameter sets produced by subsequent generators. A _matching_ parameter set has the same values for the configured _merge keys_. _Non-matching_ parameter sets are discarded. Override precedence is bottom-to-top. The values from a matching parameter set produced by generator 3 will take precedence over the values from the corresponding parameter set produced by generator 2.
 
 Using a merge generator is appropriate when a subset of parameter sets require overriding.
 
