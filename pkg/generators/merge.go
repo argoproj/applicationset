@@ -116,7 +116,7 @@ func getParamSetsByMergeKey(mergeKeys []string, paramSets []map[string]string) (
 		}
 		paramSetKeyString := string(paramSetKeyJson)
 		if _, exists := paramSetsByMergeKey[paramSetKeyString]; exists {
-			return nil, NonUniqueParamSets
+			return nil, fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, paramSetKeyString)
 		}
 		paramSetsByMergeKey[paramSetKeyString] = paramSet
 	}

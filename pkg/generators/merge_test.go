@@ -2,6 +2,7 @@ package generators
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
@@ -225,7 +226,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 			name:        "simple key, non-unique paramSets",
 			mergeKeys:   []string{"key"},
 			paramSets:   []map[string]string{{"key": "a"}, {"key": "b"}, {"key": "b"}},
-			expectedErr: NonUniqueParamSets,
+			expectedErr: fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, `{"key":"b"}`),
 		},
 		{
 			name:      "simple key, duplicated key name, unique paramSets",
@@ -240,7 +241,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 			name:        "simple key, duplicated key name, non-unique paramSets",
 			mergeKeys:   []string{"key", "key"},
 			paramSets:   []map[string]string{{"key": "a"}, {"key": "b"}, {"key": "b"}},
-			expectedErr: NonUniqueParamSets,
+			expectedErr: fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, `{"key":"b"}`),
 		},
 		{
 			name:      "compound key, unique paramSets",
@@ -278,7 +279,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 				{"key1": "a", "key2": "a"},
 				{"key1": "b", "key2": "a"},
 			},
-			expectedErr: NonUniqueParamSets,
+			expectedErr: fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, `{"key1":"a","key2":"a"}`),
 		},
 		{
 			name:      "compound key, duplicate key names, non-unique paramSets",
@@ -288,7 +289,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 				{"key1": "a", "key2": "a"},
 				{"key1": "b", "key2": "a"},
 			},
-			expectedErr: NonUniqueParamSets,
+			expectedErr: fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, `{"key1":"a","key2":"a"}`),
 		},
 	}
 
