@@ -255,6 +255,9 @@ spec:
                                                 type: string
                                             type: object
                                           type: array
+                                        passCredentials:
+                                          description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                          type: boolean
                                         releaseName:
                                           description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                           type: string
@@ -632,6 +635,9 @@ spec:
                                                 type: string
                                             type: object
                                           type: array
+                                        passCredentials:
+                                          description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                          type: boolean
                                         releaseName:
                                           description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                           type: string
@@ -1003,6 +1009,9 @@ spec:
                                                 type: string
                                             type: object
                                           type: array
+                                        passCredentials:
+                                          description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                          type: boolean
                                         releaseName:
                                           description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                           type: string
@@ -1350,6 +1359,9 @@ spec:
                                                 type: string
                                             type: object
                                           type: array
+                                        passCredentials:
+                                          description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                          type: boolean
                                         releaseName:
                                           description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                           type: string
@@ -1737,6 +1749,9 @@ spec:
                                                           type: string
                                                       type: object
                                                     type: array
+                                                  passCredentials:
+                                                    description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                                    type: boolean
                                                   releaseName:
                                                     description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                                     type: string
@@ -2114,6 +2129,9 @@ spec:
                                                           type: string
                                                       type: object
                                                     type: array
+                                                  passCredentials:
+                                                    description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                                    type: boolean
                                                   releaseName:
                                                     description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                                     type: string
@@ -2485,6 +2503,9 @@ spec:
                                                           type: string
                                                       type: object
                                                     type: array
+                                                  passCredentials:
+                                                    description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                                    type: boolean
                                                   releaseName:
                                                     description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                                     type: string
@@ -2832,6 +2853,9 @@ spec:
                                                           type: string
                                                       type: object
                                                     type: array
+                                                  passCredentials:
+                                                    description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                                    type: boolean
                                                   releaseName:
                                                     description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                                     type: string
@@ -3210,6 +3234,9 @@ spec:
                                                           type: string
                                                       type: object
                                                     type: array
+                                                  passCredentials:
+                                                    description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                                    type: boolean
                                                   releaseName:
                                                     description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                                     type: string
@@ -3633,6 +3660,9 @@ spec:
                                                           type: string
                                                       type: object
                                                     type: array
+                                                  passCredentials:
+                                                    description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                                    type: boolean
                                                   releaseName:
                                                     description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                                     type: string
@@ -3972,6 +4002,9 @@ spec:
                                                 type: string
                                             type: object
                                           type: array
+                                        passCredentials:
+                                          description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                          type: boolean
                                         releaseName:
                                           description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                           type: string
@@ -4350,6 +4383,9 @@ spec:
                                                 type: string
                                             type: object
                                           type: array
+                                        passCredentials:
+                                          description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                          type: boolean
                                         releaseName:
                                           description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                           type: string
@@ -4773,6 +4809,9 @@ spec:
                                                 type: string
                                             type: object
                                           type: array
+                                        passCredentials:
+                                          description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                          type: boolean
                                         releaseName:
                                           description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                           type: string
@@ -5119,6 +5158,9 @@ spec:
                                       type: string
                                   type: object
                                 type: array
+                              passCredentials:
+                                description: PassCredentials pass credentials to all domains (Helm's --pass-credentials)
+                                type: boolean
                               releaseName:
                                 description: ReleaseName is the Helm release name to use. If omitted it will use the application name
                                 type: string
@@ -5285,6 +5327,35 @@ spec:
             type: object
           status:
             description: ApplicationSetStatus defines the observed state of ApplicationSet
+            properties:
+              conditions:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state of cluster Important: Run "make" to regenerate code after modifying this file'
+                items:
+                  description: ApplicationSetCondition contains details about an applicationset condition, which is usally an error or warning
+                  properties:
+                    lastTransitionTime:
+                      description: LastTransitionTime is the time the condition was last observed
+                      format: date-time
+                      type: string
+                    message:
+                      description: Message contains human-readable message indicating details about condition
+                      type: string
+                    reason:
+                      description: Single word camelcase representing the reason for the status eg ErrorOccurred
+                      type: string
+                    status:
+                      description: True/False/Unknown
+                      type: string
+                    type:
+                      description: Type is an applicationset condition type
+                      type: string
+                  required:
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
             type: object
         required:
         - metadata
@@ -5292,6 +5363,8 @@ spec:
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

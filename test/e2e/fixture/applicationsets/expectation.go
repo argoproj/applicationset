@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/gitops-engine/pkg/diff"
@@ -82,6 +83,28 @@ func ApplicationsExist(expectedApps []argov1alpha1.Application) Expectation {
 	}
 }
 
+// ApplicationSetHasConditions checks whether each of the 'expectedConditions' exist in the ApplicationSet status, and are
+// equivalent to provided values.
+func ApplicationSetHasConditions(applicationSetName string, expectedConditions []v1alpha1.ApplicationSetCondition) Expectation {
+	return func(c *Consequences) (state, string) {
+
+		// retrieve the application set
+		foundApplicationSet := c.applicationSet(applicationSetName)
+		if foundApplicationSet == nil {
+			return pending, fmt.Sprintf("application set '%s' not found", applicationSetName)
+		}
+
+		if !conditionsAreEqual(&expectedConditions, &foundApplicationSet.Status.Conditions) {
+			diff, err := getConditionDiff(expectedConditions, foundApplicationSet.Status.Conditions)
+			if err != nil {
+				return failed, err.Error()
+			}
+			return pending, fmt.Sprintf("application set conditions are not equal: '%s', diff: %s\n", expectedConditions, diff)
+		}
+		return succeeded, "application set successfully found"
+	}
+}
+
 // ApplicationsDoNotExist checks that each of the 'expectedApps' no longer exist in the namespace
 func ApplicationsDoNotExist(expectedApps []argov1alpha1.Application) Expectation {
 	return func(c *Consequences) (state, string) {
@@ -132,6 +155,22 @@ func getDiff(orig, new argov1alpha1.Application) (string, error) {
 
 }
 
+// getConditionDiff returns a string containing a comparison result of two ApplicationSetCondition (for test output/debug purposes)
+func getConditionDiff(orig, new []v1alpha1.ApplicationSetCondition) (string, error) {
+	var bytes []byte
+
+	for index, _ := range orig {
+		b, _, err := diff.CreateTwoWayMergePatch(orig[index], new[index], orig[index])
+		if err != nil {
+			return "", err
+		}
+		bytes = append(bytes, b...)
+	}
+
+	return string(bytes), nil
+
+}
+
 // filterFields returns a copy of Application, but with unnecessary (for testing) fields removed
 func filterFields(input argov1alpha1.Application) argov1alpha1.Application {
 
@@ -165,7 +204,29 @@ func filterFields(input argov1alpha1.Application) argov1alpha1.Application {
 	return output
 }
 
+// filterConditionFields returns a copy of ApplicationSetCondition, but with unnecessary (for testing) fields removed
+func filterConditionFields(input *[]v1alpha1.ApplicationSetCondition) *[]v1alpha1.ApplicationSetCondition {
+
+	var filteredConditions []v1alpha1.ApplicationSetCondition
+	for _, condition := range *input {
+		newCondition := &v1alpha1.ApplicationSetCondition{
+			Type:    condition.Type,
+			Status:  condition.Status,
+			Message: condition.Message,
+			Reason:  condition.Reason,
+		}
+		filteredConditions = append(filteredConditions, *newCondition)
+	}
+
+	return &filteredConditions
+}
+
 // appsAreEqual returns true if the apps are equal, comparing only fields of interest
 func appsAreEqual(one argov1alpha1.Application, two argov1alpha1.Application) bool {
 	return reflect.DeepEqual(filterFields(one), filterFields(two))
+}
+
+// conditionsAreEqual returns true if the appset status conditions are equal, comparing only fields of interest
+func conditionsAreEqual(one, two *[]v1alpha1.ApplicationSetCondition) bool {
+	return reflect.DeepEqual(filterConditionFields(one), filterConditionFields(two))
 }

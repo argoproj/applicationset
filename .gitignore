@@ -24,3 +24,6 @@ vendor
 *.swo
 *~
 dist/
+
+# mkdocs site
+site/

@@ -42,6 +42,7 @@ spec:
         # Labels is used to filter the PRs that you want to target. (optional)
         labels:
         - preview
+  requeueAfterSeconds: 1800
   template:
   # ...
 ```
@@ -86,3 +87,25 @@ spec:
 * `number`: The ID number of the pull request.
 * `branch`: The name of the branch of the pull request head.
 * `head_sha`: This is the SHA of the head of the pull request.
+
+## Webhook Configuration
+
+When using a Pull Request generator, ApplicationSet polls every requeueAfterSeconds(default: 30 minutes) interval to detect changes. To eliminate this delay from polling, the ApplicationSet webhook server can be configured to receive webhook events. ApplicationSet supports PullRequest webhook notifications from GitHub.
+
+The configuration is almost the same as the one described in the Git Generator, but there is one difference if you want to use the Pull Request Generator as well, so if you want to use it, additionally configure the following settings.
+
+In section 1, add an event so that a webhook request will be sent when a pull request is created, closed, or label changed.
+Select `Let me select individual events.` and enable the checkbox for `Pull requests`.
+
+![Add Webhook](./assets/webhook-config-pull-request.png "Add Webhook Pull Request")
+
+The Pull Request Generator will requeue when the next action occurs.
+
+- `opened`
+- `closed`
+- `reopened`
+- `labeled`
+- `unlabeled`
+- `synchronized`
+
+For more information about each event, please refer to the official documentation at github.com.

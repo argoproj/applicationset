@@ -12,7 +12,7 @@ import (
 
 var tenSec = int64(10)
 
-func TestSimpleClusterResourceListGenerator(t *testing.T) {
+func TestSimpleClusterDecisionResourceGenerator(t *testing.T) {
 
 	expectedApp := argov1alpha1.Application{
 		TypeMeta: metav1.TypeMeta{
@@ -52,6 +52,7 @@ func TestSimpleClusterResourceListGenerator(t *testing.T) {
 		// Create a ClusterGenerator-based ApplicationSet
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
+		CreatePlacementRoleAndRoleBinding().
 		CreatePlacementDecisionConfigMap("my-configmap").
 		CreatePlacementDecision("my-placementdecision").
 		StatusUpdatePlacementDecision("my-placementdecision", clusterList).
@@ -113,7 +114,7 @@ func TestSimpleClusterResourceListGenerator(t *testing.T) {
 		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{*expectedAppNewNamespace}))
 }
 
-func TestSimpleClusterResourceListGeneratorAddingCluster(t *testing.T) {
+func TestSimpleClusterDecisionResourceGeneratorAddingCluster(t *testing.T) {
 
 	expectedAppTemplate := argov1alpha1.Application{
 		TypeMeta: metav1.TypeMeta{
@@ -162,6 +163,7 @@ func TestSimpleClusterResourceListGeneratorAddingCluster(t *testing.T) {
 		// Create a ClusterGenerator-based ApplicationSet
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
+		CreatePlacementRoleAndRoleBinding().
 		CreatePlacementDecisionConfigMap("my-configmap").
 		CreatePlacementDecision("my-placementdecision").
 		StatusUpdatePlacementDecision("my-placementdecision", clusterList).
@@ -207,7 +209,7 @@ func TestSimpleClusterResourceListGeneratorAddingCluster(t *testing.T) {
 		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{expectedAppCluster1, expectedAppCluster2}))
 }
 
-func TestSimpleClusterResourceListGeneratorDeletingClusterSecret(t *testing.T) {
+func TestSimpleClusterDecisionResourceGeneratorDeletingClusterSecret(t *testing.T) {
 
 	expectedAppTemplate := argov1alpha1.Application{
 		TypeMeta: metav1.TypeMeta{
@@ -257,6 +259,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterSecret(t *testing.T) {
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
 		CreateClusterSecret("my-secret2", "cluster2", "https://kubernetes.default.svc").
+		CreatePlacementRoleAndRoleBinding().
 		CreatePlacementDecisionConfigMap("my-configmap").
 		CreatePlacementDecision("my-placementdecision").
 		StatusUpdatePlacementDecision("my-placementdecision", clusterList).
@@ -303,7 +306,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterSecret(t *testing.T) {
 		Delete().Then().Expect(ApplicationsDoNotExist([]argov1alpha1.Application{expectedAppCluster1}))
 }
 
-func TestSimpleClusterResourceListGeneratorDeletingClusterFromResource(t *testing.T) {
+func TestSimpleClusterDecisionResourceGeneratorDeletingClusterFromResource(t *testing.T) {
 
 	expectedAppTemplate := argov1alpha1.Application{
 		TypeMeta: metav1.TypeMeta{
@@ -360,6 +363,7 @@ func TestSimpleClusterResourceListGeneratorDeletingClusterFromResource(t *testin
 		When().
 		CreateClusterSecret("my-secret", "cluster1", "https://kubernetes.default.svc").
 		CreateClusterSecret("my-secret2", "cluster2", "https://kubernetes.default.svc").
+		CreatePlacementRoleAndRoleBinding().
 		CreatePlacementDecisionConfigMap("my-configmap").
 		CreatePlacementDecision("my-placementdecision").
 		StatusUpdatePlacementDecision("my-placementdecision", clusterList).

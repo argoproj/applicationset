@@ -18,3 +18,20 @@ jobs:
       with:
         run: fmt
         comment: false
+
+  lint-docs:
+    name: Ensure docs are linted
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          pip install -r docs/requirements.txt
+      - name: Lint docs
+        run: |
+          make lint-docs

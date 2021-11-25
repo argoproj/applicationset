@@ -2,12 +2,15 @@ package applicationsets
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
+	"github.com/argoproj-labs/applicationset/api/v1alpha1"
 	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -80,4 +83,29 @@ func (c *Consequences) apps() []argov1alpha1.Application {
 	}
 
 	return list.Items
+}
+
+func (c *Consequences) applicationSet(applicationSetName string) *v1alpha1.ApplicationSet {
+
+	fixtureClient := utils.GetE2EFixtureK8sClient()
+	list, err := fixtureClient.AppSetClientset.Get(context.Background(), c.actions.context.name, metav1.GetOptions{})
+	errors.CheckError(err)
+
+	var appSet v1alpha1.ApplicationSet
+
+	bytes, err := list.MarshalJSON()
+	if err != nil {
+		return &v1alpha1.ApplicationSet{}
+	}
+
+	err = json.Unmarshal(bytes, &appSet)
+	if err != nil {
+		return &v1alpha1.ApplicationSet{}
+	}
+
+	if appSet.Name == applicationSetName {
+		return &appSet
+	}
+
+	return &v1alpha1.ApplicationSet{}
 }

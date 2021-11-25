@@ -17,7 +17,11 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
+	"sort"
+
 	"github.com/argoproj-labs/applicationset/common"
+
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,6 +36,7 @@ type SecretRef struct {
 // ApplicationSet is a set of Application resources
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=applicationsets,shortName=appset;appsets
+// +kubebuilder:subresource:status
 type ApplicationSet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
@@ -233,7 +238,64 @@ type PullRequestGeneratorGithub struct {
 type ApplicationSetStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Conditions []ApplicationSetCondition `json:"conditions,omitempty"`
 }
+
+// ApplicationSetCondition contains details about an applicationset condition, which is usally an error or warning
+type ApplicationSetCondition struct {
+	// Type is an applicationset condition type
+	Type ApplicationSetConditionType `json:"type" protobuf:"bytes,1,opt,name=type"`
+	// Message contains human-readable message indicating details about condition
+	Message string `json:"message" protobuf:"bytes,2,opt,name=message"`
+	// LastTransitionTime is the time the condition was last observed
+	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,3,opt,name=lastTransitionTime"`
+	// True/False/Unknown
+	Status ApplicationSetConditionStatus `json:"status" protobuf:"bytes,4,opt,name=status"`
+	//Single word camelcase representing the reason for the status eg ErrorOccurred
+	Reason string `json:"reason" protobuf:"bytes,5,opt,name=reason"`
+}
+
+// SyncStatusCode is a type which represents possible comparison results
+type ApplicationSetConditionStatus string
+
+// Application Condition Status
+const (
+	// ApplicationSetConditionStatusTrue indicates that a application has been successfully established
+	ApplicationSetConditionStatusTrue ApplicationSetConditionStatus = "True"
+	// ApplicationSetConditionStatusFalse indicates that a application attempt has failed
+	ApplicationSetConditionStatusFalse ApplicationSetConditionStatus = "False"
+	// ApplicationSetConditionStatusUnknown indicates that the application condition status could not be reliably determined
+	ApplicationSetConditionStatusUnknown ApplicationSetConditionStatus = "Unknown"
+)
+
+// ApplicationSetConditionType represents type of application condition. Type name has following convention:
+// prefix "Error" means error condition
+// prefix "Warning" means warning condition
+// prefix "Info" means informational condition
+type ApplicationSetConditionType string
+
+//ErrorOccurred / ParametersGenerated / TemplateRendered / ResourcesUpToDate
+const (
+	ApplicationSetConditionErrorOccurred       ApplicationSetConditionType = "ErrorOccurred"
+	ApplicationSetConditionParametersGenerated ApplicationSetConditionType = "ParametersGenerated"
+	ApplicationSetConditionResourcesUpToDate   ApplicationSetConditionType = "ResourcesUpToDate"
+)
+
+type ApplicationSetReasonType string
+
+const (
+	ApplicationSetReasonErrorOccurred                    = "ErrorOccurred"
+	ApplicationSetReasonApplicationSetUpToDate           = "ApplicationSetUpToDate"
+	ApplicationSetReasonParametersGenerated              = "ParametersGenerated"
+	ApplicationSetReasonApplicationGenerated             = "ApplicationGeneratedSuccessfully"
+	ApplicationSetReasonUpdateApplicationError           = "UpdateApplicationError"
+	ApplicationSetReasonApplicationParamsGenerationError = "ApplicationGenerationFromParamsError"
+	ApplicationSetReasonRenderTemplateParamsError        = "RenderTemplateParamsError"
+	ApplicationSetReasonCreateApplicationError           = "CreateApplicationError"
+	ApplicationSetReasonDeleteApplicationError           = "DeleteApplicationError"
+	ApplicationSetReasonRefreshApplicationError          = "RefreshApplicationError"
+	ApplicationSetReasonApplicationValidationError       = "ApplicationValidationError"
+)
 
 // ApplicationSetList contains a list of ApplicationSet
 // +kubebuilder:object:root=true
@@ -249,6 +311,45 @@ func init() {
 
 // RefreshRequired checks if the ApplicationSet needs to be refreshed
 func (a *ApplicationSet) RefreshRequired() bool {
-	_, found := a.Annotations[common.AnnotationGitGeneratorRefresh]
+	_, found := a.Annotations[common.AnnotationApplicationSetRefresh]
 	return found
+}
+
+// SetConditions updates the applicationset status conditions for a subset of evaluated types.
+// If the applicationset has a pre-existing condition of a type that is not in the evaluated list,
+// it will be preserved. If the applicationset has a pre-existing condition of a type, status, reason that
+// is in the evaluated list, but not in the incoming conditions list, it will be removed.
+func (status *ApplicationSetStatus) SetConditions(conditions []ApplicationSetCondition, evaluatedTypes map[ApplicationSetConditionType]bool) {
+	applicationSetConditions := make([]ApplicationSetCondition, 0)
+	now := metav1.Now()
+	for i := range conditions {
+		condition := conditions[i]
+		if condition.LastTransitionTime == nil {
+			condition.LastTransitionTime = &now
+		}
+		eci := findConditionIndex(status.Conditions, condition.Type)
+		if eci >= 0 && status.Conditions[eci].Message == condition.Message && status.Conditions[eci].Reason == condition.Reason && status.Conditions[eci].Status == condition.Status {
+			// If we already have a condition of this type, status and reason, only update the timestamp if something
+			// has changed.
+			applicationSetConditions = append(applicationSetConditions, status.Conditions[eci])
+		} else {
+			// Otherwise we use the new incoming condition with an updated timestamp:
+			applicationSetConditions = append(applicationSetConditions, condition)
+		}
+	}
+	sort.Slice(applicationSetConditions, func(i, j int) bool {
+		left := applicationSetConditions[i]
+		right := applicationSetConditions[j]
+		return fmt.Sprintf("%s/%s/%s/%s/%v", left.Type, left.Message, left.Status, left.Reason, left.LastTransitionTime) < fmt.Sprintf("%s/%s/%s/%s/%v", right.Type, right.Message, right.Status, right.Reason, right.LastTransitionTime)
+	})
+	status.Conditions = applicationSetConditions
+}
+
+func findConditionIndex(conditions []ApplicationSetCondition, t ApplicationSetConditionType) int {
+	for i := range conditions {
+		if conditions[i].Type == t {
+			return i
+		}
+	}
+	return -1
 }
