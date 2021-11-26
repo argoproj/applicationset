@@ -95,11 +95,11 @@ func (g *GitlabProvider) RepoHasPath(_ context.Context, repo *Repository, path s
 		Path: &path,
 		Ref:  &repo.Branch,
 	})
-	if resp.TotalItems == 0 {
-		return false, nil
-	}
 	if err != nil {
 		return false, err
+	}
+	if resp.TotalItems == 0 {
+		return false, nil
 	}
 	return true, nil
 }
