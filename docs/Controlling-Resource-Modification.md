@@ -108,7 +108,7 @@ cd applicationset/manifests
 # as described in the previous section.
 
 # Apply the change to the cluster
-kubectl apply -n argocd -f install.yaml
+kubectl replace -n argocd -f install.yaml
 ```
 
 ## Limitations: what isn't supported as of the current release

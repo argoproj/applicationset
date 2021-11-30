@@ -9,9 +9,9 @@ If/when ApplicationSet functionality is integrated with Argo CD, this will becom
 #### A) Setup Argo CD dev environment
 
 - Clone the Argo CD source, and setup an Argo CD dev environment:
-    - [Setting up your development environment](https://argoproj.github.io/argo-cd/developer-guide/contributing/#setting-up-your-development-environment)
-    - [Install the must-have requirements](https://argoproj.github.io/argo-cd/developer-guide/contributing/#install-the-must-have-requirements)
-    - [Build your code and run unit tests](https://argoproj.github.io/argo-cd/developer-guide/contributing/#build-your-code-and-run-unit-tests)
+    - [Setting up your development environment](https://argo-cd.readthedocs.io/en/stable/developer-guide/toolchain-guide/#setting-up-your-development-environment)
+    - [Install the must-have requirements](https://argo-cd.readthedocs.io/en/stable/developer-guide/toolchain-guide/#install-the-must-have-requirements)
+    - [Build your code and run unit tests](https://argo-cd.readthedocs.io/en/stable/developer-guide/toolchain-guide/#build-your-code-and-run-unit-tests)
 - Next, run `make start-e2e` and wait for Argo CD to startup successfully
 - Then `make test-e2e`, and wait for a significant number of the tests to run successfully, in order to verify that your environment is correctly setup
 - Stop the `make test-e2e` and `make start-e2e` processes
@@ -38,13 +38,13 @@ If/when ApplicationSet functionality is integrated with Argo CD, this will becom
 
 #### B) Apply the ApplicationSet CRDs, and build the controller:
 ```
-kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml
+kubectl create -f manifests/crds/argoproj.io_applicationsets.yaml
 make build
 ```
 
 #### C) Run the application set controller configured for E2E tests:
 - `make start-e2e`
-- This process should remaining running while the Application Set E2E tests run.
+- This process should remain running while the Application Set E2E tests run.
 
 #### D) Run the tests:
 - `make test-e2e`
