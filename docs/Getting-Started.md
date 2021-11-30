@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide assumes you are familiar with Argo CD and its basic concepts. See the [Argo CD documentation](https://argoproj.github.io/argo-cd/core_concepts/) for more information.
+This guide assumes you are familiar with Argo CD and its basic concepts. See the [Argo CD documentation](https://argo-cd.readthedocs.io/en/stable/core_concepts/) for more information.
     
 ## Requirements
 
@@ -41,7 +41,7 @@ kubectl create namespace argocd
 kubectl create -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install-with-argo-cd.yaml
 ```
 
-Once installed, follow the [Argo CD Getting Started](https://argoproj.github.io/argo-cd/getting_started/) to access Argo CD and log-in to the Web UI.
+Once installed, follow the [Argo CD Getting Started](https://argo-cd.readthedocs.io/en/stable/getting_started/) to access Argo CD and log-in to the Web UI.
 
 The ApplicationSet controller requires no additional setup.
 
@@ -76,7 +76,7 @@ To upgrade from an older release (eg 0.1.0) to a newer release (eg 0.2.0), you o
 There are no manual upgrade steps required between any release of ApplicationSet controller, including 0.1.0 and 0.2.0, as of this writing.
 
 !!! note 
-    If you installed using the combined 'ApplicationSet and Argo CD' bundle, you may wish to consult the [Argo CD release upgrade docs](https://argoproj.github.io/argo-cd/operator-manual/upgrading/overview/) as well, to familiarize yourself with Argo CD upgrades, and to confirm if there is anything on the Argo CD side you need to be aware of.
+    If you installed using the combined 'ApplicationSet and Argo CD' bundle, you may wish to consult the [Argo CD release upgrade docs](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) as well, to familiarize yourself with Argo CD upgrades, and to confirm if there is anything on the Argo CD side you need to be aware of.
 
 ### Optional: Additional Post-Upgrade Safeguards
 

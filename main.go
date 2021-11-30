@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -50,6 +51,10 @@ import (
 	// +kubebuilder:scaffold:imports
 )
 
+const (
+	JsonFormat = "json"
+)
+
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
@@ -73,6 +78,7 @@ func main() {
 	var policy string
 	var debugLog bool
 	var dryRun bool
+	var logFormat string
 	var logLevel string
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -86,9 +92,15 @@ func main() {
 	flag.BoolVar(&debugLog, "debug", false, "Print debug logs. Takes precedence over loglevel")
 	flag.StringVar(&logLevel, "loglevel", "info", "Set the logging level. One of: debug|info|warn|error")
 	flag.BoolVar(&dryRun, "dry-run", false, "Enable dry run mode")
+	flag.StringVar(&logFormat, "logformat", "text", "Set the logging format. One of: text|json")
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
+	json := strings.ToLower(logFormat) == JsonFormat
+
+	if json {
+		ctrl.SetLogger(zap.New(zap.UseDevMode(!json)))
+		log.SetFormatter(&log.JSONFormatter{})
+	}
 
 	policyObj, exists := utils.Policies[policy]
 	if !exists {

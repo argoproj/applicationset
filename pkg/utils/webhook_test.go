@@ -19,64 +19,91 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestWebhookHandler(t *testing.T) {
 	tt := []struct {
-		desc        string
-		headerKey   string
-		headerValue string
-		payloadFile string
-		repo        string
-		code        int
+		desc               string
+		headerKey          string
+		headerValue        string
+		effectedAppSets    []string
+		payloadFile        string
+		expectedStatusCode int
+		expectedRefresh    bool
 	}{
 		{
-			desc:        "WebHook from a GitHub repository",
-			repo:        "https://github.com/org/repo",
-			headerKey:   "X-GitHub-Event",
-			headerValue: "push",
-			payloadFile: "github-commit-event.json",
-			code:        http.StatusOK,
+			desc:               "WebHook from a GitHub repository via Commit",
+			headerKey:          "X-GitHub-Event",
+			headerValue:        "push",
+			payloadFile:        "github-commit-event.json",
+			effectedAppSets:    []string{"git-github"},
+			expectedStatusCode: http.StatusOK,
+			expectedRefresh:    true,
 		},
 		{
-			desc:        "WebHook from a GitLab repository",
-			repo:        "https://gitlab/group/name",
-			headerKey:   "X-Gitlab-Event",
-			headerValue: "Push Hook",
-			payloadFile: "gitlab-event.json",
-			code:        http.StatusOK,
+			desc:               "WebHook from a GitLab repository via Commit",
+			headerKey:          "X-Gitlab-Event",
+			headerValue:        "Push Hook",
+			payloadFile:        "gitlab-event.json",
+			effectedAppSets:    []string{"git-gitlab"},
+			expectedStatusCode: http.StatusOK,
+			expectedRefresh:    true,
 		},
 		{
-			desc:        "WebHook with an unknown event",
-			repo:        "https://gitlab/group/name",
-			headerKey:   "X-Random-Event",
-			headerValue: "Push Hook",
-			payloadFile: "gitlab-event.json",
-			code:        http.StatusBadRequest,
+			desc:               "WebHook with an unknown event",
+			headerKey:          "X-Random-Event",
+			headerValue:        "Push Hook",
+			payloadFile:        "gitlab-event.json",
+			effectedAppSets:    []string{"git-gitlab"},
+			expectedStatusCode: http.StatusBadRequest,
+			expectedRefresh:    false,
 		},
 		{
-			desc:        "WebHook with an invalid event",
-			repo:        "https://gitlab/group/name",
-			headerKey:   "X-Random-Event",
-			headerValue: "Push Hook",
-			payloadFile: "invalid-event.json",
-			code:        http.StatusBadRequest,
+			desc:               "WebHook with an invalid event",
+			headerKey:          "X-Random-Event",
+			headerValue:        "Push Hook",
+			payloadFile:        "invalid-event.json",
+			effectedAppSets:    []string{"git-gitlab"},
+			expectedStatusCode: http.StatusBadRequest,
+			expectedRefresh:    false,
+		},
+		{
+			desc:               "WebHook from a GitHub repository via pull_reqeuest opened event",
+			headerKey:          "X-GitHub-Event",
+			headerValue:        "pull_request",
+			payloadFile:        "github-pull-request-opened-event.json",
+			effectedAppSets:    []string{"pull-request-github"},
+			expectedStatusCode: http.StatusOK,
+			expectedRefresh:    true,
+		},
+		{
+			desc:               "WebHook from a GitHub repository via pull_reqeuest assigned event",
+			headerKey:          "X-GitHub-Event",
+			headerValue:        "pull_request",
+			payloadFile:        "github-pull-request-assigned-event.json",
+			effectedAppSets:    []string{"pull-request-github"},
+			expectedStatusCode: http.StatusOK,
+			expectedRefresh:    false,
 		},
 	}
 
+	namespace := "test"
+	fakeClient := newFakeClient(namespace)
+	scheme := runtime.NewScheme()
+	err := argoprojiov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+	err = argov1alpha1.AddToScheme(scheme)
+	assert.Nil(t, err)
+
 	for _, test := range tt {
 		t.Run(test.desc, func(t *testing.T) {
-			namespace := "test"
-			fakeClient := newFakeClient(namespace)
-			scheme := runtime.NewScheme()
-			err := argoprojiov1alpha1.AddToScheme(scheme)
-			assert.Nil(t, err)
-			err = argov1alpha1.AddToScheme(scheme)
-			assert.Nil(t, err)
-			fc := fake.NewClientBuilder().WithScheme(scheme).WithObjects(fakeAppWithGitGenerator("sample", namespace, test.repo)).Build()
+			fc := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
+				fakeAppWithGitGenerator("git-github", namespace, "https://github.com/org/repo"),
+				fakeAppWithGitGenerator("git-gitlab", namespace, "https://gitlab/group/name"),
+				fakeAppWithPullRequestGenerator("pull-request-github", namespace, "Codertocat", "Hello-World"),
+			).Build()
 			set := argosettings.NewSettingsManager(context.TODO(), fakeClient, namespace)
 			h, err := NewWebhookHandler(namespace, set, fc)
 			assert.Nil(t, err)
@@ -89,15 +116,22 @@ func TestWebhookHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			h.Handler(w, req)
-			assert.Equal(t, w.Code, test.code)
+			assert.Equal(t, w.Code, test.expectedStatusCode)
 
-			want := &argoprojiov1alpha1.ApplicationSet{}
-			err = fc.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: "sample"}, want)
+			list := &argoprojiov1alpha1.ApplicationSetList{}
+			err = fc.List(context.TODO(), list)
 			assert.Nil(t, err)
-			if test.code == http.StatusOK {
-				assert.True(t, want.RefreshRequired())
-			} else {
-				assert.False(t, want.RefreshRequired())
+			for i := range list.Items {
+				gotAppSet := &list.Items[i]
+				for _, appSetName := range test.effectedAppSets {
+					if appSetName == gotAppSet.Name {
+						if expected, got := test.expectedRefresh, gotAppSet.RefreshRequired(); expected != got {
+							t.Errorf("unexpected RefreshRequired() expect: %v got: %v", expected, got)
+						}
+					} else {
+						assert.False(t, gotAppSet.RefreshRequired())
+					}
+				}
 			}
 		})
 	}
@@ -125,6 +159,27 @@ func fakeAppWithGitGenerator(name, namespace, repo string) *argoprojiov1alpha1.A
 				{
 					Git: &argoprojiov1alpha1.GitGenerator{
 						RepoURL: repo,
+					},
+				},
+			},
+		},
+	}
+}
+
+func fakeAppWithPullRequestGenerator(name, namespace, owner, repo string) *argoprojiov1alpha1.ApplicationSet {
+	return &argoprojiov1alpha1.ApplicationSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: argoprojiov1alpha1.ApplicationSetSpec{
+			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
+				{
+					PullRequest: &argoprojiov1alpha1.PullRequestGenerator{
+						Github: &argoprojiov1alpha1.PullRequestGeneratorGithub{
+							Owner: owner,
+							Repo:  repo,
+						},
 					},
 				},
 			},
