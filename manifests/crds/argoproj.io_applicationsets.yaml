@@ -208,6 +208,8 @@ spec:
                                               type: string
                                           type: object
                                         type: array
+                                      passCredentials:
+                                        type: boolean
                                       releaseName:
                                         type: string
                                       valueFiles:
@@ -504,6 +506,8 @@ spec:
                                               type: string
                                           type: object
                                         type: array
+                                      passCredentials:
+                                        type: boolean
                                       releaseName:
                                         type: string
                                       valueFiles:
@@ -802,6 +806,8 @@ spec:
                                               type: string
                                           type: object
                                         type: array
+                                      passCredentials:
+                                        type: boolean
                                       releaseName:
                                         type: string
                                       valueFiles:
@@ -1076,6 +1082,8 @@ spec:
                                               type: string
                                           type: object
                                         type: array
+                                      passCredentials:
+                                        type: boolean
                                       releaseName:
                                         type: string
                                       valueFiles:
@@ -1380,6 +1388,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -1676,6 +1686,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -1974,6 +1986,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -2248,6 +2262,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -2552,6 +2568,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -2848,6 +2866,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -3146,6 +3166,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -3420,6 +3442,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -3718,6 +3742,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -4049,6 +4075,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -4356,6 +4384,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -4652,6 +4682,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -4950,6 +4982,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -5224,6 +5258,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -5522,6 +5558,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -5853,6 +5891,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -6159,6 +6199,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -6490,6 +6532,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -6757,6 +6801,8 @@ spec:
                                               type: string
                                           type: object
                                         type: array
+                                      passCredentials:
+                                        type: boolean
                                       releaseName:
                                         type: string
                                       valueFiles:
@@ -7061,6 +7107,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -7357,6 +7405,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -7655,6 +7705,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -7929,6 +7981,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -8233,6 +8287,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -8529,6 +8585,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -8827,6 +8885,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -9101,6 +9161,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -9399,6 +9461,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -9730,6 +9794,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -10037,6 +10103,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -10333,6 +10401,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -10631,6 +10701,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -10905,6 +10977,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -11203,6 +11277,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -11534,6 +11610,8 @@ spec:
                                                                   type: string
                                                               type: object
                                                             type: array
+                                                          passCredentials:
+                                                            type: boolean
                                                           releaseName:
                                                             type: string
                                                           valueFiles:
@@ -11840,6 +11918,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -12171,6 +12251,8 @@ spec:
                                                         type: string
                                                     type: object
                                                   type: array
+                                                passCredentials:
+                                                  type: boolean
                                                 releaseName:
                                                   type: string
                                                 valueFiles:
@@ -12442,6 +12524,8 @@ spec:
                                               type: string
                                           type: object
                                         type: array
+                                      passCredentials:
+                                        type: boolean
                                       releaseName:
                                         type: string
                                       valueFiles:
@@ -12741,6 +12825,8 @@ spec:
                                               type: string
                                           type: object
                                         type: array
+                                      passCredentials:
+                                        type: boolean
                                       releaseName:
                                         type: string
                                       valueFiles:
@@ -13072,6 +13158,8 @@ spec:
                                               type: string
                                           type: object
                                         type: array
+                                      passCredentials:
+                                        type: boolean
                                       releaseName:
                                         type: string
                                       valueFiles:
@@ -13344,6 +13432,8 @@ spec:
                                     type: string
                                 type: object
                               type: array
+                            passCredentials:
+                              type: boolean
                             releaseName:
                               type: string
                             valueFiles:

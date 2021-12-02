@@ -207,7 +207,7 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	if applicationSetInfo.RefreshRequired() {
-		delete(applicationSetInfo.Annotations, common.AnnotationGitGeneratorRefresh)
+		delete(applicationSetInfo.Annotations, common.AnnotationApplicationSetRefresh)
 		err := r.Client.Update(ctx, &applicationSetInfo)
 		if err != nil {
 			log.Warnf("error occurred while updating ApplicationSet: %v", err)
