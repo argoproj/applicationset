@@ -60,7 +60,7 @@ deploy: kustomize manifests
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
 manifests: kustomize generate
-	$(CONTROLLER_GEN) crd:crdVersions=v1 paths="./..." output:crd:artifacts:config=./manifests/crds/
+	$(CONTROLLER_GEN) crd:crdVersions=v1 paths="./..." output:crd:artifacts:config=./manifests/crds/ crd:maxDescLen=0
 	KUSTOMIZE=${KUSTOMIZE} CONTAINER_REGISTRY=${CONTAINER_REGISTRY} hack/generate-manifests.sh
 
 .PHONY: lint
