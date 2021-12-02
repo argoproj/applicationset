@@ -37,7 +37,7 @@ The `manifests/install.yaml` file contains the Kubernetes manifests required to 
 You may instead install both the ApplicationSet controller and the latest stable Argo CD together, by creating a namespace and applying `manifests/install-with-argo-cd.yaml`:
 
 ```bash
-kubectl apply namespace argocd
+kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install-with-argo-cd.yaml
 ```
 
