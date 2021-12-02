@@ -38,7 +38,7 @@ If/when ApplicationSet functionality is integrated with Argo CD, this will becom
 
 #### B) Apply the ApplicationSet CRDs, and build the controller:
 ```
-kubectl create -f manifests/crds/argoproj.io_applicationsets.yaml
+kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml
 make build
 ```
 

@@ -50,7 +50,7 @@ When iteratively developing a Kubernetes controller, it is often easier to run t
         - You have exposed port 8081 in the Makefile (as described in prerequisites). `docker ps` should show port 8081 as mapped to an accessible IP.
 
 4. Apply the ApplicationSet CRDs into the `argocd` namespace, and build the controller:
-    - `kubectl create -f manifests/crds/argoproj.io_applicationsets.yaml`
+    - `kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml`
     - `make build`
 
 5. Run the Application Set Controller from the CLI:
