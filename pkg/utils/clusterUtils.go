@@ -64,8 +64,13 @@ func ListClusters(ctx context.Context, clientset kubernetes.Interface, namespace
 	}
 	hasInClusterCredentials := false
 	for i, clusterSecret := range clusterSecrets {
-		cluster := *secretToCluster(&clusterSecret)
-		clusterList.Items[i] = cluster
+		// This line has changed from the original Argo CD code: now receives an error, and handles it
+		cluster, err := secretToCluster(&clusterSecret)
+		if err != nil || cluster == nil {
+			return nil, fmt.Errorf("unable to convert cluster secret to cluster object '%s': %v", clusterSecret.Name, err)
+		}
+
+		clusterList.Items[i] = *cluster
 		if cluster.Server == appv1.KubernetesInternalAPIServerAddr {
 			hasInClusterCredentials = true
 		}
@@ -99,12 +104,12 @@ func getLocalCluster(clientset kubernetes.Interface) *appv1.Cluster {
 }
 
 // secretToCluster converts a secret into a Cluster object
-func secretToCluster(s *corev1.Secret) *appv1.Cluster {
+func secretToCluster(s *corev1.Secret) (*appv1.Cluster, error) {
 	var config appv1.ClusterConfig
 	if len(s.Data["config"]) > 0 {
-		err := json.Unmarshal(s.Data["config"], &config)
-		if err != nil {
-			panic(err)
+		if err := json.Unmarshal(s.Data["config"], &config); err != nil {
+			// This line has changed from the original Argo CD: now returns an error rather than panicing.
+			return nil, err
 		}
 	}
 
@@ -140,7 +145,7 @@ func secretToCluster(s *corev1.Secret) *appv1.Cluster {
 		RefreshRequestedAt: refreshRequestedAt,
 		Shard:              shard,
 	}
-	return &cluster
+	return &cluster, nil
 }
 
 // ValidateDestination checks:
