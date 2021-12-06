@@ -1788,13 +1788,15 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 		},
 		Spec: argoprojiov1alpha1.ApplicationSetSpec{
 			Generators: []argoprojiov1alpha1.ApplicationSetGenerator{
-				{List: &argoprojiov1alpha1.ListGenerator{
-					Elements: []apiextensionsv1.JSON{{
-						Raw: []byte(`{"cluster": "good-cluster","url": "https://good-cluster"}`),
-					}, {
-						Raw: []byte(`{"cluster": "bad-cluster","url": "https://bad-cluster"}`),
-					}},
-				}},
+				{
+					List: &argoprojiov1alpha1.ListGenerator{
+						Elements: []apiextensionsv1.JSON{{
+							Raw: []byte(`{"cluster": "good-cluster","url": "https://good-cluster"}`),
+						}, {
+							Raw: []byte(`{"cluster": "bad-cluster","url": "https://bad-cluster"}`),
+						}},
+					},
+				},
 			},
 			Template: argoprojiov1alpha1.ApplicationSetTemplate{
 				ApplicationSetTemplateMeta: argoprojiov1alpha1.ApplicationSetTemplateMeta{

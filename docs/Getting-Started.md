@@ -48,7 +48,7 @@ The ApplicationSet controller requires no additional setup.
 ### C) Install development builds of ApplicationSet controller for access to the latest features
 
 Development builds of the ApplicationSet controller can be installed by running the following command:
-```
+```bash
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
 ```
 

@@ -24,13 +24,13 @@ func TestMatrixGenerate(t *testing.T) {
 
 	testCases := []struct {
 		name           string
-		baseGenerators []argoprojiov1alpha1.ApplicationSetBaseGenerator
+		baseGenerators []argoprojiov1alpha1.ApplicationSetNestedGenerator
 		expectedErr    error
 		expected       []map[string]string
 	}{
 		{
 			name: "happy flow - generate params",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git: gitGenerator,
 				},
@@ -44,8 +44,35 @@ func TestMatrixGenerate(t *testing.T) {
 			},
 		},
 		{
+			name: "happy flow - generate params from two lists",
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
+				{
+					List: &argoprojiov1alpha1.ListGenerator{
+						Elements: []apiextensionsv1.JSON{
+							{Raw: []byte(`{"a": "1"}`)},
+							{Raw: []byte(`{"a": "2"}`)},
+						},
+					},
+				},
+				{
+					List: &argoprojiov1alpha1.ListGenerator{
+						Elements: []apiextensionsv1.JSON{
+							{Raw: []byte(`{"b": "1"}`)},
+							{Raw: []byte(`{"b": "2"}`)},
+						},
+					},
+				},
+			},
+			expected: []map[string]string{
+				{"a": "1", "b": "1"},
+				{"a": "1", "b": "2"},
+				{"a": "2", "b": "1"},
+				{"a": "2", "b": "2"},
+			},
+		},
+		{
 			name: "returns error if there is less than two base generators",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git: gitGenerator,
 				},
@@ -54,7 +81,7 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 		{
 			name: "returns error if there is more than two base generators",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					List: listGenerator,
 				},
@@ -69,7 +96,7 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 		{
 			name: "returns error if there is more than one inner generator in the first base generator",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git:  gitGenerator,
 					List: listGenerator,
@@ -82,7 +109,7 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 		{
 			name: "returns error if there is more than one inner generator in the second base generator",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					List: listGenerator,
 				},
@@ -95,14 +122,14 @@ func TestMatrixGenerate(t *testing.T) {
 		},
 	}
 
-	for _, c := range testCases {
-		cc := c
+	for _, testCase := range testCases {
+		testCaseCopy := testCase // Since tests may run in parallel
 
-		t.Run(cc.name, func(t *testing.T) {
+		t.Run(testCaseCopy.name, func(t *testing.T) {
 			mock := &generatorMock{}
 			appSet := &argoprojiov1alpha1.ApplicationSet{}
 
-			for _, g := range cc.baseGenerators {
+			for _, g := range testCaseCopy.baseGenerators {
 
 				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
 					Git:  g.Git,
@@ -132,16 +159,16 @@ func TestMatrixGenerate(t *testing.T) {
 
 			got, err := matrixGenerator.GenerateParams(&argoprojiov1alpha1.ApplicationSetGenerator{
 				Matrix: &argoprojiov1alpha1.MatrixGenerator{
-					Generators: cc.baseGenerators,
+					Generators: testCaseCopy.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
 			}, appSet)
 
-			if cc.expectedErr != nil {
-				assert.EqualError(t, err, cc.expectedErr.Error())
+			if testCaseCopy.expectedErr != nil {
+				assert.EqualError(t, err, testCaseCopy.expectedErr.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, cc.expected, got)
+				assert.Equal(t, testCaseCopy.expected, got)
 			}
 
 		})
@@ -163,13 +190,13 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 
 	testCases := []struct {
 		name               string
-		baseGenerators     []argoprojiov1alpha1.ApplicationSetBaseGenerator
+		baseGenerators     []argoprojiov1alpha1.ApplicationSetNestedGenerator
 		gitGetRequeueAfter time.Duration
 		expected           time.Duration
 	}{
 		{
 			name: "return NoRequeueAfter if all the inner baseGenerators returns it",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git: gitGenerator,
 				},
@@ -182,7 +209,7 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 		},
 		{
 			name: "returns the minimal time",
-			baseGenerators: []argoprojiov1alpha1.ApplicationSetBaseGenerator{
+			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
 					Git: gitGenerator,
 				},
@@ -195,18 +222,18 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 		},
 	}
 
-	for _, c := range testCases {
-		cc := c
+	for _, testCase := range testCases {
+		testCaseCopy := testCase // Since tests may run in parallel
 
-		t.Run(cc.name, func(t *testing.T) {
+		t.Run(testCaseCopy.name, func(t *testing.T) {
 			mock := &generatorMock{}
 
-			for _, g := range cc.baseGenerators {
+			for _, g := range testCaseCopy.baseGenerators {
 				gitGeneratorSpec := argoprojiov1alpha1.ApplicationSetGenerator{
 					Git:  g.Git,
 					List: g.List,
 				}
-				mock.On("GetRequeueAfter", &gitGeneratorSpec).Return(cc.gitGetRequeueAfter, nil)
+				mock.On("GetRequeueAfter", &gitGeneratorSpec).Return(testCaseCopy.gitGetRequeueAfter, nil)
 			}
 
 			var matrixGenerator = NewMatrixGenerator(
@@ -218,12 +245,12 @@ func TestMatrixGetRequeueAfter(t *testing.T) {
 
 			got := matrixGenerator.GetRequeueAfter(&argoprojiov1alpha1.ApplicationSetGenerator{
 				Matrix: &argoprojiov1alpha1.MatrixGenerator{
-					Generators: cc.baseGenerators,
+					Generators: testCaseCopy.baseGenerators,
 					Template:   argoprojiov1alpha1.ApplicationSetTemplate{},
 				},
 			})
 
-			assert.Equal(t, cc.expected, got)
+			assert.Equal(t, testCaseCopy.expected, got)
 
 		})
 

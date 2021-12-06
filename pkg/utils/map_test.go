@@ -38,17 +38,19 @@ func TestCombineStringMaps(t *testing.T) {
 		},
 	}
 
-	for _, c := range testCases {
-		cc := c
-		t.Run(cc.name, func(t *testing.T) {
+	for _, testCase := range testCases {
+		testCaseCopy := testCase
 
-			got, err := CombineStringMaps(cc.left, cc.right)
+		t.Run(testCaseCopy.name, func(t *testing.T) {
+			t.Parallel()
 
-			if cc.expectedErr != nil {
-				assert.EqualError(t, err, cc.expectedErr.Error())
+			got, err := CombineStringMaps(testCaseCopy.left, testCaseCopy.right)
+
+			if testCaseCopy.expectedErr != nil {
+				assert.EqualError(t, err, testCaseCopy.expectedErr.Error())
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, cc.expected, got)
+				assert.Equal(t, testCaseCopy.expected, got)
 			}
 
 		})

@@ -31,7 +31,7 @@ type TransformResult struct {
 	Template argoprojiov1alpha1.ApplicationSetTemplate
 }
 
-//Transform a spec generator to list of params and a template
+//Transform a spec generator to list of paramSets and a template
 func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, allGenerators map[string]Generator, baseTemplate argoprojiov1alpha1.ApplicationSetTemplate, appSet *argoprojiov1alpha1.ApplicationSet) ([]TransformResult, error) {
 	res := []TransformResult{}
 	var firstError error

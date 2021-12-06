@@ -29,6 +29,10 @@ func NewMatrixGenerator(supportedGenerators map[string]Generator) Generator {
 
 func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 
+	if appSetGenerator.Matrix == nil {
+		return nil, EmptyAppSetGeneratorError
+	}
+
 	if len(appSetGenerator.Matrix.Generators) < 2 {
 		return nil, LessThanTwoGenerators
 	}
@@ -61,7 +65,16 @@ func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 	return res, nil
 }
 
-func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetBaseGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
+	var matrix *argoprojiov1alpha1.MatrixGenerator
+	if appSetBaseGenerator.Matrix != nil {
+		matrix = appSetBaseGenerator.Matrix.ToMatrixGenerator()
+	}
+
+	var mergeGenerator *argoprojiov1alpha1.MergeGenerator
+	if appSetBaseGenerator.Merge != nil {
+		mergeGenerator = appSetBaseGenerator.Merge.ToMergeGenerator()
+	}
 
 	t, err := Transform(
 		argoprojiov1alpha1.ApplicationSetGenerator{
@@ -71,6 +84,8 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 			SCMProvider:             appSetBaseGenerator.SCMProvider,
 			ClusterDecisionResource: appSetBaseGenerator.ClusterDecisionResource,
 			PullRequest:             appSetBaseGenerator.PullRequest,
+			Matrix:                  matrix,
+			Merge:                   mergeGenerator,
 		},
 		m.supportedGenerators,
 		argoprojiov1alpha1.ApplicationSetTemplate{},

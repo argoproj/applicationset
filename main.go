@@ -160,7 +160,7 @@ func main() {
 	}
 	startWebhookServer(webhookHandler)
 
-	baseGenerators := map[string]generators.Generator{
+	terminalGenerators := map[string]generators.Generator{
 		"List":                    generators.NewListGenerator(),
 		"Clusters":                generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
 		"Git":                     generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
@@ -169,18 +169,30 @@ func main() {
 		"PullRequest":             generators.NewPullRequestGenerator(mgr.GetClient()),
 	}
 
-	combineGenerators := map[string]generators.Generator{
-		"Matrix": generators.NewMatrixGenerator(baseGenerators),
+	nestedGenerators := map[string]generators.Generator{
+		"List":                    terminalGenerators["List"],
+		"Clusters":                terminalGenerators["Clusters"],
+		"Git":                     terminalGenerators["Git"],
+		"SCMProvider":             terminalGenerators["SCMProvider"],
+		"ClusterDecisionResource": terminalGenerators["ClusterDecisionResource"],
+		"PullRequest":             terminalGenerators["PullRequest"],
+		"Matrix":                  generators.NewMatrixGenerator(terminalGenerators),
+		"Merge":                   generators.NewMergeGenerator(terminalGenerators),
 	}
 
-	all, err := generators.CombineMaps(baseGenerators, combineGenerators)
-	if err != nil {
-		setupLog.Error(err, "generators can't be combined")
-		os.Exit(1)
+	topLevelGenerators := map[string]generators.Generator{
+		"List":                    terminalGenerators["List"],
+		"Clusters":                terminalGenerators["Clusters"],
+		"Git":                     terminalGenerators["Git"],
+		"SCMProvider":             terminalGenerators["SCMProvider"],
+		"ClusterDecisionResource": terminalGenerators["ClusterDecisionResource"],
+		"PullRequest":             terminalGenerators["PullRequest"],
+		"Matrix":                  generators.NewMatrixGenerator(nestedGenerators),
+		"Merge":                   generators.NewMergeGenerator(nestedGenerators),
 	}
 
 	if err = (&controllers.ApplicationSetReconciler{
-		Generators:       all,
+		Generators:       topLevelGenerators,
 		Client:           mgr.GetClient(),
 		Log:              ctrl.Log.WithName("controllers").WithName("ApplicationSet"),
 		Scheme:           mgr.GetScheme(),

@@ -63,3 +63,11 @@ On success, you should see the following (amongst other text):
 INFO	controller-runtime.controller	Starting Controller	{"controller": "applicationset"}
 INFO	controller-runtime.controller	Starting workers	{"controller": "applicationset", "worker count": 1}
 ```
+
+## Building docs locally
+
+```sh
+pip3 install -r docs/requirements.txt
+make build-docs-local
+make serve-docs-local
+```

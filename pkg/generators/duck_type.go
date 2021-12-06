@@ -67,7 +67,7 @@ func (g *DuckTypeGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.A
 
 	// Not likely to happen
 	if appSetGenerator.ClusterDecisionResource == nil {
-		return nil, nil
+		return nil, EmptyAppSetGeneratorError
 	}
 
 	// ListCluster from Argo CD's util/db package will include the local cluster in the list of clusters
