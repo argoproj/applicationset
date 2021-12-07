@@ -32,7 +32,8 @@ func Test_secretToCluster(t *testing.T) {
 			"config": []byte("{\"username\":\"foo\"}"),
 		},
 	}
-	cluster := secretToCluster(secret)
+	cluster, err := secretToCluster(secret)
+	assert.Nil(t, err)
 	assert.Equal(t, *cluster, argoappv1.Cluster{
 		Name:   "test",
 		Server: "http://mycluster",
@@ -54,7 +55,8 @@ func Test_secretToCluster_NoConfig(t *testing.T) {
 			"server": []byte("http://mycluster"),
 		},
 	}
-	cluster := secretToCluster(secret)
+	cluster, err := secretToCluster(secret)
+	assert.Nil(t, err)
 	assert.Equal(t, *cluster, argoappv1.Cluster{
 		Name:   "test",
 		Server: "http://mycluster",
