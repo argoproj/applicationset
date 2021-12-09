@@ -13606,7 +13606,6 @@ metadata:
     app.kubernetes.io/name: argocd-applicationset-controller
     app.kubernetes.io/part-of: argocd-applicationset
   name: argocd-applicationset-controller
-  namespace: argocd
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -13616,7 +13615,6 @@ metadata:
     app.kubernetes.io/name: argocd-applicationset-controller
     app.kubernetes.io/part-of: argocd-applicationset
   name: argocd-applicationset-controller
-  namespace: argocd
 rules:
 - apiGroups:
   - argoproj.io
@@ -13678,7 +13676,6 @@ metadata:
     app.kubernetes.io/name: argocd-applicationset-controller
     app.kubernetes.io/part-of: argocd-applicationset
   name: argocd-applicationset-controller
-  namespace: argocd
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -13686,7 +13683,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: argocd-applicationset-controller
-  namespace: argocd
 ---
 apiVersion: v1
 kind: Service
@@ -13696,7 +13692,6 @@ metadata:
     app.kubernetes.io/name: argocd-applicationset-controller
     app.kubernetes.io/part-of: argocd-applicationset
   name: argocd-applicationset-controller
-  namespace: argocd
 spec:
   ports:
   - name: webhook
@@ -13714,7 +13709,6 @@ metadata:
     app.kubernetes.io/name: argocd-applicationset-controller
     app.kubernetes.io/part-of: argocd-applicationset
   name: argocd-applicationset-controller
-  namespace: argocd
 spec:
   selector:
     matchLabels:
