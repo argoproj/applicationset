@@ -157,9 +157,13 @@ func getDiff(orig, new argov1alpha1.Application) (string, error) {
 
 // getConditionDiff returns a string containing a comparison result of two ApplicationSetCondition (for test output/debug purposes)
 func getConditionDiff(orig, new []v1alpha1.ApplicationSetCondition) (string, error) {
+	if len(orig) != len(new) {
+		return fmt.Sprintf("mismatch between condition sizes: %v %v", len(orig), len(new)), nil
+	}
+
 	var bytes []byte
 
-	for index, _ := range orig {
+	for index := range orig {
 		b, _, err := diff.CreateTwoWayMergePatch(orig[index], new[index], orig[index])
 		if err != nil {
 			return "", err
