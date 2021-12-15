@@ -102,35 +102,68 @@ func (a *Actions) CreateClusterSecret(secretName string, clusterName string, clu
 
 	fixtureClient := utils.GetE2EFixtureK8sClient()
 
-	bearerToken, err := GetServiceAccountBearerToken(fixtureClient.KubeClientset, utils.ArgoCDNamespace, "argocd-applicationset-controller")
+	var serviceAccountName string
 
-	// bearerToken
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: utils.ArgoCDNamespace,
-			Labels: map[string]string{
-				argocommon.LabelKeySecretType: argocommon.LabelValueSecretTypeCluster,
-				utils.TestingLabel:            "true",
-			},
-		},
-		Data: map[string][]byte{
-			"name":   []byte(clusterName),
-			"server": []byte(clusterServer),
-			"config": []byte("{\"username\":\"foo\",\"password\":\"foo\"}"),
-		},
-	}
+	// Look for a service account matching '*application-controller*'
+	err := wait.Poll(500*time.Millisecond, 30*time.Second, func() (bool, error) {
 
-	// If the bearer token is available, use it rather than the fake username/password
-	if bearerToken != "" && err == nil {
-		secret.Data = map[string][]byte{
-			"name":   []byte(clusterName),
-			"server": []byte(clusterServer),
-			"config": []byte("{\"bearerToken\":\"" + bearerToken + "\"}"),
+		serviceAccountList, err := fixtureClient.KubeClientset.CoreV1().ServiceAccounts(utils.ArgoCDNamespace).List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			fmt.Println("Unable to retrieve ServiceAccount list", err)
+			return false, nil
 		}
-	}
 
-	_, err = fixtureClient.KubeClientset.CoreV1().Secrets(secret.Namespace).Create(context.Background(), secret, metav1.CreateOptions{})
+		// If 'application-controller' service account is present, use that
+		for _, sa := range serviceAccountList.Items {
+			if strings.Contains(sa.Name, "application-controller") {
+				serviceAccountName = sa.Name
+				return true, nil
+			}
+		}
+
+		// Otherwise, use 'default'
+		for _, sa := range serviceAccountList.Items {
+			if sa.Name == "default" {
+				serviceAccountName = sa.Name
+				return true, nil
+			}
+		}
+
+		return false, nil
+	})
+
+	if err == nil {
+		var bearerToken string
+		bearerToken, err = GetServiceAccountBearerToken(fixtureClient.KubeClientset, utils.ArgoCDNamespace, serviceAccountName)
+
+		// bearerToken
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: utils.ArgoCDNamespace,
+				Labels: map[string]string{
+					argocommon.LabelKeySecretType: argocommon.LabelValueSecretTypeCluster,
+					utils.TestingLabel:            "true",
+				},
+			},
+			Data: map[string][]byte{
+				"name":   []byte(clusterName),
+				"server": []byte(clusterServer),
+				"config": []byte("{\"username\":\"foo\",\"password\":\"foo\"}"),
+			},
+		}
+
+		// If the bearer token is available, use it rather than the fake username/password
+		if bearerToken != "" && err == nil {
+			secret.Data = map[string][]byte{
+				"name":   []byte(clusterName),
+				"server": []byte(clusterServer),
+				"config": []byte("{\"bearerToken\":\"" + bearerToken + "\"}"),
+			}
+		}
+
+		_, err = fixtureClient.KubeClientset.CoreV1().Secrets(secret.Namespace).Create(context.Background(), secret, metav1.CreateOptions{})
+	}
 
 	a.describeAction = fmt.Sprintf("creating cluster Secret '%s'", secretName)
 	a.lastOutput, a.lastError = "", err

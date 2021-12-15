@@ -11,7 +11,6 @@ import (
 	"github.com/argoproj/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // this implements the "then" part of given/when/then
@@ -75,7 +74,7 @@ func (c *Consequences) app(name string) *argov1alpha1.Application {
 func (c *Consequences) apps() []argov1alpha1.Application {
 
 	fixtureClient := utils.GetE2EFixtureK8sClient()
-	list, err := fixtureClient.AppClientset.ArgoprojV1alpha1().Applications(utils.ArgoCDNamespace).List(context.Background(), v1.ListOptions{})
+	list, err := fixtureClient.AppClientset.ArgoprojV1alpha1().Applications(utils.ArgoCDNamespace).List(context.Background(), metav1.ListOptions{})
 	errors.CheckError(err)
 
 	if list == nil {
