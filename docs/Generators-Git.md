@@ -228,7 +228,7 @@ In addition to the flattened key/value pairs from the configuration file, the fo
 - `{{path}}`: The path to the folder containing matching configuration file within the Git repository. Example: `/clusters/clusterA`, if the config file was `/clusters/clusterA/config.json`
 - `{{path[n]}}`: The path to the matching configuration file within the Git repository, split into array elements (`n` - array index). Example: `path[0]: clusters`, `path[1]: clusterA`
 - `{{path.basename}}`: Basename of the path to the folder containing the configuration file (e.g. `clusterA`, with the above example.)
-- `{{path.basenamenameNormalized}}`: Same as `path.basename` BUT unsupported characters will be replaced with `-`
+- `{{path.basenamenameNormalized}}`: This field is the same as `path.basename` with unsupported characters replaced with `-` (e.g. a `path` of `/directory/directory_2`, and `path.basename` of `directory_2` would produce `directory-2` here).
 
 ## Webhook Configuration
 
