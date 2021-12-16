@@ -2,7 +2,6 @@
 
 The SCM Provider generator uses the API of an SCMaaS provider (eg GitHub) to automatically discover repositories within an organization. This fits well with GitOps layout patterns that split microservices across many repositories.
 
-
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -126,7 +125,7 @@ spec:
 
 ## Template
 
-As with all generators, several keys are available for replacement in the generated application.
+As with all generators, several parameters are generated for use within the `ApplicationSet` resource template.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -155,3 +154,5 @@ spec:
 * `repository`: The name of the repository.
 * `url`: The clone URL for the repository.
 * `branch`: The default branch of the repository.
+* `sha`: The Git commit SHA for the branch
+* `labels`: A comma-separated list of repository labels

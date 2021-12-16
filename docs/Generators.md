@@ -12,7 +12,7 @@ As of this writing there are seven generators:
 - [Matrix generator](Generators-Matrix.md): The Matrix generator may be used to combine the generated parameters of two separate generators.
 - [Merge generator](Generators-Merge.md): The Merge generator may be used to merge the generated parameters of two or more generators. Additional generators can override the values of the base generator.
 - [SCM Provider generator](Generators-SCM-Provider.md): The SCM Provider generator uses the API of an SCM provider (eg GitHub) to automatically discover repositories within an organization.
-- [Cluster Decision Resource generator](Generators-Cluster-Decision-Resource.md): The Cluster Decision Resource generator is used to interface with Kubernetes custom resources that use custom resource-specific logic to decide which set of Argo CD clusters to deploy to.
 - [Pull Request generator](Generators-Pull-Request.md): The Pull Request generator uses the API of an SCMaaS provider (eg GitHub) to automatically discover open pull requests within an repository.
+- [Cluster Decision Resource generator](Generators-Cluster-Decision-Resource.md): The Cluster Decision Resource generator is used to interface with Kubernetes custom resources that use custom resource-specific logic to decide which set of Argo CD clusters to deploy to.
 
 If you are new to generators, begin with the **List** and **Cluster** generators. For more advanced use cases, see the documentation for the remaining generators above.

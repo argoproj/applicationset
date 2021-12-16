@@ -1,10 +1,10 @@
 # Merge Generator
 
-The merge generator combines parameters produced by the base (first) generator with matching parameter sets produced by subsequent generators. A _matching_ parameter set has the same values for the configured _merge keys_. _Non-matching_ parameter sets are discarded. Override precedence is bottom-to-top. The values from a matching parameter set produced by generator 3 will take precedence over the values from the corresponding parameter set produced by generator 2.
+The Merge generator combines parameters produced by the base (first) generator with matching parameter sets produced by subsequent generators. A _matching_ parameter set has the same values for the configured _merge keys_. _Non-matching_ parameter sets are discarded. Override precedence is bottom-to-top: the values from a matching parameter set produced by generator 3 will take precedence over the values from the corresponding parameter set produced by generator 2.
 
-Using a merge generator is appropriate when a subset of parameter sets require overriding.
+Using a Merge generator is appropriate when a subset of parameter sets require overriding.
 
-## Example: base cluster generator + override cluster generator + list generator 
+## Example: Base Cluster generator + override Cluster generator + List generator 
 
 As an example, imagine that we have two clusters:
 
@@ -130,7 +130,7 @@ When merged with the updated base parameters, the `values.redis` value for the p
             - # (...)
           template: { } # Not processed
 ```
-1. Combination-type generators (matrix or merge) can only be nested once. For example, this will not work:
+1. Combination-type generators (Matrix or Merge) can only be nested once. For example, this will not work:
 ```yaml
 - merge:
     generators:
