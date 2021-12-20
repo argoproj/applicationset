@@ -60,7 +60,7 @@ These new URLs won't (yet) work, because we haven't tagged the release yet, but 
 From the repository root:
 ```sh
 CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=argoproj hack/release.sh (VERSION)
-# Example: CONTAINER_REGISTRY=quay.io  IMAGE_NAMESPACE=argocdapplicationset hack/release.sh 0.1.0
+# Example: CONTAINER_REGISTRY=quay.io  IMAGE_NAMESPACE=argoproj hack/release.sh 0.1.0
 ```
 
 The release script will (as of this writing):

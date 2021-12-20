@@ -7,6 +7,7 @@ For each cluster registered with Argo CD, the Cluster generator produces paramet
 It automatically provides the following parameter values to the Application template for each cluster:
 
 - `name`
+- `nameNormalized` *('name' but normalized to contain only lowercase alphanumeric characters, '-' or '.')*
 - `server`
 - `metadata.labels.<key>` *(for each label in the Secret)*
 - `metadata.annotations.<key>` *(for each annotation in the Secret)*

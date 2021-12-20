@@ -18,7 +18,7 @@ The ApplicationSet controller *must* be installed into the same namespace as the
 Presuming that Argo CD is installed into the `argocd` namespace, run the following command:
 
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.3.0/manifests/install.yaml
 ```
 
 Once installed, the ApplicationSet controller requires no additional setup.
@@ -38,7 +38,7 @@ You may instead install both the ApplicationSet controller and the latest stable
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install-with-argo-cd.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.3.0/manifests/install-with-argo-cd.yaml
 ```
 
 Once installed, follow the [Argo CD Getting Started](https://argo-cd.readthedocs.io/en/stable/getting_started/) to access Argo CD and log-in to the Web UI.
@@ -71,12 +71,17 @@ To extend or customize the ApplicationSet controller installation, [Kustomize](h
 
 ## Upgrading to a Newer Release
 
-To upgrade from an older release (eg 0.1.0) to a newer release (eg 0.2.0), you only need to `kubectl apply` the `install.yaml` for the new release, as described under *Installation* above.
+To upgrade from an older release (eg 0.1.0, 0.2.0) to a newer release (eg 0.3.0), you only need to `kubectl apply` the `install.yaml` for the new release, as described under *Installation* above.
 
-There are no manual upgrade steps required between any release of ApplicationSet controller, including 0.1.0 and 0.2.0, as of this writing.
+There are no manual upgrade steps required between any release of ApplicationSet controller, (including 0.1.0, 0.2.0, and 0.3.0) as of this writing, however, see the behaviour changes in ApplicationSet controller v0.3.0, below.
 
 !!! note 
     If you installed using the combined 'ApplicationSet and Argo CD' bundle, you may wish to consult the [Argo CD release upgrade docs](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) as well, to familiarize yourself with Argo CD upgrades, and to confirm if there is anything on the Argo CD side you need to be aware of.
+
+### Behaviour changes in ApplicationSet controller v0.3.0
+
+There are no breaking changes, however, a couple of behaviours have changed from v0.2.0 to v0.3.0. See the [v0.3.0 upgrade page](upgrading/v0.2.0-to-v0.3.0.md) for details.
+
 
 ### Optional: Additional Post-Upgrade Safeguards
 
