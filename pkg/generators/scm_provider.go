@@ -9,8 +9,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/services/scm_provider"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/pkg/services/scm_provider"
 )
 
 var _ Generator = (*SCMProviderGenerator)(nil)

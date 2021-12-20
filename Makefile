@@ -1,4 +1,4 @@
-VERSION_PACKAGE=github.com/argoproj-labs/applicationset/common
+VERSION_PACKAGE=github.com/argoproj/applicationset/common
 VERSION?=$(shell cat VERSION)
 IMAGE_NAMESPACE?=argoproj
 IMAGE_NAME?=argocd-applicationset

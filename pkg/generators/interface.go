@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 )
 
 // Generator defines the interface implemented by all ApplicationSet generators.

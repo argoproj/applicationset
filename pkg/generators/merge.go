@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/utils"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/pkg/utils"
 )
 
 var _ Generator = (*MergeGenerator)(nil)

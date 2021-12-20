@@ -1,4 +1,4 @@
-repo: github.com/argoproj-labs/applicationset
+repo: github.com/argoproj/applicationset
 resources:
 - group: argoproj.io
   kind: ApplicationSet

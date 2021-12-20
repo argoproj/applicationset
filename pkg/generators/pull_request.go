@@ -9,8 +9,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	pullrequest "github.com/argoproj-labs/applicationset/pkg/services/pull_request"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
+	pullrequest "github.com/argoproj/applicationset/pkg/services/pull_request"
 )
 
 var _ Generator = (*PullRequestGenerator)(nil)

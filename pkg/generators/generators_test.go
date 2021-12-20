@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/argoproj-labs/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/api/v1alpha1"
 )
 
 func TestGetRelevantGenerators(t *testing.T) {

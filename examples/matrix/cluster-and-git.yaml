@@ -11,7 +11,7 @@ spec:
   - matrix:
       generators:
         - git:
-            repoURL: https://github.com/argoproj-labs/applicationset.git
+            repoURL: https://github.com/argoproj/applicationset.git
             revision: HEAD
             directories:
             - path: examples/matrix/cluster-addons/*
@@ -25,7 +25,7 @@ spec:
     spec:
       project: '{{metadata.labels.environment}}'
       source:
-        repoURL: https://github.com/argoproj-labs/applicationset.git
+        repoURL: https://github.com/argoproj/applicationset.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:

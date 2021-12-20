@@ -41,18 +41,18 @@ func TestGithubListRepos(t *testing.T) {
 	}{
 		{
 			name:     "blank protocol",
-			url:      "git@github.com:argoproj-labs/applicationset.git",
+			url:      "git@github.com:argoproj/applicationset.git",
 			branches: []string{"master"},
 		},
 		{
 			name:  "ssh protocol",
 			proto: "ssh",
-			url:   "git@github.com:argoproj-labs/applicationset.git",
+			url:   "git@github.com:argoproj/applicationset.git",
 		},
 		{
 			name:  "https protocol",
 			proto: "https",
-			url:   "https://github.com/argoproj-labs/applicationset.git",
+			url:   "https://github.com/argoproj/applicationset.git",
 		},
 		{
 			name:     "other protocol",
@@ -62,7 +62,7 @@ func TestGithubListRepos(t *testing.T) {
 		{
 			name:        "all branches",
 			allBranches: true,
-			url:         "git@github.com:argoproj-labs/applicationset.git",
+			url:         "git@github.com:argoproj/applicationset.git",
 			branches:    []string{"master", "release-0.1.0"},
 		},
 	}
