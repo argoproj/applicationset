@@ -68,16 +68,16 @@ spec:
     # ...
   template:
     metadata:
-      name: 'myapp-{{ branch }}-{{ number }}'
+      name: 'myapp-{{branch}}-{{number}}'
     spec:
       source:
         repoURL: 'https://github.com/myorg/myrepo.git'
-        targetRevision: '{{ head_sha }}'
+        targetRevision: '{{head_sha}}'
         path: kubernetes/
         helm:
           parameters:
           - name: "image.tag"
-            value: "pull-{{ head_sha }}"
+            value: "pull-{{head_sha}}"
       project: default
       destination:
         server: https://kubernetes.default.svc
@@ -90,12 +90,12 @@ spec:
 
 ## Webhook Configuration
 
-When using a Pull Request generator, ApplicationSet polls every requeueAfterSeconds(default: 30 minutes) interval to detect changes. To eliminate this delay from polling, the ApplicationSet webhook server can be configured to receive webhook events. ApplicationSet supports PullRequest webhook notifications from GitHub.
+When using a Pull Request generator, the ApplicationSet controller polls every `requeueAfterSeconds` interval (defaulting to every 30 minutes) to detect changes. To eliminate this delay from polling, the ApplicationSet webhook server can be configured to receive webhook events, which will trigger Application generation by the Pull Request generator.
 
-The configuration is almost the same as the one described in the Git Generator, but there is one difference if you want to use the Pull Request Generator as well, so if you want to use it, additionally configure the following settings.
+The configuration is almost the same as the one described [in the Git generator](Generators-Git.md), but there is one difference: if you want to use the Pull Request Generator as well, additionally configure the following settings.
 
-In section 1, add an event so that a webhook request will be sent when a pull request is created, closed, or label changed.
-Select `Let me select individual events.` and enable the checkbox for `Pull requests`.
+In section 1, _"Create the webhook in the Git provider"_, add an event so that a webhook request will be sent when a pull request is created, closed, or label changed.
+Select `Let me select individual events` and enable the checkbox for `Pull requests`.
 
 ![Add Webhook](./assets/webhook-config-pull-request.png "Add Webhook Pull Request")
 
@@ -108,4 +108,4 @@ The Pull Request Generator will requeue when the next action occurs.
 - `unlabeled`
 - `synchronized`
 
-For more information about each event, please refer to the official documentation at github.com.
+For more information about each event, please refer to the [official documentation](https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads).

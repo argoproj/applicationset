@@ -3,7 +3,7 @@
 # To adopt a new version of Argo CD:
 # 1) Update this value to the GitHub tag of the target 'argoproj/argo-cd' release (example: 'v1.8.4'). 
 # 2) Fix the errors that are reported below (by editing the version string in the file reported in the error)
-TARGET_ARGO_CD_VERSION=v2.1.0
+TARGET_ARGO_CD_VERSION=v2.2.0
 
 # Extract the Argo CD repository string from ci-build.yaml, which SHOULD contain the target Argo CD version
 VERSION_FROM_CI_BUILD=$( awk '/BEGIN-ARGO-CD-VERSION/,/END-ARGO-CD-VERSION/' .github/workflows/ci-build.yaml )
