@@ -82,8 +82,8 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 			},
 			repoError: nil,
 			expected: []map[string]string{
-				{"path": "p1/app2", "path.basename": "app2"},
-				{"path": "p1/p2/app3", "path.basename": "app3"},
+				{"path": "p1/app2", "path.basename": "app2", "path[0]": "p1"},
+				{"path": "p1/p2/app3", "path.basename": "app3", "path[0]": "p1", "path[1]": "p2"},
 			},
 			expectedError: nil,
 		},
@@ -101,7 +101,7 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 			expected: []map[string]string{
 				{"path": "app1", "path.basename": "app1"},
 				{"path": "app2", "path.basename": "app2"},
-				{"path": "p2/app3", "path.basename": "app3"},
+				{"path": "p2/app3", "path.basename": "app3", "path[0]": "p2"},
 			},
 			expectedError: nil,
 		},
@@ -119,7 +119,7 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 			expected: []map[string]string{
 				{"path": "app1", "path.basename": "app1"},
 				{"path": "app2", "path.basename": "app2"},
-				{"path": "p2/app3", "path.basename": "app3"},
+				{"path": "p2/app3", "path.basename": "app3", "path[0]": "p2"},
 			},
 			expectedError: nil,
 		},
@@ -234,6 +234,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 					"key3":                 "123",
 					"path":                 "cluster-config/production",
 					"path.basename":        "production",
+					"path[0]":              "cluster-config",
 				},
 				{
 					"cluster.owner":   "foo.bar@example.com",
@@ -241,6 +242,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 					"cluster.address": "https://kubernetes.default.svc",
 					"path":            "cluster-config/staging",
 					"path.basename":   "staging",
+					"path[0]":         "cluster-config",
 				},
 			},
 			expectedError: nil,
@@ -297,6 +299,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 					"cluster.inner.one": "two",
 					"path":              "cluster-config/production",
 					"path.basename":     "production",
+					"path[0]":           "cluster-config",
 				},
 				{
 					"cluster.owner":   "john.doe@example.com",
@@ -304,6 +307,7 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 					"cluster.address": "https://kubernetes.default.svc",
 					"path":            "cluster-config/production",
 					"path.basename":   "production",
+					"path[0]":         "cluster-config",
 				},
 			},
 			expectedError: nil,
@@ -341,6 +345,7 @@ cluster:
 					"key2.key2_2.key2_2_1": "val2_2_1",
 					"path":                 "cluster-config/production",
 					"path.basename":        "production",
+					"path[0]":              "cluster-config",
 				},
 				{
 					"cluster.owner":   "foo.bar@example.com",
@@ -348,6 +353,7 @@ cluster:
 					"cluster.address": "https://kubernetes.default.svc",
 					"path":            "cluster-config/staging",
 					"path.basename":   "staging",
+					"path[0]":         "cluster-config",
 				},
 			},
 			expectedError: nil,
@@ -377,6 +383,7 @@ cluster:
 					"cluster.inner.one": "two",
 					"path":              "cluster-config/production",
 					"path.basename":     "production",
+					"path[0]":           "cluster-config",
 				},
 				{
 					"cluster.owner":   "john.doe@example.com",
@@ -384,6 +391,7 @@ cluster:
 					"cluster.address": "https://kubernetes.default.svc",
 					"path":            "cluster-config/production",
 					"path.basename":   "production",
+					"path[0]":         "cluster-config",
 				},
 			},
 			expectedError: nil,
