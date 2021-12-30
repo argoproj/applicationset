@@ -12,6 +12,10 @@ It automatically provides the following parameter values to the Application temp
 - `metadata.labels.<key>` *(for each label in the Secret)*
 - `metadata.annotations.<key>` *(for each annotation in the Secret)*
 
+!!! note
+    Use the `nameNormalized` parameter if your cluster name contains characters (such as underscores) that are not valid for Kubernetes resource names. This prevents rendering invalid Kubernetes resources with names like `my_cluster-app1`, and instead would convert them to `my-cluster-app1`.
+
+
 Within [Argo CD cluster Secrets](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters) are data fields describing the cluster:
 ```yaml
 kind: Secret
