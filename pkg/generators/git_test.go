@@ -62,12 +62,14 @@ func TestGitGenerateParamsFromDirectories(t *testing.T) {
 			repoApps: []string{
 				"app1",
 				"app2",
-				"p1/app3",
+				"app_3",
+				"p1/app4",
 			},
 			repoError: nil,
 			expected: []map[string]string{
 				{"path": "app1", "path.basename": "app1"},
 				{"path": "app2", "path.basename": "app2"},
+				{"path": "app_3", "path.basename": "app-3"},
 			},
 			expectedError: nil,
 		},
