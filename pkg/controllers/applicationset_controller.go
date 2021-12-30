@@ -143,12 +143,12 @@ func (r *ApplicationSetReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		var message string
 		for _, v := range validateErrors {
 			message = v.Error()
-			break
+			log.Errorf("validation error found during application validation: %s", message)
 		}
 		if len(validateErrors) > 1 {
+			// Only the last message gets added to the appset status, to keep the size reasonable.
 			message = fmt.Sprintf("%s (and %d more)", message, len(validateErrors)-1)
 		}
-		log.Errorf("validation error found during application validation: %s", message)
 		_ = r.setApplicationSetStatusCondition(ctx,
 			&applicationSetInfo,
 			argoprojiov1alpha1.ApplicationSetCondition{
