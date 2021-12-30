@@ -2,7 +2,7 @@
 
 In Argo CD, managed clusters [are stored within Secrets](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters) in the Argo CD namespace. The ApplicationSet controller uses those same Secrets to generate parameters to identify and target available clusters.
 
-For each cluster registered with Argo CD, the Cluster generator produces parameters based on the list of items found within the cluster secret. 
+For each cluster registered with Argo CD, the Cluster generator produces parameters based on the list of items found within the cluster secret.
 
 It automatically provides the following parameter values to the Application template for each cluster:
 
@@ -12,11 +12,15 @@ It automatically provides the following parameter values to the Application temp
 - `metadata.labels.<key>` *(for each label in the Secret)*
 - `metadata.annotations.<key>` *(for each annotation in the Secret)*
 
+!!! note
+    Use the `nameNormalized` parameter if your cluster name contains characters (such as underscores) that are not valid for Kubernetes resource names. This prevents rendering invalid Kubernetes resources with names like `my_cluster-app1`, and instead would convert them to `my-cluster-app1`.
+
+
 Within [Argo CD cluster Secrets](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters) are data fields describing the cluster:
 ```yaml
 kind: Secret
 data:
-  # Within Kubernetes these fields are actually encoded in Base64; they are decoded here for convenience. 
+  # Within Kubernetes these fields are actually encoded in Base64; they are decoded here for convenience.
   # (They are likewise decoded when passed as parameters by the Cluster generator)
   config: "{'tlsClientConfig':{'insecure':false}}"
   name: "in-cluster2"
@@ -106,7 +110,7 @@ However, if you do wish to target both local and non-local clusters, while also 
 
 1. Within the Argo CD web UI, select *Settings*, then *Clusters*.
 2. Select your local cluster, usually named `in-cluster`.
-3. Click the *Edit* button, and change the the *NAME* of the cluster to another value, for example `in-cluster-local`. Any other value here is fine. 
+3. Click the *Edit* button, and change the the *NAME* of the cluster to another value, for example `in-cluster-local`. Any other value here is fine.
 4. Leave all other fields unchanged.
 5. Click *Save*.
 
@@ -125,13 +129,13 @@ spec:
         matchLabels:
           type: 'staging'
       # A key-value map for arbitrary parameters
-      values: 
+      values:
         revision: HEAD # staging clusters use HEAD branch
   - clusters:
       selector:
         matchLabels:
           type: 'production'
-      values: 
+      values:
         # production uses a different revision value, for 'stable' branch
         revision: stable
   template:
@@ -146,10 +150,10 @@ spec:
         path: guestbook
       destination:
         server: '{{server}}'
-        namespace: guestbook        
+        namespace: guestbook
 ```
 
-In this example the `revision` value from the `generators.clusters` fields is passed into the template as `values.revision`, containing either `HEAD` or `stable` (based on which generator generated the set of parameters). 
+In this example the `revision` value from the `generators.clusters` fields is passed into the template as `values.revision`, containing either `HEAD` or `stable` (based on which generator generated the set of parameters).
 
 !!! note
     The `values.` prefix is always prepended to values provided via `generators.clusters.values` field. Ensure you include this prefix in the parameter name within the `template` when using it.

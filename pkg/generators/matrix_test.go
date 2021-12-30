@@ -39,8 +39,8 @@ func TestMatrixGenerate(t *testing.T) {
 				},
 			},
 			expected: []map[string]string{
-				{"path": "app1", "path.basename": "app1", "cluster": "Cluster", "url": "Url"},
-				{"path": "app2", "path.basename": "app2", "cluster": "Cluster", "url": "Url"},
+				{"path": "app1", "path.basename": "app1", "path.basenameNormalized": "app1", "cluster": "Cluster", "url": "Url"},
+				{"path": "app2", "path.basename": "app2", "path.basenameNormalized": "app2", "cluster": "Cluster", "url": "Url"},
 			},
 		},
 		{
@@ -137,12 +137,14 @@ func TestMatrixGenerate(t *testing.T) {
 				}
 				mock.On("GenerateParams", &gitGeneratorSpec, appSet).Return([]map[string]string{
 					{
-						"path":          "app1",
-						"path.basename": "app1",
+						"path":                    "app1",
+						"path.basename":           "app1",
+						"path.basenameNormalized": "app1",
 					},
 					{
-						"path":          "app2",
-						"path.basename": "app2",
+						"path":                    "app2",
+						"path.basename":           "app2",
+						"path.basenameNormalized": "app2",
 					},
 				}, nil)
 
