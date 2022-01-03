@@ -23,6 +23,7 @@ spec:
           name: argocd-applicationset-controller
           ports:
           - containerPort: 7000
+            name: webhook
           env:
             - name: NAMESPACE
               valueFrom:
