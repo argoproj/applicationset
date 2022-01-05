@@ -15,7 +15,7 @@ spec:
     labelSelector:
       matchLabels:       # OPTIONAL
         duck: spotted
-      matchExpression:   # OPTIONAL
+      matchExpressions:  # OPTIONAL
       - key: duck
         operator: In
         values:

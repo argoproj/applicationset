@@ -237,7 +237,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:         "duck type generator labelSelector.matchExpression",
+			name:         "duck type generator labelSelector.matchExpressions",
 			resourceName: "",
 			labelSelector: metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{
 				{
@@ -256,7 +256,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:         "duck type generator resourceName and labelSelector.matchExpression",
+			name:         "duck type generator resourceName and labelSelector.matchExpressions",
 			resourceName: resourceName,
 			labelSelector: metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{
 				{
