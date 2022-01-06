@@ -158,9 +158,11 @@ func main() {
 	webhookHandler, err := utils.NewWebhookHandler(namespace, argoSettingsMgr, mgr.GetClient())
 	if err != nil {
 		setupLog.Error(err, "failed to create webhook handler")
-		os.Exit(1)
 	}
-	startWebhookServer(webhookHandler, webhookAddr)
+
+	if webhookHandler != nil {
+		startWebhookServer(webhookHandler, webhookAddr)
+	}
 
 	terminalGenerators := map[string]generators.Generator{
 		"List":                    generators.NewListGenerator(),
