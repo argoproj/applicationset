@@ -40,48 +40,81 @@ func NewGitlabProvider(ctx context.Context, organization string, token string, u
 }
 
 func (g *GitlabProvider) ListRepos(ctx context.Context, cloneProtocol string) ([]*Repository, error) {
-	opt := &gitlab.ListGroupProjectsOptions{
-		ListOptions:      gitlab.ListOptions{PerPage: 100},
-		IncludeSubgroups: &g.includeSubgroups,
-	}
 	repos := []*Repository{}
-	for {
-		gitlabRepos, resp, err := g.client.Groups.ListGroupProjects(g.organization, opt)
-		if err != nil {
-			return nil, fmt.Errorf("error listing projects for %s: %v", g.organization, err)
+	if g.organization == "" {
+		opt := &gitlab.ListProjectsOptions{
+			ListOptions: gitlab.ListOptions{PerPage: 100},
 		}
-		for _, gitlabRepo := range gitlabRepos {
-			var url string
-			switch cloneProtocol {
-			// Default to SSH if unspecified (i.e. if "").
-			case "", "ssh":
-				url = gitlabRepo.SSHURLToRepo
-			case "https":
-				url = gitlabRepo.HTTPURLToRepo
-			default:
-				return nil, fmt.Errorf("unknown clone protocol for Gitlab %v", cloneProtocol)
-			}
-
-			branches, err := g.listBranches(ctx, gitlabRepo)
+		for {
+			gitlabRepos, resp, err := g.client.Projects.ListProjects(opt)
 			if err != nil {
-				return nil, fmt.Errorf("error listing branches for %s/%s: %v", g.organization, gitlabRepo.Name, err)
+				return nil, fmt.Errorf("error listing all projects")
 			}
+			for _, gitlabRepo := range gitlabRepos {
+				reposToAdd, err := g.getRepo(ctx, gitlabRepo, cloneProtocol)
+				if err != nil {
+					return nil, err
+				}
+				repos = append(repos, reposToAdd...)
+			}
+			if resp.CurrentPage >= resp.TotalPages {
+				break
+			}
+			opt.Page = resp.NextPage
+		}
+	} else {
+		opt := &gitlab.ListGroupProjectsOptions{
+			ListOptions:      gitlab.ListOptions{PerPage: 100},
+			IncludeSubgroups: &g.includeSubgroups,
+		}
+		for {
+			gitlabRepos, resp, err := g.client.Groups.ListGroupProjects(g.organization, opt)
+			if err != nil {
+				return nil, fmt.Errorf("error listing projects for %s: %v", g.organization, err)
+			}
+			for _, gitlabRepo := range gitlabRepos {
+				reposToAdd, err := g.getRepo(ctx, gitlabRepo, cloneProtocol)
+				if err != nil {
+					return nil, err
+				}
+				repos = append(repos, reposToAdd...)
+			}
+			if resp.CurrentPage >= resp.TotalPages {
+				break
+			}
+			opt.Page = resp.NextPage
+		}
+	}
+	return repos, nil
+}
 
-			for _, branch := range branches {
-				repos = append(repos, &Repository{
-					Organization: gitlabRepo.Namespace.FullPath,
-					Repository:   gitlabRepo.Path,
-					URL:          url,
-					Branch:       branch.Name,
-					SHA:          branch.Commit.ID,
-					Labels:       gitlabRepo.TagList,
-				})
-			}
-		}
-		if resp.CurrentPage >= resp.TotalPages {
-			break
-		}
-		opt.Page = resp.NextPage
+func (g *GitlabProvider) getRepo(ctx context.Context, gitlabRepo *gitlab.Project, cloneProtocol string) ([]*Repository, error) {
+	repos := []*Repository{}
+	var url string
+	switch cloneProtocol {
+	// Default to SSH if unspecified (i.e. if "").
+	case "", "ssh":
+		url = gitlabRepo.SSHURLToRepo
+	case "https":
+		url = gitlabRepo.HTTPURLToRepo
+	default:
+		return nil, fmt.Errorf("unknown clone protocol for Gitlab %v", cloneProtocol)
+	}
+
+	branches, err := g.listBranches(ctx, gitlabRepo)
+	if err != nil {
+		return nil, fmt.Errorf("error listing branches for %s/%s: %v", g.organization, gitlabRepo.Name, err)
+	}
+
+	for _, branch := range branches {
+		repos = append(repos, &Repository{
+			Organization: gitlabRepo.Namespace.FullPath,
+			Repository:   gitlabRepo.Path,
+			URL:          url,
+			Branch:       branch.Name,
+			SHA:          branch.Commit.ID,
+			Labels:       gitlabRepo.TagList,
+		})
 	}
 	return repos, nil
 }
