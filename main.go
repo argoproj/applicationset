@@ -72,6 +72,7 @@ func init() {
 func main() {
 	var metricsAddr string
 	var probeBindAddr string
+	var webhookAddr string
 	var enableLeaderElection bool
 	var namespace string
 	var argocdRepoServer string
@@ -83,6 +84,7 @@ func main() {
 
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeBindAddr, "probe-addr", ":8081", "The address the probe endpoint binds to.")
+	flag.StringVar(&webhookAddr, "webhook-addr", ":7000", "The address the webhook endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -156,9 +158,11 @@ func main() {
 	webhookHandler, err := utils.NewWebhookHandler(namespace, argoSettingsMgr, mgr.GetClient())
 	if err != nil {
 		setupLog.Error(err, "failed to create webhook handler")
-		os.Exit(1)
 	}
-	startWebhookServer(webhookHandler)
+
+	if webhookHandler != nil {
+		startWebhookServer(webhookHandler, webhookAddr)
+	}
 
 	terminalGenerators := map[string]generators.Generator{
 		"List":                    generators.NewListGenerator(),
@@ -232,12 +236,12 @@ func setLoggingLevel(debug bool, logLevel string) {
 	}
 }
 
-func startWebhookServer(webhookHandler *utils.WebhookHandler) {
+func startWebhookServer(webhookHandler *utils.WebhookHandler, webhookAddr string) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/webhook", webhookHandler.Handler)
 	go func() {
 		setupLog.Info("Starting webhook server")
-		err := http.ListenAndServe(":7000", mux)
+		err := http.ListenAndServe(webhookAddr, mux)
 		if err != nil {
 			setupLog.Error(err, "failed to start webhook server")
 			os.Exit(1)
