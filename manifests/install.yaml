@@ -13726,6 +13726,7 @@ spec:
     spec:
       containers:
       - command:
+        - entrypoint.sh
         - applicationset-controller
         env:
         - name: NAMESPACE

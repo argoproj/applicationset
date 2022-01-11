@@ -82,6 +82,7 @@ spec:
     spec:
       containers:
       - command:
+        - entrypoint.sh
         - applicationset-controller
         # Insert new parameters here, for example:
         # --policy create-only

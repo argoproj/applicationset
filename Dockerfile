@@ -22,7 +22,7 @@ FROM docker.io/library/ubuntu:21.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get dist-upgrade -y && \
-  apt-get install -y git git-lfs gpg && \
+  apt-get install -y git git-lfs gpg tini && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists /var/cache/apt/archives /tmp/* /var/tmp/*
 
@@ -30,6 +30,8 @@ RUN apt-get update && apt-get dist-upgrade -y && \
 COPY hack/from-argo-cd/git-ask-pass.sh /usr/local/bin/git-ask-pass.sh
 COPY hack/from-argo-cd/gpg-wrapper.sh /usr/local/bin/gpg-wrapper.sh
 COPY hack/from-argo-cd/git-verify-wrapper.sh /usr/local/bin/git-verify-wrapper.sh
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Support for mounting configuration from a configmap
 RUN mkdir -p /app/config/ssh && \
