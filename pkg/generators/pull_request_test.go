@@ -10,7 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	argoprojiov1alpha1 "githargoproj/applplicationset/api/v1alpha1"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	pullrequest "github.com/argoproj/applicationset/pkg/services/pull_request"
 )
 
