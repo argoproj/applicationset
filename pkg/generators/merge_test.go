@@ -60,7 +60,7 @@ func TestMergeGenerate(t *testing.T) {
 			name:           "no generators",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{},
 			mergeKeys:      []string{"b"},
-			expectedErr:    LessThanTwoGeneratorsInMerge,
+			expectedErr:    ErrLessThanTwoGeneratorsInMerge,
 		},
 		{
 			name: "one generator",
@@ -68,7 +68,7 @@ func TestMergeGenerate(t *testing.T) {
 				*getNestedListGenerator(`{"a": "1_1","b": "same","c": "1_3"}`),
 			},
 			mergeKeys:   []string{"b"},
-			expectedErr: LessThanTwoGeneratorsInMerge,
+			expectedErr: ErrLessThanTwoGeneratorsInMerge,
 		},
 		{
 			name: "happy flow - generate paramSets",
@@ -108,12 +108,12 @@ func TestMergeGenerate(t *testing.T) {
 			name: "merge nested matrix with some lists",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
-					Matrix: &argoprojiov1alpha1.NestedMatrixGenerator{
+					Matrix: toAPIExtensionsJSON(t, &argoprojiov1alpha1.NestedMatrixGenerator{
 						Generators: []argoprojiov1alpha1.ApplicationSetTerminalGenerator{
 							getTerminalListGeneratorMultiple([]string{`{"a": "1"}`, `{"a": "2"}`}),
 							getTerminalListGeneratorMultiple([]string{`{"b": "1"}`, `{"b": "2"}`}),
 						},
-					},
+					}),
 				},
 				*getNestedListGenerator(`{"a": "1", "b": "1", "c": "added"}`),
 			},
@@ -129,13 +129,13 @@ func TestMergeGenerate(t *testing.T) {
 			name: "merge nested merge with some lists",
 			baseGenerators: []argoprojiov1alpha1.ApplicationSetNestedGenerator{
 				{
-					Merge: &argoprojiov1alpha1.NestedMergeGenerator{
+					Merge: toAPIExtensionsJSON(t, &argoprojiov1alpha1.NestedMergeGenerator{
 						MergeKeys: []string{"a"},
 						Generators: []argoprojiov1alpha1.ApplicationSetTerminalGenerator{
 							getTerminalListGeneratorMultiple([]string{`{"a": "1", "b": "1"}`, `{"a": "2", "b": "2"}`}),
 							getTerminalListGeneratorMultiple([]string{`{"a": "1", "b": "3", "c": "added"}`, `{"a": "3", "b": "2"}`}), // First gets merged, second gets ignored
 						},
-					},
+					}),
 				},
 				*getNestedListGenerator(`{"a": "1", "b": "3", "d": "added"}`),
 			},
@@ -195,6 +195,19 @@ func TestMergeGenerate(t *testing.T) {
 	}
 }
 
+func toAPIExtensionsJSON(t *testing.T, g interface{}) *apiextensionsv1.JSON {
+
+	resVal, err := json.Marshal(g)
+	if err != nil {
+		t.Error("unable to unmarshal json", g)
+		return nil
+	}
+
+	res := &apiextensionsv1.JSON{Raw: resVal}
+
+	return res
+}
+
 func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 	testCases := []struct {
 		name        string
@@ -206,7 +219,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 		{
 			name:        "no merge keys",
 			mergeKeys:   []string{},
-			expectedErr: NoMergeKeys,
+			expectedErr: ErrNoMergeKeys,
 		},
 		{
 			name:      "no paramSets",
@@ -226,7 +239,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 			name:        "simple key, non-unique paramSets",
 			mergeKeys:   []string{"key"},
 			paramSets:   []map[string]string{{"key": "a"}, {"key": "b"}, {"key": "b"}},
-			expectedErr: fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, `{"key":"b"}`),
+			expectedErr: fmt.Errorf("%w. Duplicate key was %s", ErrNonUniqueParamSets, `{"key":"b"}`),
 		},
 		{
 			name:      "simple key, duplicated key name, unique paramSets",
@@ -241,7 +254,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 			name:        "simple key, duplicated key name, non-unique paramSets",
 			mergeKeys:   []string{"key", "key"},
 			paramSets:   []map[string]string{{"key": "a"}, {"key": "b"}, {"key": "b"}},
-			expectedErr: fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, `{"key":"b"}`),
+			expectedErr: fmt.Errorf("%w. Duplicate key was %s", ErrNonUniqueParamSets, `{"key":"b"}`),
 		},
 		{
 			name:      "compound key, unique paramSets",
@@ -279,7 +292,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 				{"key1": "a", "key2": "a"},
 				{"key1": "b", "key2": "a"},
 			},
-			expectedErr: fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, `{"key1":"a","key2":"a"}`),
+			expectedErr: fmt.Errorf("%w. Duplicate key was %s", ErrNonUniqueParamSets, `{"key1":"a","key2":"a"}`),
 		},
 		{
 			name:      "compound key, duplicate key names, non-unique paramSets",
@@ -289,7 +302,7 @@ func TestParamSetsAreUniqueByMergeKeys(t *testing.T) {
 				{"key1": "a", "key2": "a"},
 				{"key1": "b", "key2": "a"},
 			},
-			expectedErr: fmt.Errorf("%w. Duplicate key was %s", NonUniqueParamSets, `{"key1":"a","key2":"a"}`),
+			expectedErr: fmt.Errorf("%w. Duplicate key was %s", ErrNonUniqueParamSets, `{"key1":"a","key2":"a"}`),
 		},
 	}
 
