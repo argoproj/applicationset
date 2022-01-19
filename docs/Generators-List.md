@@ -21,14 +21,14 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/argoproj-labs/applicationset.git
+        repoURL: https://github.com/argoproj/applicationset.git
         targetRevision: HEAD
         path: examples/list-generator/guestbook/{{cluster}}
       destination:
         server: '{{url}}'
         namespace: guestbook
 ```
-(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/list-generator).*)
+(*The full example can be found [here](https://github.com/argoproj/applicationset/tree/master/examples/list-generator).*)
 
 In this example, the List generator passes the `url` and `cluster` fields as parameters into the template. If we wanted to add a second environment, we could uncomment the second element and the ApplicationSet controller would automatically target it with the defined application.
 

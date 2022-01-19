@@ -11,6 +11,8 @@ This guide assumes you are familiar with Argo CD and its basic concepts. See the
 
 There are a few options for installing the ApplicationSet controller.
 
+**Note:** Starting `v2.3` of Argo CD, we don't need to install ApplicationSet Controller separately. It would be instead as part of Argo CD installation.
+
 ### A) Install ApplicationSet into an existing Argo CD install
 
 The ApplicationSet controller *must* be installed into the same namespace as the Argo CD it is targetting.
@@ -18,7 +20,7 @@ The ApplicationSet controller *must* be installed into the same namespace as the
 Presuming that Argo CD is installed into the `argocd` namespace, run the following command:
 
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.3.0/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/v0.3.0/manifests/install.yaml
 ```
 
 Once installed, the ApplicationSet controller requires no additional setup.
@@ -38,7 +40,7 @@ You may instead install both the ApplicationSet controller and the latest stable
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.3.0/manifests/install-with-argo-cd.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/v0.3.0/manifests/install-with-argo-cd.yaml
 ```
 
 Once installed, follow the [Argo CD Getting Started](https://argo-cd.readthedocs.io/en/stable/getting_started/) to access Argo CD and log-in to the Web UI.
@@ -49,14 +51,14 @@ The ApplicationSet controller requires no additional setup.
 
 Development builds of the ApplicationSet controller can be installed by running the following command:
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/master/manifests/install.yaml
 ```
 
 With this option you will need to ensure that Argo CD is already installed into the `argocd` namespace.
 
 How it works:
 
-- After each successful commit to *argoproj-labs/applicationset* `master` branch, a GitHub action will run that performs a container build/push to [`argoproj/argocd-applicationset:latest`](https://quay.io/repository/argoproj/argocd-applicationset?tab=tags )
+- After each successful commit to *argoproj/applicationset* `master` branch, a GitHub action will run that performs a container build/push to [`argoproj/argocd-applicationset:latest`](https://quay.io/repository/argoproj/argocd-applicationset?tab=tags )
 - [Documentation for the `master`-branch-based developer builds](https://argocd-applicationset.readthedocs.io/en/master/)  is available from Read the Docs.
 
 !!! warning
@@ -67,7 +69,7 @@ See the `master` branch [Read the Docs](https://argocd-applicationset.readthedoc
 
 ### D) Customized install using Kustomize
 
-To extend or customize the ApplicationSet controller installation, [Kustomize](https://kustomize.io/) may be used with the existing namespace install [manifests/namespace-install/kustomize.yaml](https://github.com/argoproj-labs/applicationset/blob/master/manifests/namespace-install/kustomization.yaml) file.
+To extend or customize the ApplicationSet controller installation, [Kustomize](https://kustomize.io/) may be used with the existing namespace install [manifests/namespace-install/kustomize.yaml](https://github.com/argoproj/applicationset/blob/master/manifests/namespace-install/kustomization.yaml) file.
 
 ## Upgrading to a Newer Release
 

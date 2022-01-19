@@ -3,7 +3,7 @@ package generators
 import (
 	"reflect"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	"github.com/imdario/mergo"
 	log "github.com/sirupsen/logrus"
 )

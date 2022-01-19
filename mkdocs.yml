@@ -1,7 +1,7 @@
 
 site_name: ApplicationSet Controller
 site_url: 'https://argocd-applicationset.readthedocs.io/'
-repo_url: https://github.com/argoproj-labs/applicationset
+repo_url: https://github.com/argoproj/applicationset
 use_directory_urls: true
 strict: true
 theme:

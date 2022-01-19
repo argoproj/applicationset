@@ -41,18 +41,18 @@ func TestGithubListRepos(t *testing.T) {
 	}{
 		{
 			name:     "blank protocol",
-			url:      "git@github.com:argoproj-labs/applicationset.git",
+			url:      "git@github.com:argoproj/applicationset.git",
 			branches: []string{"master"},
 		},
 		{
 			name:  "ssh protocol",
 			proto: "ssh",
-			url:   "git@github.com:argoproj-labs/applicationset.git",
+			url:   "git@github.com:argoproj/applicationset.git",
 		},
 		{
 			name:  "https protocol",
 			proto: "https",
-			url:   "https://github.com/argoproj-labs/applicationset.git",
+			url:   "https://github.com/argoproj/applicationset.git",
 		},
 		{
 			name:     "other protocol",
@@ -62,14 +62,14 @@ func TestGithubListRepos(t *testing.T) {
 		{
 			name:        "all branches",
 			allBranches: true,
-			url:         "git@github.com:argoproj-labs/applicationset.git",
+			url:         "git@github.com:argoproj/applicationset.git",
 			branches:    []string{"master", "release-0.1.0"},
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			provider, _ := NewGithubProvider(context.Background(), "argoproj-labs", "", "", c.allBranches)
+			provider, _ := NewGithubProvider(context.Background(), "argoproj", "", "", c.allBranches)
 			rawRepos, err := provider.ListRepos(context.Background(), c.proto)
 			if c.hasError {
 				assert.NotNil(t, err)
@@ -96,9 +96,9 @@ func TestGithubListRepos(t *testing.T) {
 }
 
 func TestGithubHasPath(t *testing.T) {
-	host, _ := NewGithubProvider(context.Background(), "argoproj-labs", "", "", false)
+	host, _ := NewGithubProvider(context.Background(), "argoproj", "", "", false)
 	repo := &Repository{
-		Organization: "argoproj-labs",
+		Organization: "argoproj",
 		Repository:   "applicationset",
 		Branch:       "master",
 	}

@@ -12,7 +12,7 @@ import (
 
 	"testing"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 
 	"github.com/stretchr/testify/assert"

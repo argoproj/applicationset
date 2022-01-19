@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
+	. "github.com/argoproj/applicationset/test/e2e/fixture/applicationsets/utils"
 )
 
 // Context implements the "given" part of given/when/then

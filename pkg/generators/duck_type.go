@@ -10,8 +10,8 @@ import (
 	"github.com/argoproj/argo-cd/v2/util/settings"
 	log "github.com/sirupsen/logrus"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/utils"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/pkg/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime/schema"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

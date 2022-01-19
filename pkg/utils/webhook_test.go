@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/argoproj-labs/applicationset/api/v1alpha1"
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/api/v1alpha1"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/common"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	argosettings "github.com/argoproj/argo-cd/v2/util/settings"

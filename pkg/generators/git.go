@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/services"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/pkg/services"
 	"github.com/jeremywohl/flatten"
 	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"

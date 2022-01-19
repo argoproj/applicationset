@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/argoproj-labs/applicationset/common"
+	"github.com/argoproj/applicationset/common"
 
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"

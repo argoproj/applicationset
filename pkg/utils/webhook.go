@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/common"
+	"github.com/argoproj/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/common"
 	argosettings "github.com/argoproj/argo-cd/v2/util/settings"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"

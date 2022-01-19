@@ -45,7 +45,7 @@ spec:
     spec:
       project: '{{metadata.labels.environment}}'
       source:
-        repoURL: https://github.com/argoproj-labs/applicationset.git
+        repoURL: https://github.com/argoproj/applicationset.git
         targetRevision: HEAD
         path: app
         helm:

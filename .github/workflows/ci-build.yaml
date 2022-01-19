@@ -100,11 +100,11 @@ jobs:
       - build-go
     steps:
       - name: Create checkout directory
-        run: mkdir -p ~/go/src/github.com/argoproj-labs
+        run: mkdir -p ~/go/src/github.com/argoproj
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Create symlink in GOPATH
-        run: ln -s $(pwd) ~/go/src/github.com/argoproj-labs
+        run: ln -s $(pwd) ~/go/src/github.com/argoproj
       - name: Setup Golang
         uses: actions/setup-go@v2
         with:

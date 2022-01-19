@@ -32,7 +32,7 @@ metadata:
 spec:
   generators:
   - git:
-      repoURL: https://github.com/argoproj-labs/applicationset.git
+      repoURL: https://github.com/argoproj/applicationset.git
       revision: HEAD
       directories:
       - path: examples/git-generator-directory/cluster-addons/*
@@ -42,14 +42,14 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/argoproj-labs/applicationset.git
+        repoURL: https://github.com/argoproj/applicationset.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{path.basename}}'
 ```
-(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-directory).*)
+(*The full example can be found [here](https://github.com/argoproj/applicationset/tree/master/examples/git-generator-directory).*)
 
 The generator parameters are:
 
@@ -76,7 +76,7 @@ metadata:
 spec:
   generators:
   - git:
-      repoURL: https://github.com/argoproj-labs/applicationset.git
+      repoURL: https://github.com/argoproj/applicationset.git
       revision: HEAD
       directories:
       - path: examples/git-generator-directory/excludes/cluster-addons/*
@@ -88,14 +88,14 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/argoproj-labs/applicationset.git
+        repoURL: https://github.com/argoproj/applicationset.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{path.basename}}'
 ```
-(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-directory/excludes).*)
+(*The full example can be found [here](https://github.com/argoproj/applicationset/tree/master/examples/git-generator-directory/excludes).*)
 
 This example excludes the `exclude-helm-guestbook` directory from the list of directories scanned for this `ApplictionSet` resource.
 
@@ -200,7 +200,7 @@ metadata:
 spec:
   generators:
   - git:
-      repoURL: https://github.com/argoproj-labs/applicationset.git
+      repoURL: https://github.com/argoproj/applicationset.git
       revision: HEAD
       files:
       - path: "examples/git-generator-files-discovery/cluster-config/**/config.json"
@@ -210,14 +210,14 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/argoproj-labs/applicationset.git
+        repoURL: https://github.com/argoproj/applicationset.git
         targetRevision: HEAD
         path: "examples/git-generator-files-discovery/apps/guestbook"
       destination:
         server: '{{cluster.address}}'
         namespace: guestbook
 ```
-(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/git-generator-files-discovery).*)
+(*The full example can be found [here](https://github.com/argoproj/applicationset/tree/master/examples/git-generator-files-discovery).*)
 
 Any `config.json` files found under the `cluster-config` directory will be parameterized based on the `path` wildcard pattern specified. Within each file JSON fields are flattened into key/value pairs, with this ApplicationSet example using the `cluster.address` as `cluster.name` parameters in the template.
 

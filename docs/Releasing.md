@@ -13,7 +13,7 @@ Update the CHANGELOG.md file on the `master` branch with a change log for the ne
 
 ```sh
 # Ensure you have the latest copy of source branch (in this case, master)
-git remote add upstream git@github.com:argoproj-labs/applicationset # Use a different upstream here for testing purposes
+git remote add upstream git@github.com:argoproj/applicationset # Use a different upstream here for testing purposes
 git fetch upstream
 git checkout master
 git reset --hard upstream/master
@@ -35,7 +35,7 @@ Make a note of the most recent commit for the next step.
 
 #### 4) Verify that the GitHub action jobs fully passed for the commit
 
-Visit `https://github.com/argoproj-labs/applicationset/commit/(COMMIT ID)`
+Visit `https://github.com/argoproj/applicationset/commit/(COMMIT ID)`
 
 Verify there is a green check mark at the top left hand corner, indicating that each of the jobs of the GitHub action successfully passed. If not, you should be able to click the icon to see what failed. 
 
@@ -48,9 +48,9 @@ For all `kubectl` references (there are 2, as of this writing) replace `master` 
 Example:
 ```sh
 # Replace
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/master/manifests/install.yaml
 # with
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/v0.1.0/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/v0.1.0/manifests/install.yaml
 ```
 
 These new URLs won't (yet) work, because we haven't tagged the release yet, but dont worry: these URLs will be verified later on, in the release checklist.
@@ -82,7 +82,7 @@ git push upstream (RELEASE_BRANCH) (TARGET_TAG)
 
 #### 8) Verify that the test results are green for the pushed commit 
 
-Visit `https://github.com/argoproj-labs/applicationset/commit/(COMMIT ID)` where COMMIT ID is the next commit. Wait for the GitHub actions to complete succesfully.
+Visit `https://github.com/argoproj/applicationset/commit/(COMMIT ID)` where COMMIT ID is the next commit. Wait for the GitHub actions to complete succesfully.
 
 #### 9) Push the container image to the target container registry
 
@@ -155,7 +155,7 @@ Finally, push the branch and open up a PR for the change.
 
 Create a release checklist for this release, based on the [release checklist template](Release-Checklist-Template.md).
 
-**Example**: See [this issue](https://github.com/argoproj-labs/applicationset/issues/181) for how this was done for the 0.1.0 release.
+**Example**: See [this issue](https://github.com/argoproj/applicationset/issues/181) for how this was done for the 0.1.0 release.
 
 Now, go through the checklist one item at a time, and ensure that the release meets all criteria.
 

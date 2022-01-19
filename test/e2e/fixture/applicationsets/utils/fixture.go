@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/argoproj-labs/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/api/v1alpha1"
 	log "github.com/sirupsen/logrus"
 
 	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned"

@@ -11,7 +11,7 @@ First, follow the instructions [on the release process RTD docs page](https://ar
 Once complete, this is a set of checks to perform once you have a commit, tags, release, docs, and container image.
 
 #### Once you have completed a release, the following should be true:
-- [ ] A `release-(numbered version)` branch exists in `argoproj-labs/applicationset`
+- [ ] A `release-(numbered version)` branch exists in `argoproj/applicationset`
     - example: 'release-0.1.0'
     - [ ] The release branch name should NOT contain the letter `v `(e.g. BAD: `release-v0.1.0`, not like this!)
     - [ ] Confirm that, within the GitHub web UI, the branch says `This branch is 1 commit ahead of master. `, with that one commit being the release commit described below.
@@ -28,7 +28,7 @@ Once complete, this is a set of checks to perform once you have a commit, tags, 
         - [ ] `docs/Getting-Started.md`
         - [ ] `hack/verify-argo-cd-versions.sh`
         - [ ] `manifests/namespace-install-with-argo-cd/kustomization.yaml`
-- [ ] A `v(version)` tag exists in the `argoproj-labs/applicationset` repo
+- [ ] A `v(version)` tag exists in the `argoproj/applicationset` repo
     - Example: `v0.1.0`
     - [ ] Ensure it matches the release commit above
 - [ ] A `stable` tag exists, and points to the same release commit as above.
