@@ -11,9 +11,11 @@ import (
 
 var _ Generator = (*MatrixGenerator)(nil)
 
-var MoreThanTwoGenerators = errors.New("found more than two generators, Matrix support only two")
-var LessThanTwoGenerators = errors.New("found less than two generators, Matrix support only two")
-var MoreThenOneInnerGenerators = errors.New("found more than one generator in matrix.Generators")
+var (
+	ErrMoreThanTwoGenerators      = errors.New("found more than two generators, Matrix support only two")
+	ErrLessThanTwoGenerators      = errors.New("found less than two generators, Matrix support only two")
+	ErrMoreThenOneInnerGenerators = errors.New("found more than one generator in matrix.Generators")
+)
 
 type MatrixGenerator struct {
 	// The inner generators supported by the matrix generator (cluster, git, list...)
@@ -34,11 +36,11 @@ func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 	}
 
 	if len(appSetGenerator.Matrix.Generators) < 2 {
-		return nil, LessThanTwoGenerators
+		return nil, ErrLessThanTwoGenerators
 	}
 
 	if len(appSetGenerator.Matrix.Generators) > 2 {
-		return nil, MoreThanTwoGenerators
+		return nil, ErrMoreThanTwoGenerators
 	}
 
 	res := []map[string]string{}
@@ -68,12 +70,26 @@ func (m *MatrixGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.App
 func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.ApplicationSetNestedGenerator, appSet *argoprojiov1alpha1.ApplicationSet) ([]map[string]string, error) {
 	var matrix *argoprojiov1alpha1.MatrixGenerator
 	if appSetBaseGenerator.Matrix != nil {
-		matrix = appSetBaseGenerator.Matrix.ToMatrixGenerator()
+		// Since nested matrix generator is represented as a JSON object in the CRD, we unmarshall it back to a Go struct here.
+		nestedMatrix, err := argoprojiov1alpha1.ToNestedMatrixGenerator(appSetBaseGenerator.Matrix)
+		if err != nil {
+			return nil, fmt.Errorf("unable to unmarshall nested matrix generator: %v", err)
+		}
+		if nestedMatrix != nil {
+			matrix = nestedMatrix.ToMatrixGenerator()
+		}
 	}
 
 	var mergeGenerator *argoprojiov1alpha1.MergeGenerator
 	if appSetBaseGenerator.Merge != nil {
-		mergeGenerator = appSetBaseGenerator.Merge.ToMergeGenerator()
+		// Since nested merge generator is represented as a JSON object in the CRD, we unmarshall it back to a Go struct here.
+		nestedMerge, err := argoprojiov1alpha1.ToNestedMergeGenerator(appSetBaseGenerator.Merge)
+		if err != nil {
+			return nil, fmt.Errorf("unable to unmarshall nested merge generator: %v", err)
+		}
+		if nestedMerge != nil {
+			mergeGenerator = nestedMerge.ToMergeGenerator()
+		}
 	}
 
 	t, err := Transform(
@@ -100,7 +116,7 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 	}
 
 	if len(t) > 1 {
-		return nil, MoreThenOneInnerGenerators
+		return nil, ErrMoreThenOneInnerGenerators
 	}
 
 	return t[0].Params, nil

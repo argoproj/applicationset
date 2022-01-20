@@ -1,6 +1,7 @@
 package applicationsets
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -202,7 +203,7 @@ func TestClusterMergeGenerator(t *testing.T) {
 							MergeKeys: []string{"name", "path.basename"},
 							Generators: []v1alpha1.ApplicationSetNestedGenerator{
 								{
-									Matrix: &v1alpha1.NestedMatrixGenerator{
+									Matrix: toAPIExtensionsJSON(t, &v1alpha1.NestedMatrixGenerator{
 										Generators: []v1alpha1.ApplicationSetTerminalGenerator{
 											{
 												Clusters: &v1alpha1.ClusterGenerator{
@@ -227,7 +228,7 @@ func TestClusterMergeGenerator(t *testing.T) {
 												},
 											},
 										},
-									},
+									}),
 								},
 								{
 									List: &v1alpha1.ListGenerator{
@@ -275,4 +276,17 @@ func TestClusterMergeGenerator(t *testing.T) {
 		// Delete the ApplicationSet, and verify it deletes the Applications
 		When().
 		Delete().Then().Expect(ApplicationsDoNotExist(expectedAppsNewNamespace))
+}
+
+func toAPIExtensionsJSON(t *testing.T, g interface{}) *apiextensionsv1.JSON {
+
+	resVal, err := json.Marshal(g)
+	if err != nil {
+		t.Error("unable to unmarshal json", g)
+		return nil
+	}
+
+	res := &apiextensionsv1.JSON{Raw: resVal}
+
+	return res
 }
