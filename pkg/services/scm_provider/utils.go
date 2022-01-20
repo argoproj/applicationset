@@ -87,14 +87,52 @@ func ListRepos(ctx context.Context, provider SCMProviderService, filters []argop
 		return nil, err
 	}
 
-	// Special case, if we have no filters, allow everything.
-	if len(compiledFilters) == 0 {
+	repoFilters := getApplicableFilters(compiledFilters, false)
+	if len(repoFilters) == 0 {
+		repos, err := getBranches(ctx, provider, repos, compiledFilters)
+		if err != nil {
+			return nil, err
+		}
 		return repos, nil
 	}
 
 	filteredRepos := make([]*Repository, 0, len(repos))
 	for _, repo := range repos {
-		for _, filter := range compiledFilters {
+		for _, filter := range repoFilters {
+			matches, err := matchFilter(ctx, provider, repo, filter)
+			if err != nil {
+				return nil, err
+			}
+			if matches {
+				filteredRepos = append(filteredRepos, repo)
+				break
+			}
+		}
+	}
+
+	repos, err = getBranches(ctx, provider, filteredRepos, compiledFilters)
+	if err != nil {
+		return nil, err
+	}
+	return repos, nil
+}
+
+func getBranches(ctx context.Context, provider SCMProviderService, repos []*Repository, compiledFilters []*Filter) ([]*Repository, error) {
+	reposWithBranches := []*Repository{}
+	for _, repo := range repos {
+		reposFilled, err := provider.GetBranches(ctx, repo)
+		if err != nil {
+			return nil, err
+		}
+		reposWithBranches = append(reposWithBranches, reposFilled...)
+	}
+	branchFilters := getApplicableFilters(compiledFilters, true)
+	if len(branchFilters) == 0 {
+		return reposWithBranches, nil
+	}
+	filteredRepos := make([]*Repository, 0, len(reposWithBranches))
+	for _, repo := range reposWithBranches {
+		for _, filter := range branchFilters {
 			matches, err := matchFilter(ctx, provider, repo, filter)
 			if err != nil {
 				return nil, err
@@ -106,4 +144,17 @@ func ListRepos(ctx context.Context, provider SCMProviderService, filters []argop
 		}
 	}
 	return filteredRepos, nil
+}
+
+// getApplicableFilters returns filters which either have a branch filter or do not have branch filters, depending on the hasBranchFilter argument.
+func getApplicableFilters(filters []*Filter, branchFilter bool) []*Filter {
+	applicableFilters := []*Filter{}
+	for _, filter := range filters {
+		if branchFilter && (filter.BranchMatch != nil || filter.PathsExist != nil) {
+			applicableFilters = append(applicableFilters, filter)
+		} else if !branchFilter && filter.BranchMatch == nil && filter.PathsExist == nil {
+			applicableFilters = append(applicableFilters, filter)
+		}
+	}
+	return applicableFilters
 }

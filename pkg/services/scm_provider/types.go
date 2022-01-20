@@ -13,11 +13,13 @@ type Repository struct {
 	Branch       string
 	SHA          string
 	Labels       []string
+	RepositoryId interface{}
 }
 
 type SCMProviderService interface {
 	ListRepos(context.Context, string) ([]*Repository, error)
 	RepoHasPath(context.Context, *Repository, string) (bool, error)
+	GetBranches(context.Context, *Repository) ([]*Repository, error)
 }
 
 // A compiled version of SCMProviderGeneratorFilter for performance.
