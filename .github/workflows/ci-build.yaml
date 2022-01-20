@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'master'
+
   pull_request:
     branches:
       - 'master'
@@ -155,8 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        k3s-version: [v1.19.2, v1.16.15]
-        # k3s-version: [v1.19.2, v1.18.9, v1.17.11, v1.16.15]
+        k3s-version: [v1.20.2, v1.16.15]        
     env:
       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
@@ -174,6 +174,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: argoproj/argo-cd
+          path: argo-cd
           # Pin a specific commit to prevent Argo CD regressions from impacting us:
           # This version is verified to match a version consistent with the kustomize install yaml,
           # by 'hack/verify-argo-cd-versions.sh'.
@@ -184,84 +185,32 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: '1.16.4'
-      # Add same workaround for port 8084 as argoproj/argo-cd #5658
-      - name: GH actions workaround - Kill XSP4 process
-        run: |
-          sudo pkill mono || true
-      - name: Install K3S
-        env:
-          INSTALL_K3S_VERSION: ${{ matrix.k3s-version }}+k3s1
-        run: |
-          set -x
-          curl -sfL https://get.k3s.io | sh -
-          sudo chmod -R a+rw /etc/rancher/k3s
-          sudo mkdir -p $HOME/.kube && sudo chown -R runner $HOME/.kube
-          sudo k3s kubectl config view --raw > $HOME/.kube/config
-          sudo chown runner $HOME/.kube/config
-          kubectl version
+
       - name: Restore go build cache
         uses: actions/cache@v1
         with:
           path: ~/.cache/go-build
           key: ${{ runner.os }}-go-build-v1-${{ github.run_id }}
-      - name: Add ~/go/bin to PATH
-        run: |
-          echo "/home/runner/go/bin" >> $GITHUB_PATH
-      - name: Add /usr/local/bin to PATH
-        run: |
-          echo "/usr/local/bin" >> $GITHUB_PATH
-      - name: Download Go dependencies
-        run: |
-          go mod download
-          go get github.com/mattn/goreman
-      - name: Install all tools required for building & testing
-        run: |
-          make install-test-tools-local
-      - name: Setup git username and email
-        run: |
-          git config --global user.name "John Doe"
-          git config --global user.email "john.doe@example.com"
-      - name: Pull Docker image required for tests
-        run: |
-          docker pull quay.io/dexidp/dex:v2.25.0
-          docker pull argoproj/argo-cd-ci-builder:v1.0.0
-          docker pull redis:5.0.10-alpine
-      - name: Create target directory for binaries in the build-process
-        run: |
-          mkdir -p dist
-          chown runner dist
-      - name: Run Argo CD E2E server and wait for it being available
-        timeout-minutes: 30
-        run: |
-          set -x
-          # Something is weird in GH runners -- there's a phantom listener for
-          # port 8080 which is not visible in netstat -tulpen, but still there
-          # with a HTTP listener. We have API server listening on port 8088
-          # instead.
-          make start-e2e-local 2>&1 | sed -r "s/[[:cntrl:]]\[[0-9]{1,3}m//g" > /tmp/e2e-server.log &
-          count=1
-          until curl -f http://127.0.0.1:8088/healthz; do
-            sleep 10;
-            if test $count -ge 180; then
-              echo "Timeout"
-              exit 1
-            fi
-            count=$((count+1))
-          done
+
       - name: Checkout latest applicationset code
         uses: actions/checkout@v2
         with:
-          path: applicationsets
-      - name: Run E2E test suite
+          path: applicationset
+
+      - name: Run E2E test setup
+        timeout-minutes: 20
+        env:
+          INSTALL_K3S_VERSION: ${{ matrix.k3s-version }}+k3s1
         run: |
-          set -x
-          cd "$GITHUB_WORKSPACE/applicationsets"
-          kubectl apply -f manifests/crds/argoproj.io_applicationsets.yaml
-          make build
-          make start-e2e 2>&1 | tee /tmp/appset-e2e-server.log &
-          # Uncomment this to see the Argo CD output alongside test output:
-          # tail -f /tmp/e2e-server.log &
-          make test-e2e
+          cd "$GITHUB_WORKSPACE/applicationset"
+          "hack/ci-e2e-setup.sh"
+
+      - name: Run E2E tests
+        timeout-minutes: 20
+        run: |
+          cd "$GITHUB_WORKSPACE/applicationset"
+          "hack/ci-e2e-run.sh"
+
       - name: Upload e2e-server logs
         uses: actions/upload-artifact@v2
         with:
