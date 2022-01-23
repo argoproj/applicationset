@@ -347,7 +347,8 @@ type SCMProviderGeneratorFilter struct {
 // PullRequestGenerator defines a generator that scrapes a PullRequest API to find candidate pull requests.
 type PullRequestGenerator struct {
 	// Which provider to use and config for it.
-	Github *PullRequestGeneratorGithub `json:"github,omitempty"`
+	Github          *PullRequestGeneratorGithub          `json:"github,omitempty"`
+	BitbucketServer *PullRequestGeneratorBitbucketServer `json:"bitbucketServer,omitempty"`
 	// Standard parameters.
 	RequeueAfterSeconds *int64                 `json:"requeueAfterSeconds,omitempty"`
 	Template            ApplicationSetTemplate `json:"template,omitempty"`
@@ -365,6 +366,28 @@ type PullRequestGeneratorGithub struct {
 	TokenRef *SecretRef `json:"tokenRef,omitempty"`
 	// Labels is used to filter the PRs that you want to target
 	Labels []string `json:"labels,omitempty"`
+}
+
+// PullRequestGenerator defines a connection info specific to BitbucketServer.
+type PullRequestGeneratorBitbucketServer struct {
+	// Project to scan. Required.
+	Project string `json:"project"`
+	// Repo name to scan. Required.
+	Repo string `json:"repo"`
+	// The Bitbucket REST API URL to talk to e.g. https://bitbucket.org/rest Required.
+	API string `json:"api"`
+	// A regex which must match the branch name.
+	BranchMatch *string `json:"branchMatch,omitempty"`
+	// Credentials for Basic auth
+	BasicAuth *BasicAuthBitbucketServer `json:"basicAuth,omitempty"`
+}
+
+// BasicAuthBitbucketServer defines the username/(password or personal access token) for Basic auth.
+type BasicAuthBitbucketServer struct {
+	// Username for Basic auth
+	Username string `json:"username"`
+	// Password (or personal access token) reference.
+	PasswordRef *SecretRef `json:"passwordRef"`
 }
 
 // ApplicationSetStatus defines the observed state of ApplicationSet

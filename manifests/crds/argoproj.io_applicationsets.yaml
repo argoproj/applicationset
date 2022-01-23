@@ -2459,6 +2459,39 @@ spec:
                                 x-kubernetes-preserve-unknown-fields: true
                               pullRequest:
                                 properties:
+                                  bitbucketServer:
+                                    properties:
+                                      api:
+                                        type: string
+                                      basicAuth:
+                                        properties:
+                                          passwordRef:
+                                            properties:
+                                              key:
+                                                type: string
+                                              secretName:
+                                                type: string
+                                            required:
+                                            - key
+                                            - secretName
+                                            type: object
+                                          username:
+                                            type: string
+                                        required:
+                                        - passwordRef
+                                        - username
+                                        type: object
+                                      branchMatch:
+                                        type: string
+                                      project:
+                                        type: string
+                                      repo:
+                                        type: string
+                                    required:
+                                    - api
+                                    - project
+                                    - repo
+                                    type: object
                                   github:
                                     properties:
                                       api:
@@ -4601,6 +4634,39 @@ spec:
                                 x-kubernetes-preserve-unknown-fields: true
                               pullRequest:
                                 properties:
+                                  bitbucketServer:
+                                    properties:
+                                      api:
+                                        type: string
+                                      basicAuth:
+                                        properties:
+                                          passwordRef:
+                                            properties:
+                                              key:
+                                                type: string
+                                              secretName:
+                                                type: string
+                                            required:
+                                            - key
+                                            - secretName
+                                            type: object
+                                          username:
+                                            type: string
+                                        required:
+                                        - passwordRef
+                                        - username
+                                        type: object
+                                      branchMatch:
+                                        type: string
+                                      project:
+                                        type: string
+                                      repo:
+                                        type: string
+                                    required:
+                                    - api
+                                    - project
+                                    - repo
+                                    type: object
                                   github:
                                     properties:
                                       api:
@@ -5532,6 +5598,39 @@ spec:
                       type: object
                     pullRequest:
                       properties:
+                        bitbucketServer:
+                          properties:
+                            api:
+                              type: string
+                            basicAuth:
+                              properties:
+                                passwordRef:
+                                  properties:
+                                    key:
+                                      type: string
+                                    secretName:
+                                      type: string
+                                  required:
+                                  - key
+                                  - secretName
+                                  type: object
+                                username:
+                                  type: string
+                              required:
+                              - passwordRef
+                              - username
+                              type: object
+                            branchMatch:
+                              type: string
+                            project:
+                              type: string
+                            repo:
+                              type: string
+                          required:
+                          - api
+                          - project
+                          - repo
+                          type: object
                         github:
                           properties:
                             api:

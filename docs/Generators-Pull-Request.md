@@ -53,6 +53,43 @@ spec:
 * `tokenRef`: A `Secret` name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit and can only see public repositories. (Optional)
 * `labels`: Labels is used to filter the PRs that you want to target. (Optional)
 
+## Bitbucket Server
+
+Fetch pull requests from a repo hosted on a Bitbucket Server (not to same as Bitbucket Cloud).
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - pullRequest:
+      bitbucketServer:
+        project: myproject
+        repo: myrepository
+        # URL of the Bitbucket Server. Required.
+        api: https://mycompany.bitbucket.org
+        # Credentials for Basic authentication. Required for private repositories.
+        basicAuth:
+          # The username to authenticate with
+          username: myuser
+          # Reference to a Secret containing the password or personal access token.
+          passwordRef:
+            secretName: mypassword
+            key: password
+        # Labels are not supported by Bitbucket Server
+  template:
+  # ...
+```
+
+* `project`: Required name of the Bitbucket project
+* `repo`: Required name of the Bitbucket repository.
+* `api`: Required URL to access the Bitbucket REST API. For the example above, an API request would be made to `https://mycompany.bitbucket.org/rest/api/1.0/projects/myproject/repos/myrepository/pull-requests`
+If you want to access a private repository, you must also provide the credentials for Basic auth (this is the only auth supported currently):
+* `username`: The username to authenticate with. It only needs read access to the relevant repo.
+* `passwordRef`: A `Secret` name and key containing the password or personal access token to use for requests.
+
 ## Template
 
 As with all generators, several keys are available for replacement in the generated application.
