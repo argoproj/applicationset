@@ -292,8 +292,9 @@ type GitFileGeneratorItem struct {
 // SCMProviderGenerator defines a generator that scrapes a SCMaaS API to find candidate repos.
 type SCMProviderGenerator struct {
 	// Which provider to use and config for it.
-	Github *SCMProviderGeneratorGithub `json:"github,omitempty"`
-	Gitlab *SCMProviderGeneratorGitlab `json:"gitlab,omitempty"`
+	Github          *SCMProviderGeneratorGithub          `json:"github,omitempty"`
+	Gitlab          *SCMProviderGeneratorGitlab          `json:"gitlab,omitempty"`
+	BitbucketServer *SCMProviderGeneratorBitbucketServer `json:"bitbucketServer,omitempty"`
 	// Filters for which repos should be considered.
 	Filters []SCMProviderGeneratorFilter `json:"filters,omitempty"`
 	// Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers
@@ -326,6 +327,18 @@ type SCMProviderGeneratorGitlab struct {
 	API string `json:"api,omitempty"`
 	// Authentication token reference.
 	TokenRef *SecretRef `json:"tokenRef,omitempty"`
+	// Scan all branches instead of just the default branch.
+	AllBranches bool `json:"allBranches,omitempty"`
+}
+
+// SCMProviderGeneratorBitbucketServer defines a connection info specific to Bitbucket Server.
+type SCMProviderGeneratorBitbucketServer struct {
+	// Project to scan. Required.
+	Project string `json:"project"`
+	// The Bitbucket Server REST API URL to talk to.
+	API string `json:"api"`
+	// Credentials for Basic auth
+	BasicAuth *BasicAuthBitbucketServer `json:"basicAuth,omitempty"`
 	// Scan all branches instead of just the default branch.
 	AllBranches bool `json:"allBranches,omitempty"`
 }
