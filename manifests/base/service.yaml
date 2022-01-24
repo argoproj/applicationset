@@ -6,7 +6,6 @@ metadata:
     app.kubernetes.io/name: argocd-applicationset-controller
     app.kubernetes.io/part-of: argocd-applicationset
   name: argocd-applicationset-controller
-  namespace: argocd
 spec:
   ports:
   - name: webhook

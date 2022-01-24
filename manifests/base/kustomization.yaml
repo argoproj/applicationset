@@ -6,8 +6,6 @@ images:
   newName: quay.io/argoproj/argocd-applicationset
   newTag: latest
 
-namespace: argocd
-
 resources:
 - deployment.yaml
 - rbac.yaml
