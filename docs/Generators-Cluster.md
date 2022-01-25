@@ -37,6 +37,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: guestbook
+  namespace: argocd
 spec:
   generators:
   - clusters: {} # Automatically use all clusters defined within Argo CD
@@ -64,6 +65,7 @@ A label selector may be used to narrow the scope of targeted clusters to only th
 kind: ApplicationSet
 metadata:
   name: guestbook
+  namespace: argocd
 spec:
   generators:
   - clusters:
