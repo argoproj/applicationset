@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/argoproj-labs/applicationset/api/v1alpha1"
-	. "github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets"
-	"github.com/argoproj-labs/applicationset/test/e2e/fixture/applicationsets/utils"
+	"github.com/argoproj/applicationset/api/v1alpha1"
+	. "github.com/argoproj/applicationset/test/e2e/fixture/applicationsets"
+	"github.com/argoproj/applicationset/test/e2e/fixture/applicationsets/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -299,7 +299,7 @@ func TestSimpleGitFilesGenerator(t *testing.T) {
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						Git: &v1alpha1.GitGenerator{
-							RepoURL: "https://github.com/argoproj-labs/applicationset.git",
+							RepoURL: "https://github.com/argoproj/applicationset.git",
 							Files: []v1alpha1.GitFileGeneratorItem{
 								{
 									Path: "examples/git-generator-files-discovery/cluster-config/**/config.json",
@@ -383,7 +383,7 @@ func TestSimpleGitFilesPreserveResourcesOnDeletion(t *testing.T) {
 				Generators: []v1alpha1.ApplicationSetGenerator{
 					{
 						Git: &v1alpha1.GitGenerator{
-							RepoURL: "https://github.com/argoproj-labs/applicationset.git",
+							RepoURL: "https://github.com/argoproj/applicationset.git",
 							Files: []v1alpha1.GitFileGeneratorItem{
 								{
 									Path: "examples/git-generator-files-discovery/cluster-config/**/config.json",

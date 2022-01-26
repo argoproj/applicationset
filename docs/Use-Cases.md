@@ -74,7 +74,7 @@ kind: ApplicationSet
 spec:
   generators:
   - git:
-      repoURL: https://github.com/argoproj-labs/applicationset.git
+      repoURL: https://github.com/argoproj/applicationset.git
       files:
       - path: "apps/**/config.json"
   template:

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -77,7 +77,7 @@ func TestMatrixGenerate(t *testing.T) {
 					Git: gitGenerator,
 				},
 			},
-			expectedErr: LessThanTwoGenerators,
+			expectedErr: ErrLessThanTwoGenerators,
 		},
 		{
 			name: "returns error if there is more than two base generators",
@@ -92,7 +92,7 @@ func TestMatrixGenerate(t *testing.T) {
 					List: listGenerator,
 				},
 			},
-			expectedErr: MoreThanTwoGenerators,
+			expectedErr: ErrMoreThanTwoGenerators,
 		},
 		{
 			name: "returns error if there is more than one inner generator in the first base generator",
@@ -105,7 +105,7 @@ func TestMatrixGenerate(t *testing.T) {
 					Git: gitGenerator,
 				},
 			},
-			expectedErr: MoreThenOneInnerGenerators,
+			expectedErr: ErrMoreThenOneInnerGenerators,
 		},
 		{
 			name: "returns error if there is more than one inner generator in the second base generator",
@@ -118,7 +118,7 @@ func TestMatrixGenerate(t *testing.T) {
 					List: listGenerator,
 				},
 			},
-			expectedErr: MoreThenOneInnerGenerators,
+			expectedErr: ErrMoreThenOneInnerGenerators,
 		},
 	}
 

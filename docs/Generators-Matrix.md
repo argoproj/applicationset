@@ -39,7 +39,7 @@ spec:
         generators:
           # git generator, 'child' #1
           - git:
-              repoURL: https://github.com/argoproj-labs/applicationset.git
+              repoURL: https://github.com/argoproj/applicationset.git
               revision: HEAD
               directories:
                 - path: examples/matrix/cluster-addons/*
@@ -54,7 +54,7 @@ spec:
     spec:
       project: '{{metadata.labels.environment}}'
       source:
-        repoURL: https://github.com/argoproj-labs/applicationset.git
+        repoURL: https://github.com/argoproj/applicationset.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:
@@ -102,7 +102,7 @@ Finally, the Matrix generator will combine both sets of outputs, and produce:
   path: /examples/git-generator-directory/cluster-addons/prometheus-operator
   path.basename: prometheus-operator
 ```
-(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/matrix).*)
+(*The full example can be found [here](https://github.com/argoproj/applicationset/tree/master/examples/matrix).*)
 
 ## Restrictions
 

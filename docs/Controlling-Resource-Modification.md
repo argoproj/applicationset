@@ -97,7 +97,7 @@ Rather than directly editing the cluster resource, you may instead choose to mod
 
 ```bash
 # Clone the repository
-git clone https://github.com/argoproj-labs/applicationset
+git clone https://github.com/argoproj/applicationset
 
 # Checkout the version that corresponds to the one you have installed.
 git checkout "(version of applicationset)"
@@ -130,7 +130,7 @@ For example:
 - You now want to edit `app3` with `kubectl edit application/app3`, to update one of the `app3`'s fields.
 - However, as soon as you make edits to `app3` (or any of the individual Applications), they will be immediately reverted by the ApplicationSet reconciler back to the `template`-ized version (by design).
 
-As of this writing, there is [an issue open](https://github.com/argoproj-labs/applicationset/issues/186) for discussion of this behaviour.
+As of this writing, there is [an issue open](https://github.com/argoproj/applicationset/issues/186) for discussion of this behaviour.
 
 
 ### Limitation: ApplicationSet controller will not selectively ignore changes to individual fields

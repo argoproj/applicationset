@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/argoproj-labs/applicationset/common"
-	"github.com/argoproj-labs/applicationset/pkg/generators"
-	"github.com/argoproj-labs/applicationset/pkg/utils"
+	"github.com/argoproj/applicationset/common"
+	"github.com/argoproj/applicationset/pkg/generators"
+	"github.com/argoproj/applicationset/pkg/utils"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/util/db"
 	"github.com/go-logr/logr"
@@ -39,7 +39,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	appclientset "github.com/argoproj/argo-cd/v2/pkg/client/clientset/versioned"
 	argoutil "github.com/argoproj/argo-cd/v2/util/argo"
 
@@ -526,7 +526,7 @@ func (r *ApplicationSetReconciler) createOrUpdateInCluster(ctx context.Context, 
 			// Copy only the Application/ObjectMeta fields that are significant, from the generatedApp
 			found.Spec = generatedApp.Spec
 
-			// Preserve argo cd notifications state (https://github.com/argoproj-labs/applicationset/issues/180)
+			// Preserve argo cd notifications state (https://github.com/argoproj/applicationset/issues/180)
 			if state, exists := found.ObjectMeta.Annotations[NotifiedAnnotationKey]; exists {
 				if generatedApp.Annotations == nil {
 					generatedApp.Annotations = map[string]string{}

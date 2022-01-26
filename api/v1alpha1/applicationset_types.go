@@ -17,10 +17,11 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 
-	"github.com/argoproj-labs/applicationset/common"
+	"github.com/argoproj/applicationset/common"
 
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -90,14 +91,18 @@ type ApplicationSetGenerator struct {
 // ApplicationSetNestedGenerator represents a generator nested within a combination-type generator (MatrixGenerator or
 // MergeGenerator).
 type ApplicationSetNestedGenerator struct {
-	List                    *ListGenerator         `json:"list,omitempty"`
-	Clusters                *ClusterGenerator      `json:"clusters,omitempty"`
-	Git                     *GitGenerator          `json:"git,omitempty"`
-	SCMProvider             *SCMProviderGenerator  `json:"scmProvider,omitempty"`
-	ClusterDecisionResource *DuckTypeGenerator     `json:"clusterDecisionResource,omitempty"`
-	PullRequest             *PullRequestGenerator  `json:"pullRequest,omitempty"`
-	Matrix                  *NestedMatrixGenerator `json:"matrix,omitempty"`
-	Merge                   *NestedMergeGenerator  `json:"merge,omitempty"`
+	List                    *ListGenerator        `json:"list,omitempty"`
+	Clusters                *ClusterGenerator     `json:"clusters,omitempty"`
+	Git                     *GitGenerator         `json:"git,omitempty"`
+	SCMProvider             *SCMProviderGenerator `json:"scmProvider,omitempty"`
+	ClusterDecisionResource *DuckTypeGenerator    `json:"clusterDecisionResource,omitempty"`
+	PullRequest             *PullRequestGenerator `json:"pullRequest,omitempty"`
+
+	// Matrix should have the form of NestedMatrixGenerator
+	Matrix *apiextensionsv1.JSON `json:"matrix,omitempty"`
+
+	// Merge should have the form of NestedMergeGenerator
+	Merge *apiextensionsv1.JSON `json:"merge,omitempty"`
 }
 
 type ApplicationSetNestedGenerators []ApplicationSetNestedGenerator
@@ -151,8 +156,28 @@ type MatrixGenerator struct {
 // NestedMatrixGenerator is a MatrixGenerator nested under another combination-type generator (MatrixGenerator or
 // MergeGenerator). NestedMatrixGenerator does not have an override template, because template overriding has no meaning
 // within the constituent generators of combination-type generators.
+//
+// NOTE: Nested matrix generator is not included directly in the CRD struct, instead it is included
+// as a generic 'apiextensionsv1.JSON' object, and then marshalled into a NestedMatrixGenerator
+// when processed.
 type NestedMatrixGenerator struct {
 	Generators ApplicationSetTerminalGenerators `json:"generators"`
+}
+
+// ToNestedMatrixGenerator converts a JSON struct (from the K8s resource) to corresponding
+// NestedMatrixGenerator object.
+func ToNestedMatrixGenerator(j *apiextensionsv1.JSON) (*NestedMatrixGenerator, error) {
+	if j == nil {
+		return nil, nil
+	}
+
+	nestedMatrixGenerator := NestedMatrixGenerator{}
+	err := json.Unmarshal(j.Raw, &nestedMatrixGenerator)
+	if err != nil {
+		return nil, err
+	}
+
+	return &nestedMatrixGenerator, nil
 }
 
 // ToMatrixGenerator converts a NestedMatrixGenerator to a MatrixGenerator. This conversion is for convenience, allowing
@@ -183,9 +208,29 @@ type MergeGenerator struct {
 // NestedMergeGenerator is a MergeGenerator nested under another combination-type generator (MatrixGenerator or
 // MergeGenerator). NestedMergeGenerator does not have an override template, because template overriding has no meaning
 // within the constituent generators of combination-type generators.
+//
+// NOTE: Nested merge generator is not included directly in the CRD struct, instead it is included
+// as a generic 'apiextensionsv1.JSON' object, and then marshalled into a NestedMergeGenerator
+// when processed.
 type NestedMergeGenerator struct {
 	Generators ApplicationSetTerminalGenerators `json:"generators"`
 	MergeKeys  []string                         `json:"mergeKeys"`
+}
+
+// ToNestedMergeGenerator converts a JSON struct (from the K8s resource) to corresponding
+// NestedMergeGenerator object.
+func ToNestedMergeGenerator(j *apiextensionsv1.JSON) (*NestedMergeGenerator, error) {
+	if j == nil {
+		return nil, nil
+	}
+
+	nestedMergeGenerator := NestedMergeGenerator{}
+	err := json.Unmarshal(j.Raw, &nestedMergeGenerator)
+	if err != nil {
+		return nil, err
+	}
+
+	return &nestedMergeGenerator, nil
 }
 
 // ToMergeGenerator converts a NestedMergeGenerator to a MergeGenerator. This conversion is for convenience, allowing

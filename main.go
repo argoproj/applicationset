@@ -27,13 +27,13 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	argoprojiov1alpha1 "github.com/argoproj-labs/applicationset/api/v1alpha1"
-	"github.com/argoproj-labs/applicationset/pkg/controllers"
-	"github.com/argoproj-labs/applicationset/pkg/generators"
-	"github.com/argoproj-labs/applicationset/pkg/services"
-	"github.com/argoproj-labs/applicationset/pkg/utils"
+	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/pkg/controllers"
+	"github.com/argoproj/applicationset/pkg/generators"
+	"github.com/argoproj/applicationset/pkg/services"
+	"github.com/argoproj/applicationset/pkg/utils"
 
-	"github.com/argoproj-labs/applicationset/common"
+	"github.com/argoproj/applicationset/common"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/util/db"
 	argosettings "github.com/argoproj/argo-cd/v2/util/settings"

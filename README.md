@@ -55,7 +55,7 @@ Check out [the complete documentation](https://argocd-applicationset.readthedocs
 ## Community
 
 The ApplicationSet controller is a community-driven project. You can reach the Argo CD ApplicationSet community and developers via the following channels:
-- Q & A : [Github Discussions](https://github.com/argoproj-labs/applicationset/discussions)
+- Q & A : [Github Discussions](https://github.com/argoproj/applicationset/discussions)
 - Chat : [The #argo-cd-appset Slack channel](https://argoproj.github.io/community/join-slack)
 
 We'd love to have you join us!
@@ -64,7 +64,7 @@ We'd love to have you join us!
 
 Development builds can be installed by running the following command:
 ```
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj-labs/applicationset/master/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/master/manifests/install.yaml
 ```
 Commits to the `master` branch will automatically push new container images to the container registry used by this install, and see this link for automatically updated [documentation for these builds](https://argocd-applicationset.readthedocs.io/en/master/). See [Development builds](https://argocd-applicationset.readthedocs.io/en/master/Getting-Started/) for more details.
 

@@ -59,7 +59,7 @@ spec:
     spec:
       project: '{{values.project}}'
       source:
-        repoURL: https://github.com/argoproj-labs/applicationset.git
+        repoURL: https://github.com/argoproj/applicationset.git
         targetRevision: HEAD
         path: '{{path}}'
       destination:

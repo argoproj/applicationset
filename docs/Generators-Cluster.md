@@ -53,7 +53,7 @@ spec:
         server: '{{server}}' # 'server' field of the secret
         namespace: guestbook
 ```
-(*The full example can be found [here](https://github.com/argoproj-labs/applicationset/tree/master/examples/cluster).*)
+(*The full example can be found [here](https://github.com/argoproj/applicationset/tree/master/examples/cluster).*)
 
 In this example, the cluster secret's `name` and `server` fields are used to populate the `Application` resource `name` and `server` (which are then used to target that same cluster).
 

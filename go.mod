@@ -1,4 +1,4 @@
-module github.com/argoproj-labs/applicationset
+module github.com/argoproj/applicationset
 
 go 1.16
 
