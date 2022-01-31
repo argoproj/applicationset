@@ -56,7 +56,7 @@ The generator parameters are:
 - `{{path}}`: The directory paths within the Git repository that match the `path` wildcard.
 - `{{path[n]}}`: The directory paths within the Git repository that match the `path` wildcard, split into array elements (`n` - array index)
 - `{{path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (e.g. `/directory/directory2` would produce `directory2`).
-- `{{path.basenamenameNormalized}}`: This field is the same as `path.basename` with unsupported characters replaced with `-` (e.g. a `path` of `/directory/directory_2`, and `path.basename` of `directory_2` would produce `directory-2` here).
+- `{{path.basenameNormalized}}`: This field is the same as `path.basename` with unsupported characters replaced with `-` (e.g. a `path` of `/directory/directory_2`, and `path.basename` of `directory_2` would produce `directory-2` here).
 
 Whenever a new Helm chart/Kustomize YAML/Application/plain subfolder is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
 
@@ -228,7 +228,7 @@ In addition to the flattened key/value pairs from the configuration file, the fo
 - `{{path}}`: The path to the folder containing matching configuration file within the Git repository. Example: `/clusters/clusterA`, if the config file was `/clusters/clusterA/config.json`
 - `{{path[n]}}`: The path to the matching configuration file within the Git repository, split into array elements (`n` - array index). Example: `path[0]: clusters`, `path[1]: clusterA`
 - `{{path.basename}}`: Basename of the path to the folder containing the configuration file (e.g. `clusterA`, with the above example.)
-- `{{path.basenamenameNormalized}}`: This field is the same as `path.basename` with unsupported characters replaced with `-` (e.g. a `path` of `/directory/directory_2`, and `path.basename` of `directory_2` would produce `directory-2` here).
+- `{{path.basenameNormalized}}`: This field is the same as `path.basename` with unsupported characters replaced with `-` (e.g. a `path` of `/directory/directory_2`, and `path.basename` of `directory_2` would produce `directory-2` here).
 
 ## Webhook Configuration
 
