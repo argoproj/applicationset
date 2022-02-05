@@ -70,7 +70,7 @@ spec:
       gitlab:
         # The base Gitlab group to scan.  You can either use the group id or the full namespaced path.
         group: "8675309"
-        # For GitHub Enterprise:
+        # For GitLab Enterprise:
         api: https://gitlab.example.com/
         # If true, scan every branch of every repository. If false, scan only the default branch. Defaults to false.
         allBranches: true
