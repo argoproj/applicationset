@@ -58,6 +58,7 @@ Once complete, this is a set of checks to perform once you have a commit, tags, 
 - Ensure that a PR is opened on the **master** branch that:
     - [ ] Increments the VERSION file (eg 0.1.0 to 0.2.0)
     - [ ] Verify VERSION file does not contain the letter `v` as a prefix to the versio number
+    - [ ] Update the CI jobs in `.github/workflows` to point to the latest Argo CD version (Run `grep -r -i "argo-release"` to find the version list.)
 
 ## Doc checklist
 - [ ] Ensure that https://readthedocs.org/projects/argocd-applicationset/versions/ points to the correct commit (commit that is at the HEAD of the release branch), for the `stable` and `v(version)` versions.
