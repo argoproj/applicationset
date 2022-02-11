@@ -28,4 +28,14 @@ type Filter struct {
 	PathsExist      []string
 	LabelMatch      *regexp.Regexp
 	BranchMatch     *regexp.Regexp
+	FilterType      FilterType
 }
+
+// A convenience type for indicating where to apply a filter
+type FilterType int64
+
+// The enum of filter types
+const (
+	FilterTypeBranch FilterType = iota
+	FilterTypeRepo
+)

@@ -18,21 +18,25 @@ func compileFilters(filters []argoprojiov1alpha1.SCMProviderGeneratorFilter) ([]
 			if err != nil {
 				return nil, fmt.Errorf("error compiling RepositoryMatch regexp %q: %v", *filter.RepositoryMatch, err)
 			}
+			outFilter.FilterType = FilterTypeRepo
 		}
 		if filter.LabelMatch != nil {
 			outFilter.LabelMatch, err = regexp.Compile(*filter.LabelMatch)
 			if err != nil {
 				return nil, fmt.Errorf("error compiling LabelMatch regexp %q: %v", *filter.LabelMatch, err)
 			}
+			outFilter.FilterType = FilterTypeRepo
 		}
 		if filter.PathsExist != nil {
 			outFilter.PathsExist = filter.PathsExist
+			outFilter.FilterType = FilterTypeBranch
 		}
 		if filter.BranchMatch != nil {
 			outFilter.BranchMatch, err = regexp.Compile(*filter.BranchMatch)
 			if err != nil {
 				return nil, fmt.Errorf("error compiling BranchMatch regexp %q: %v", *filter.LabelMatch, err)
 			}
+			outFilter.FilterType = FilterTypeBranch
 		}
 		outFilters = append(outFilters, outFilter)
 	}
@@ -87,7 +91,7 @@ func ListRepos(ctx context.Context, provider SCMProviderService, filters []argop
 		return nil, err
 	}
 
-	repoFilters := getApplicableFilters(compiledFilters, false)
+	_, repoFilters := getApplicableFilters(compiledFilters)
 	if len(repoFilters) == 0 {
 		repos, err := getBranches(ctx, provider, repos, compiledFilters)
 		if err != nil {
@@ -126,7 +130,7 @@ func getBranches(ctx context.Context, provider SCMProviderService, repos []*Repo
 		}
 		reposWithBranches = append(reposWithBranches, reposFilled...)
 	}
-	branchFilters := getApplicableFilters(compiledFilters, true)
+	branchFilters, _ := getApplicableFilters(compiledFilters)
 	if len(branchFilters) == 0 {
 		return reposWithBranches, nil
 	}
@@ -146,15 +150,16 @@ func getBranches(ctx context.Context, provider SCMProviderService, repos []*Repo
 	return filteredRepos, nil
 }
 
-// getApplicableFilters returns filters which either have a branch filter or do not have branch filters, depending on the hasBranchFilter argument.
-func getApplicableFilters(filters []*Filter, branchFilter bool) []*Filter {
-	applicableFilters := []*Filter{}
+// getApplicableFilters returns branch filters and repo filters separately.
+func getApplicableFilters(filters []*Filter) ([]*Filter, []*Filter) {
+	branchFilters := []*Filter{}
+	repoFilters := []*Filter{}
 	for _, filter := range filters {
-		if branchFilter && (filter.BranchMatch != nil || filter.PathsExist != nil) {
-			applicableFilters = append(applicableFilters, filter)
-		} else if !branchFilter && filter.BranchMatch == nil && filter.PathsExist == nil {
-			applicableFilters = append(applicableFilters, filter)
+		if filter.FilterType == FilterTypeBranch {
+			branchFilters = append(branchFilters, filter)
+		} else if filter.FilterType == FilterTypeRepo {
+			repoFilters = append(repoFilters, filter)
 		}
 	}
-	return applicableFilters
+	return branchFilters, repoFilters
 }
