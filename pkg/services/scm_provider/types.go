@@ -36,6 +36,7 @@ type FilterType int64
 
 // The enum of filter types
 const (
-	FilterTypeBranch FilterType = iota
+	FilterTypeUndefined FilterType = iota
+	FilterTypeBranch
 	FilterTypeRepo
 )
