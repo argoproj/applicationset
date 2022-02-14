@@ -42,11 +42,5 @@ cd ${SRCROOT}/manifests/namespace-install && ${KUSTOMIZE} build . >> ${TEMPFILE}
 mv ${TEMPFILE} ${SRCROOT}/manifests/install.yaml
 cd ${SRCROOT} && chmod 644 manifests/install.yaml
 
-# Verify that the 'install-with-argo-cd.yaml' is targetting the expected Argo CD version
+# Verify that the GitHub actions is targetting the expected Argo CD version
 "${SRCROOT}/hack/verify-argo-cd-versions.sh"
-
-# Use kustomize to render 'manifests/install-with-argo-cd.yaml
-echo "${AUTOGENMSG}" > ${TEMPFILE}
-cd ${SRCROOT}/manifests/namespace-install-with-argo-cd && ${KUSTOMIZE} build . >> ${TEMPFILE}
-mv ${TEMPFILE} ${SRCROOT}/manifests/install-with-argo-cd.yaml
-cd ${SRCROOT} && chmod 644 manifests/install-with-argo-cd.yaml

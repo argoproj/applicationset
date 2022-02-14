@@ -22,12 +22,10 @@ Once complete, this is a set of checks to perform once you have a commit, tags, 
         - The version string SHOULD contain the letter `v`, as above. 
     - The commit should contain changes to:
         - [ ] `manifests/install.yaml`
-        - [ ] `manifests/install-with-argo-cd.yaml`
         - [ ] `manifests/base/kustomization.yaml`
         - [ ] `.github/workflows/ci-build.yaml`
         - [ ] `docs/Getting-Started.md`
         - [ ] `hack/verify-argo-cd-versions.sh`
-        - [ ] `manifests/namespace-install-with-argo-cd/kustomization.yaml`
 - [ ] A `v(version)` tag exists in the `argoproj/applicationset` repo
     - Example: `v0.1.0`
     - [ ] Ensure it matches the release commit above
@@ -47,9 +45,7 @@ Once complete, this is a set of checks to perform once you have a commit, tags, 
 
 - [ ] Ensure the VERSION string matches the expected version
     - [ ] The VERSION string should NOT begin with a `v`, (eg BAD: `v0.1.0`)
-- [ ] Ensure that kustomize.yaml under `manifests/namespace-install-with-argo-cd/kustomization.yaml` points to the desired Argo CD version. 
-- [ ] Ensure that `install.yaml` and `install-with-argo-cd.yaml` under `manifests/` points to the desired ApplicationSet version.
-- [ ] Ensure that `install.yaml` and `install-with-argo-cd.yaml` under `manifests/` points to the desired Argo CD version.
+- [ ] Ensure that `install.yaml` under `manifests/` points to the desired ApplicationSet version.
 
 
 
@@ -89,13 +85,6 @@ Once complete, this is a set of checks to perform once you have a commit, tags, 
     - [ ] Confirm that the pod logs contain no errors
     - [ ] Run ApplicationSet E2E tests against ApplicationSet controller installed via this method
     - [ ] Confirm that the pod logs contain no errors after runnings the tests
-
-- [ ] Apply `install-with-argo-cd.yaml` on a cluster, and confirm that it installs the correct image version
-    - [ ] Confirm that all the pods start as expected.
-    - [ ] Confirm that the pod logs contain no errors
-    - [ ] Run ApplicationSet E2E tests against ApplicationSet controller installed via this method
-    - [ ] Confirm that the pod logs contain no errors after runnings the tests
-
 
 ## Communications
 

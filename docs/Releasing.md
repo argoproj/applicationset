@@ -1,6 +1,6 @@
 # Releasing an ApplicationSet release
 
-The ApplicationSet controller release process and scripts are based on the process/scripts used by the [Argo CD Image Updater](https://github.com/argoproj-labs/argocd-image-updater), a sibling project in the Argo Labs organization.
+The ApplicationSet controller release process and scripts are based on the process/scripts used by the [Argo CD Image Updater](https://github.com/argoproj-labs/argocd-image-updater), a sibling project in the Argo organization.
 
 
 ## Release Process
