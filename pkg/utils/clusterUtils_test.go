@@ -2,7 +2,7 @@ package utils
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/argoproj/applicationset/test/e2e/fixture/applicationsets/utils"
@@ -135,7 +135,7 @@ func TestValidateDestination(t *testing.T) {
 		kubeclientset := fake.NewSimpleClientset()
 
 		kubeclientset.PrependReactor("list", "*", func(action kubetesting.Action) (handled bool, ret runtime.Object, err error) {
-			return true, nil, errors.New("an error occurred")
+			return true, nil, fmt.Errorf("an error occurred")
 		})
 
 		err := ValidateDestination(context.Background(), &dest, kubeclientset, utils.ArgoCDNamespace)

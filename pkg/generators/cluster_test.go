@@ -2,7 +2,7 @@ package generators
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +25,7 @@ type possiblyErroringFakeCtrlRuntimeClient struct {
 
 func (p *possiblyErroringFakeCtrlRuntimeClient) List(ctx context.Context, secretList client.ObjectList, opts ...client.ListOption) error {
 	if p.shouldError {
-		return errors.New("could not list Secrets")
+		return fmt.Errorf("could not list Secrets")
 	}
 	return p.Client.List(ctx, secretList, opts...)
 }
@@ -200,7 +200,7 @@ func TestGenerateParams(t *testing.T) {
 			values:        nil,
 			expected:      nil,
 			clientError:   true,
-			expectedError: errors.New("could not list Secrets"),
+			expectedError: fmt.Errorf("could not list Secrets"),
 		},
 	}
 

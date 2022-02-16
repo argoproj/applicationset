@@ -2,7 +2,7 @@ package generators
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
@@ -157,7 +157,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			resource:      duckType,
 			values:        nil,
 			expected:      []map[string]string{},
-			expectedError: errors.New("There is a problem with the definition of the ClusterDecisionResource generator"),
+			expectedError: fmt.Errorf("There is a problem with the definition of the ClusterDecisionResource generator"),
 		},
 		/*** This does not work with the FAKE runtime client, fieldSelectors are broken.
 		{
@@ -166,7 +166,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			resource:      duckType,
 			values:        nil,
 			expected:      []map[string]string{},
-			expectedError: errors.New("duck.mallard.io \"quak\" not found"),
+			expectedError: fmt.Errorf("duck.mallard.io \"quak\" not found"),
 		},
 		***/
 		{
@@ -268,7 +268,7 @@ func TestGenerateParamsForDuckType(t *testing.T) {
 			resource:      duckType,
 			values:        nil,
 			expected:      nil,
-			expectedError: errors.New("There is a problem with the definition of the ClusterDecisionResource generator"),
+			expectedError: fmt.Errorf("There is a problem with the definition of the ClusterDecisionResource generator"),
 		},
 	}
 

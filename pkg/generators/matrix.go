@@ -1,7 +1,6 @@
 package generators
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -12,9 +11,9 @@ import (
 var _ Generator = (*MatrixGenerator)(nil)
 
 var (
-	ErrMoreThanTwoGenerators      = errors.New("found more than two generators, Matrix support only two")
-	ErrLessThanTwoGenerators      = errors.New("found less than two generators, Matrix support only two")
-	ErrMoreThenOneInnerGenerators = errors.New("found more than one generator in matrix.Generators")
+	ErrMoreThanTwoGenerators      = fmt.Errorf("found more than two generators, Matrix support only two")
+	ErrLessThanTwoGenerators      = fmt.Errorf("found less than two generators, Matrix support only two")
+	ErrMoreThenOneInnerGenerators = fmt.Errorf("found more than one generator in matrix.Generators")
 )
 
 type MatrixGenerator struct {

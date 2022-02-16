@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +27,7 @@ func TestCombineStringMaps(t *testing.T) {
 			left:        map[string]string{"foo": "bar", "a": "fail"},
 			right:       map[string]string{"a": "b", "c": "d"},
 			expected:    map[string]string{"a": "b", "foo": "bar"},
-			expectedErr: errors.New("found duplicate key a with different value, a: fail ,b: b"),
+			expectedErr: fmt.Errorf("found duplicate key a with different value, a: fail ,b: b"),
 		},
 		{
 			name:        "pass if keys & values are the same",

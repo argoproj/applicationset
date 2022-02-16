@@ -11,7 +11,6 @@ import (
 
 	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasttemplate"
 )
@@ -78,7 +77,7 @@ func (r *Render) replace(fstTmpl *fasttemplate.Template, replaceMap map[string]s
 				// just write the same string back
 				return w.Write([]byte(fmt.Sprintf("{{%s}}", tag)))
 			}
-			unresolvedErr = errors.Errorf("failed to resolve {{%s}}", tag)
+			unresolvedErr = fmt.Errorf("failed to resolve {{%s}}", tag)
 			return 0, nil
 		}
 		// The following escapes any special characters (e.g. newlines, tabs, etc...)
