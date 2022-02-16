@@ -87,7 +87,7 @@ func GetServiceAccountBearerToken(clientset kubernetes.Interface, ns string, sa 
 		return false, nil
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to wait for service account secret: %v", err)
+		return "", fmt.Errorf("failed to wait for service account secret: %w", err)
 	}
 	token, ok := secret.Data["token"]
 	if !ok {

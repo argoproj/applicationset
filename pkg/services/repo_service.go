@@ -41,7 +41,7 @@ func NewArgoCDService(db db.ArgoDB, repoServerAddress string) Repos {
 func (a *argoCDService) GetFiles(ctx context.Context, repoURL string, revision string, pattern string) (map[string][]byte, error) {
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
-		return nil, fmt.Errorf("Error in GetRepository: %v", err)
+		return nil, fmt.Errorf("Error in GetRepository: %w", err)
 	}
 
 	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
@@ -57,7 +57,7 @@ func (a *argoCDService) GetFiles(ctx context.Context, repoURL string, revision s
 
 	paths, err := gitRepoClient.LsFiles(pattern)
 	if err != nil {
-		return nil, fmt.Errorf("Error during listing files of local repo: %v", err)
+		return nil, fmt.Errorf("Error during listing files of local repo: %w", err)
 	}
 
 	res := map[string][]byte{}
@@ -76,7 +76,7 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
-		return nil, fmt.Errorf("Error in GetRepository: %v", err)
+		return nil, fmt.Errorf("Error in GetRepository: %w", err)
 	}
 
 	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
@@ -129,21 +129,21 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 func checkoutRepo(gitRepoClient git.Client, revision string) error {
 	err := gitRepoClient.Init()
 	if err != nil {
-		return fmt.Errorf("Error during initializing repo: %v", err)
+		return fmt.Errorf("Error during initializing repo: %w", err)
 	}
 
 	err = gitRepoClient.Fetch(revision)
 	if err != nil {
-		return fmt.Errorf("Error during fetching repo: %v", err)
+		return fmt.Errorf("Error during fetching repo: %w", err)
 	}
 
 	commitSHA, err := gitRepoClient.LsRemote(revision)
 	if err != nil {
-		return fmt.Errorf("Error during fetching commitSHA: %v", err)
+		return fmt.Errorf("Error during fetching commitSHA: %w", err)
 	}
 	err = gitRepoClient.Checkout(commitSHA)
 	if err != nil {
-		return fmt.Errorf("Error during repo checkout: %v", err)
+		return fmt.Errorf("Error during repo checkout: %w", err)
 	}
 	return nil
 }

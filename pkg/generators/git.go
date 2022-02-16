@@ -141,7 +141,7 @@ func (g *GitGenerator) generateParamsFromGitFile(filePath string, fileContent []
 		singleObj := make(map[string]interface{})
 		err = yaml.Unmarshal(fileContent, &singleObj)
 		if err != nil {
-			return nil, fmt.Errorf("unable to parse file: %v", err)
+			return nil, fmt.Errorf("unable to parse file: %w", err)
 		}
 		objectsFound = append(objectsFound, singleObj)
 	}

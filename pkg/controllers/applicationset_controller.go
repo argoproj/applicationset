@@ -331,7 +331,7 @@ func (r *ApplicationSetReconciler) setApplicationSetStatusCondition(ctx context.
 			if client.IgnoreNotFound(err) != nil {
 				return nil
 			}
-			return fmt.Errorf("error fetching updated application set: %v", err)
+			return fmt.Errorf("error fetching updated application set: %w", err)
 		}
 
 		applicationSet.Status.SetConditions(
@@ -341,7 +341,7 @@ func (r *ApplicationSetReconciler) setApplicationSetStatusCondition(ctx context.
 		// Update the newly fetched object with new set of conditions
 		err := r.Client.Status().Update(ctx, applicationSet)
 		if err != nil && !apierr.IsNotFound(err) {
-			return fmt.Errorf("unable to set application set condition: %v", err)
+			return fmt.Errorf("unable to set application set condition: %w", err)
 		}
 	}
 

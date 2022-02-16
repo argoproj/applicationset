@@ -58,7 +58,7 @@ func (g *PullRequestGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha
 	ctx := context.Background()
 	svc, err := g.selectServiceProviderFunc(ctx, appSetGenerator.PullRequest, applicationSetInfo)
 	if err != nil {
-		return nil, fmt.Errorf("failed to select pull request service provider: %v", err)
+		return nil, fmt.Errorf("failed to select pull request service provider: %w", err)
 	}
 
 	pulls, err := svc.List(ctx)
@@ -82,7 +82,7 @@ func (g *PullRequestGenerator) selectServiceProvider(ctx context.Context, genera
 		providerConfig := generatorConfig.Github
 		token, err := g.getSecretRef(ctx, providerConfig.TokenRef, applicationSetInfo.Namespace)
 		if err != nil {
-			return nil, fmt.Errorf("error fetching Secret token: %v", err)
+			return nil, fmt.Errorf("error fetching Secret token: %w", err)
 		}
 		return pullrequest.NewGithubService(ctx, token, providerConfig.API, providerConfig.Owner, providerConfig.Repo, providerConfig.Labels)
 	}

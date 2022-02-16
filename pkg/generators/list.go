@@ -42,7 +42,7 @@ func (g *ListGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appli
 		var element map[string]interface{}
 		err := json.Unmarshal(tmpItem.Raw, &element)
 		if err != nil {
-			return nil, fmt.Errorf("error unmarshling list element %v", err)
+			return nil, fmt.Errorf("error unmarshling list element %w", err)
 		}
 
 		for key, value := range element {
@@ -54,14 +54,14 @@ func (g *ListGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha1.Appli
 				for k, v := range values {
 					value, ok := v.(string)
 					if !ok {
-						return nil, fmt.Errorf("error parsing value as string %v", err)
+						return nil, fmt.Errorf("error parsing value as string %w", err)
 					}
 					params[fmt.Sprintf("values.%s", k)] = value
 				}
 			} else {
 				v, ok := value.(string)
 				if !ok {
-					return nil, fmt.Errorf("error parsing value as string %v", err)
+					return nil, fmt.Errorf("error parsing value as string %w", err)
 				}
 				params[key] = v
 			}
