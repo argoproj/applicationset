@@ -72,7 +72,7 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 		// Since nested matrix generator is represented as a JSON object in the CRD, we unmarshall it back to a Go struct here.
 		nestedMatrix, err := argoprojiov1alpha1.ToNestedMatrixGenerator(appSetBaseGenerator.Matrix)
 		if err != nil {
-			return nil, fmt.Errorf("unable to unmarshall nested matrix generator: %w", err)
+			return nil, fmt.Errorf("unable to unmarshall nested matrix generator: %v", err)
 		}
 		if nestedMatrix != nil {
 			matrix = nestedMatrix.ToMatrixGenerator()
@@ -84,7 +84,7 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 		// Since nested merge generator is represented as a JSON object in the CRD, we unmarshall it back to a Go struct here.
 		nestedMerge, err := argoprojiov1alpha1.ToNestedMergeGenerator(appSetBaseGenerator.Merge)
 		if err != nil {
-			return nil, fmt.Errorf("unable to unmarshall nested merge generator: %w", err)
+			return nil, fmt.Errorf("unable to unmarshall nested merge generator: %v", err)
 		}
 		if nestedMerge != nil {
 			mergeGenerator = nestedMerge.ToMergeGenerator()
@@ -107,7 +107,7 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 		appSet)
 
 	if err != nil {
-		return nil, fmt.Errorf("child generator returned an error on parameter generation: %w", err)
+		return nil, fmt.Errorf("child generator returned an error on parameter generation: %v", err)
 	}
 
 	if len(t) == 0 {

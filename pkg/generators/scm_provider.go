@@ -62,20 +62,20 @@ func (g *SCMProviderGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha
 	} else if providerConfig.Github != nil {
 		token, err := g.getSecretRef(ctx, providerConfig.Github.TokenRef, applicationSetInfo.Namespace)
 		if err != nil {
-			return nil, fmt.Errorf("error fetching Github token: %w", err)
+			return nil, fmt.Errorf("error fetching Github token: %v", err)
 		}
 		provider, err = scm_provider.NewGithubProvider(ctx, providerConfig.Github.Organization, token, providerConfig.Github.API, providerConfig.Github.AllBranches)
 		if err != nil {
-			return nil, fmt.Errorf("error initializing Github service: %w", err)
+			return nil, fmt.Errorf("error initializing Github service: %v", err)
 		}
 	} else if providerConfig.Gitlab != nil {
 		token, err := g.getSecretRef(ctx, providerConfig.Gitlab.TokenRef, applicationSetInfo.Namespace)
 		if err != nil {
-			return nil, fmt.Errorf("error fetching Gitlab token: %w", err)
+			return nil, fmt.Errorf("error fetching Gitlab token: %v", err)
 		}
 		provider, err = scm_provider.NewGitlabProvider(ctx, providerConfig.Gitlab.Group, token, providerConfig.Gitlab.API, providerConfig.Gitlab.AllBranches, providerConfig.Gitlab.IncludeSubgroups)
 		if err != nil {
-			return nil, fmt.Errorf("error initializing Gitlab service: %w", err)
+			return nil, fmt.Errorf("error initializing Gitlab service: %v", err)
 		}
 	} else {
 		return nil, fmt.Errorf("no SCM provider implementation configured")
@@ -84,7 +84,7 @@ func (g *SCMProviderGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha
 	// Find all the available repos.
 	repos, err := scm_provider.ListRepos(ctx, provider, providerConfig.Filters, providerConfig.CloneProtocol)
 	if err != nil {
-		return nil, fmt.Errorf("error listing repos: %w", err)
+		return nil, fmt.Errorf("error listing repos: %v", err)
 	}
 	params := make([]map[string]string, 0, len(repos))
 	for _, repo := range repos {

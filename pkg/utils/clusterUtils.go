@@ -156,7 +156,7 @@ func ValidateDestination(ctx context.Context, dest *appv1.ApplicationDestination
 		if dest.Server == "" {
 			server, err := getDestinationServer(ctx, dest.Name, clientset, namespace)
 			if err != nil {
-				return fmt.Errorf("unable to find destination server: %w", err)
+				return fmt.Errorf("unable to find destination server: %v", err)
 			}
 			if server == "" {
 				return fmt.Errorf("application references destination cluster %s which does not exist", dest.Name)
