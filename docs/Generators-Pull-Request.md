@@ -70,6 +70,8 @@ spec:
         repo: myrepository
         # URL of the Bitbucket Server. Required.
         api: https://mycompany.bitbucket.org
+        # Filter PRs using the source branch name. (optional)
+        branchMatch: ".*-argocd"
         # Credentials for Basic authentication. Required for private repositories.
         basicAuth:
           # The username to authenticate with
@@ -86,6 +88,8 @@ spec:
 * `project`: Required name of the Bitbucket project
 * `repo`: Required name of the Bitbucket repository.
 * `api`: Required URL to access the Bitbucket REST API. For the example above, an API request would be made to `https://mycompany.bitbucket.org/rest/api/1.0/projects/myproject/repos/myrepository/pull-requests`
+* `branchMatch`: Optional regexp filter which should match the source branch name. This is an alternative to labels which are not supported by Bitbucket Server. 
+
 If you want to access a private repository, you must also provide the credentials for Basic auth (this is the only auth supported currently):
 * `username`: The username to authenticate with. It only needs read access to the relevant repo.
 * `passwordRef`: A `Secret` name and key containing the password or personal access token to use for requests.
