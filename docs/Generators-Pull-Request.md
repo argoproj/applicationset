@@ -55,7 +55,7 @@ spec:
 
 ## Bitbucket Server
 
-Fetch pull requests from a repo hosted on a Bitbucket Server (not to same as Bitbucket Cloud).
+Fetch pull requests from a repo hosted on a Bitbucket Server (not the same as Bitbucket Cloud).
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -80,7 +80,7 @@ spec:
           passwordRef:
             secretName: mypassword
             key: password
-        # Labels are not supported by Bitbucket Server
+        # Labels are not supported by Bitbucket Server, so filtering by label is not possible.
   template:
   # ...
 ```

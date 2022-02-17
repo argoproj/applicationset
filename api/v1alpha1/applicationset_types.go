@@ -305,7 +305,7 @@ type SCMProviderGenerator struct {
 	Template            ApplicationSetTemplate `json:"template,omitempty"`
 }
 
-// SCMProviderGeneratorGithub defines a connection info specific to GitHub.
+// SCMProviderGeneratorGithub defines connection info specific to GitHub.
 type SCMProviderGeneratorGithub struct {
 	// GitHub org to scan. Required.
 	Organization string `json:"organization"`
@@ -317,7 +317,7 @@ type SCMProviderGeneratorGithub struct {
 	AllBranches bool `json:"allBranches,omitempty"`
 }
 
-// SCMProviderGeneratorGitlab defines a connection info specific to Gitlab.
+// SCMProviderGeneratorGitlab defines connection info specific to Gitlab.
 type SCMProviderGeneratorGitlab struct {
 	// Gitlab group to scan. Required.  You can use either the project id (recommended) or the full namespaced path.
 	Group string `json:"group"`
@@ -331,11 +331,11 @@ type SCMProviderGeneratorGitlab struct {
 	AllBranches bool `json:"allBranches,omitempty"`
 }
 
-// SCMProviderGeneratorBitbucketServer defines a connection info specific to Bitbucket Server.
+// SCMProviderGeneratorBitbucketServer defines connection info specific to Bitbucket Server.
 type SCMProviderGeneratorBitbucketServer struct {
 	// Project to scan. Required.
 	Project string `json:"project"`
-	// The Bitbucket Server REST API URL to talk to.
+	// The Bitbucket Server REST API URL to talk to. Required.
 	API string `json:"api"`
 	// Credentials for Basic auth
 	BasicAuth *BasicAuthBitbucketServer `json:"basicAuth,omitempty"`
@@ -367,7 +367,7 @@ type PullRequestGenerator struct {
 	Template            ApplicationSetTemplate `json:"template,omitempty"`
 }
 
-// PullRequestGenerator defines a connection info specific to GitHub.
+// PullRequestGenerator defines connection info specific to GitHub.
 type PullRequestGeneratorGithub struct {
 	// GitHub org or user to scan. Required.
 	Owner string `json:"owner"`
@@ -381,7 +381,7 @@ type PullRequestGeneratorGithub struct {
 	Labels []string `json:"labels,omitempty"`
 }
 
-// PullRequestGenerator defines a connection info specific to BitbucketServer.
+// PullRequestGenerator defines connection info specific to BitbucketServer.
 type PullRequestGeneratorBitbucketServer struct {
 	// Project to scan. Required.
 	Project string `json:"project"`
