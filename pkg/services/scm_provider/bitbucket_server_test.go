@@ -69,7 +69,7 @@ func defaultHandler(t *testing.T) func(http.ResponseWriter, *http.Request) {
 }
 
 func verifyDefaultRepo(t *testing.T, err error, repos []*Repository) {
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(repos))
 	assert.Equal(t, Repository{
 		Organization: "PROJECT",
@@ -87,9 +87,9 @@ func TestListReposNoAuth(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	provider, err := NewBitbucketServerProviderNoAuth(context.TODO(), ts.URL, "PROJECT", true)
-	assert.Nil(t, err)
-	repos, err := provider.ListRepos(context.TODO(), "ssh")
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", true)
+	assert.NoError(t, err)
+	repos, err := provider.ListRepos(context.Background(), "ssh")
 	verifyDefaultRepo(t, err, repos)
 }
 
@@ -195,10 +195,10 @@ func TestListReposPagination(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	provider, err := NewBitbucketServerProviderNoAuth(context.TODO(), ts.URL, "PROJECT", true)
-	assert.Nil(t, err)
-	repos, err := provider.ListRepos(context.TODO(), "ssh")
-	assert.Nil(t, err)
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", true)
+	assert.NoError(t, err)
+	repos, err := provider.ListRepos(context.Background(), "ssh")
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(repos))
 	assert.Equal(t, Repository{
 		Organization: "PROJECT",
@@ -270,10 +270,10 @@ func TestListReposBranchPagination(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	provider, err := NewBitbucketServerProviderNoAuth(context.TODO(), ts.URL, "PROJECT", true)
-	assert.Nil(t, err)
-	repos, err := provider.ListRepos(context.TODO(), "ssh")
-	assert.Nil(t, err)
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", true)
+	assert.NoError(t, err)
+	repos, err := provider.ListRepos(context.Background(), "ssh")
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(repos))
 	assert.Equal(t, Repository{
 		Organization: "PROJECT",
@@ -301,9 +301,9 @@ func TestListReposBasicAuth(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	provider, err := NewBitbucketServerProviderBasicAuth(context.TODO(), "user", "password", ts.URL, "PROJECT", true)
-	assert.Nil(t, err)
-	repos, err := provider.ListRepos(context.TODO(), "ssh")
+	provider, err := NewBitbucketServerProviderBasicAuth(context.Background(), "user", "password", ts.URL, "PROJECT", true)
+	assert.NoError(t, err)
+	repos, err := provider.ListRepos(context.Background(), "ssh")
 	verifyDefaultRepo(t, err, repos)
 }
 
@@ -328,10 +328,10 @@ func TestListReposDefaultBranch(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	provider, err := NewBitbucketServerProviderNoAuth(context.TODO(), ts.URL, "PROJECT", false)
-	assert.Nil(t, err)
-	repos, err := provider.ListRepos(context.TODO(), "ssh")
-	assert.Nil(t, err)
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", false)
+	assert.NoError(t, err)
+	repos, err := provider.ListRepos(context.Background(), "ssh")
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(repos))
 	assert.Equal(t, Repository{
 		Organization: "PROJECT",
@@ -349,10 +349,10 @@ func TestListReposCloneProtocol(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	provider, err := NewBitbucketServerProviderNoAuth(context.TODO(), ts.URL, "PROJECT", true)
-	assert.Nil(t, err)
-	repos, err := provider.ListRepos(context.TODO(), "https")
-	assert.Nil(t, err)
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", true)
+	assert.NoError(t, err)
+	repos, err := provider.ListRepos(context.Background(), "https")
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(repos))
 	assert.Equal(t, Repository{
 		Organization: "PROJECT",
@@ -370,9 +370,9 @@ func TestListReposUnknownProtocol(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	provider, err := NewBitbucketServerProviderNoAuth(context.TODO(), ts.URL, "PROJECT", true)
-	assert.Nil(t, err)
-	_, errProtocol := provider.ListRepos(context.TODO(), "http")
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", true)
+	assert.NoError(t, err)
+	_, errProtocol := provider.ListRepos(context.Background(), "http")
 	assert.NotNil(t, errProtocol)
 }
 
@@ -411,27 +411,27 @@ func TestBitbucketServerHasPath(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	provider, err := NewBitbucketServerProviderNoAuth(context.TODO(), ts.URL, "PROJECT", true)
-	assert.Nil(t, err)
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", true)
+	assert.NoError(t, err)
 	repo := &Repository{
 		Organization: "PROJECT",
 		Repository:   "REPO",
 		Branch:       "main",
 	}
 	ok, err := provider.RepoHasPath(context.Background(), repo, "pkg/")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.True(t, ok)
 
 	ok, err = provider.RepoHasPath(context.Background(), repo, "anotherpkg/file.txt")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.True(t, ok)
 
 	ok, err = provider.RepoHasPath(context.Background(), repo, "anotherpkg/missing.txt")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, ok)
 
 	ok, err = provider.RepoHasPath(context.Background(), repo, "notathing/")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, ok)
 
 }

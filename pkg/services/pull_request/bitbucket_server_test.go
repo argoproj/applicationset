@@ -47,10 +47,10 @@ func TestListPullRequestNoAuth(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	svc, err := NewBitbucketServiceNoAuth(context.TODO(), ts.URL, "PROJECT", "REPO", nil)
-	assert.Nil(t, err)
-	pullRequests, err := svc.List(context.TODO())
-	assert.Nil(t, err)
+	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
+	assert.NoError(t, err)
+	pullRequests, err := svc.List(context.Background())
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(pullRequests))
 	assert.Equal(t, 101, pullRequests[0].Number)
 	assert.Equal(t, "feature-ABC-123", pullRequests[0].Branch)
@@ -112,10 +112,10 @@ func TestListPullRequestPagination(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	svc, err := NewBitbucketServiceNoAuth(context.TODO(), ts.URL, "PROJECT", "REPO", nil)
-	assert.Nil(t, err)
-	pullRequests, err := svc.List(context.TODO())
-	assert.Nil(t, err)
+	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
+	assert.NoError(t, err)
+	pullRequests, err := svc.List(context.Background())
+	assert.NoError(t, err)
 	assert.Equal(t, 3, len(pullRequests))
 	assert.Equal(t, PullRequest{
 		Number:  101,
@@ -142,10 +142,10 @@ func TestListPullRequestBasicAuth(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	svc, err := NewBitbucketServiceBasicAuth(context.TODO(), "user", "password", ts.URL, "PROJECT", "REPO", nil)
-	assert.Nil(t, err)
-	pullRequests, err := svc.List(context.TODO())
-	assert.Nil(t, err)
+	svc, err := NewBitbucketServiceBasicAuth(context.Background(), "user", "password", ts.URL, "PROJECT", "REPO", nil)
+	assert.NoError(t, err)
+	pullRequests, err := svc.List(context.Background())
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(pullRequests))
 	assert.Equal(t, 101, pullRequests[0].Number)
 	assert.Equal(t, "feature-ABC-123", pullRequests[0].Branch)
@@ -157,8 +157,8 @@ func TestListResponseError(t *testing.T) {
 		w.WriteHeader(500)
 	}))
 	defer ts.Close()
-	svc, _ := NewBitbucketServiceNoAuth(context.TODO(), ts.URL, "PROJECT", "REPO", nil)
-	_, err := svc.List(context.TODO())
+	svc, _ := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
+	_, err := svc.List(context.Background())
 	assert.NotNil(t, err, err)
 }
 
@@ -182,8 +182,8 @@ func TestListResponseMalformed(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	svc, _ := NewBitbucketServiceNoAuth(context.TODO(), ts.URL, "PROJECT", "REPO", nil)
-	_, err := svc.List(context.TODO())
+	svc, _ := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
+	_, err := svc.List(context.Background())
 	assert.NotNil(t, err, err)
 }
 
@@ -207,10 +207,10 @@ func TestListResponseEmpty(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	svc, err := NewBitbucketServiceNoAuth(context.TODO(), ts.URL, "PROJECT", "REPO", nil)
-	assert.Nil(t, err)
-	pullRequests, err := svc.List(context.TODO())
-	assert.Nil(t, err)
+	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
+	assert.NoError(t, err)
+	pullRequests, err := svc.List(context.Background())
+	assert.NoError(t, err)
 	assert.Empty(t, pullRequests)
 }
 
@@ -270,10 +270,10 @@ func TestListPullRequestBranchMatch(t *testing.T) {
 	}))
 	defer ts.Close()
 	regexp := `feature-1[\d]{2}`
-	svc, err := NewBitbucketServiceNoAuth(context.TODO(), ts.URL, "PROJECT", "REPO", &regexp)
-	assert.Nil(t, err)
-	pullRequests, err := svc.List(context.TODO())
-	assert.Nil(t, err)
+	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", &regexp)
+	assert.NoError(t, err)
+	pullRequests, err := svc.List(context.Background())
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(pullRequests))
 	assert.Equal(t, PullRequest{
 		Number:  101,
@@ -287,10 +287,10 @@ func TestListPullRequestBranchMatch(t *testing.T) {
 	}, *pullRequests[1])
 
 	regexp = `.*2$`
-	svc, err = NewBitbucketServiceNoAuth(context.TODO(), ts.URL, "PROJECT", "REPO", &regexp)
-	assert.Nil(t, err)
-	pullRequests, err = svc.List(context.TODO())
-	assert.Nil(t, err)
+	svc, err = NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", &regexp)
+	assert.NoError(t, err)
+	pullRequests, err = svc.List(context.Background())
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(pullRequests))
 	assert.Equal(t, PullRequest{
 		Number:  102,
@@ -299,6 +299,6 @@ func TestListPullRequestBranchMatch(t *testing.T) {
 	}, *pullRequests[0])
 
 	regexp = `[\d{2}`
-	_, err = NewBitbucketServiceNoAuth(context.TODO(), ts.URL, "PROJECT", "REPO", &regexp)
+	_, err = NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", &regexp)
 	assert.NotNil(t, err)
 }
