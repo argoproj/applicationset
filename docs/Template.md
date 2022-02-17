@@ -43,6 +43,19 @@ The `metadata` field of template may also be used to set an Application `name`, 
     
 While the ApplicationSet spec provides a basic form of templating, it is not intended to replace the full-fledged configuration management capabilities of tools such as Kustomize, Helm, or Jsonnet.
 
+### Deploying ApplicationSet resources as part of a Helm chart
+
+ApplicationSet uses the same templating notation as Helm (`{{}}`). If the ApplicationSet templates aren't written as 
+Helm string literals, Helm will throw an error like `function "cluster" not defined`. To avoid that error, write the 
+template as a Helm string literal. For example:
+
+```yaml
+    metadata:
+      name: '{{`{{cluster}}`}}-guestbook'
+```
+
+This _only_ applies if you use Helm to deploy your ApplicationSet resources.
+
 ## Generator templates
 
 In addition to specifying a template within the `.spec.template` of the `ApplicationSet` resource, templates may also be specified within generators. This is useful for overriding the values of the `spec`-level template. 
