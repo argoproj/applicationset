@@ -39,6 +39,27 @@ func NewGitlabProvider(ctx context.Context, organization string, token string, u
 	return &GitlabProvider{client: client, organization: organization, allBranches: allBranches, includeSubgroups: includeSubgroups}, nil
 }
 
+func (g *GitlabProvider) GetBranches(ctx context.Context, repo *Repository) ([]*Repository, error) {
+	repos := []*Repository{}
+	branches, err := g.listBranches(ctx, repo)
+	if err != nil {
+		return nil, fmt.Errorf("error listing branches for %s/%s: %v", repo.Organization, repo.Repository, err)
+	}
+
+	for _, branch := range branches {
+		repos = append(repos, &Repository{
+			Organization: repo.Organization,
+			Repository:   repo.Repository,
+			URL:          repo.URL,
+			Branch:       branch.Name,
+			SHA:          branch.Commit.ID,
+			Labels:       repo.Labels,
+			RepositoryId: repo.RepositoryId,
+		})
+	}
+	return repos, nil
+}
+
 func (g *GitlabProvider) ListRepos(ctx context.Context, cloneProtocol string) ([]*Repository, error) {
 	opt := &gitlab.ListGroupProjectsOptions{
 		ListOptions:      gitlab.ListOptions{PerPage: 100},
@@ -62,21 +83,14 @@ func (g *GitlabProvider) ListRepos(ctx context.Context, cloneProtocol string) ([
 				return nil, fmt.Errorf("unknown clone protocol for Gitlab %v", cloneProtocol)
 			}
 
-			branches, err := g.listBranches(ctx, gitlabRepo)
-			if err != nil {
-				return nil, fmt.Errorf("error listing branches for %s/%s: %v", g.organization, gitlabRepo.Name, err)
-			}
-
-			for _, branch := range branches {
-				repos = append(repos, &Repository{
-					Organization: gitlabRepo.Namespace.FullPath,
-					Repository:   gitlabRepo.Path,
-					URL:          url,
-					Branch:       branch.Name,
-					SHA:          branch.Commit.ID,
-					Labels:       gitlabRepo.TagList,
-				})
-			}
+			repos = append(repos, &Repository{
+				Organization: gitlabRepo.Namespace.FullPath,
+				Repository:   gitlabRepo.Path,
+				URL:          url,
+				Branch:       gitlabRepo.DefaultBranch,
+				Labels:       gitlabRepo.TagList,
+				RepositoryId: gitlabRepo.ID,
+			})
 		}
 		if resp.CurrentPage >= resp.TotalPages {
 			break
@@ -104,11 +118,11 @@ func (g *GitlabProvider) RepoHasPath(_ context.Context, repo *Repository, path s
 	return true, nil
 }
 
-func (g *GitlabProvider) listBranches(_ context.Context, repo *gitlab.Project) ([]gitlab.Branch, error) {
+func (g *GitlabProvider) listBranches(_ context.Context, repo *Repository) ([]gitlab.Branch, error) {
 	branches := []gitlab.Branch{}
 	// If we don't specifically want to query for all branches, just use the default branch and call it a day.
 	if !g.allBranches {
-		gitlabBranch, _, err := g.client.Branches.GetBranch(repo.ID, repo.DefaultBranch, nil)
+		gitlabBranch, _, err := g.client.Branches.GetBranch(repo.RepositoryId, repo.Branch, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +134,7 @@ func (g *GitlabProvider) listBranches(_ context.Context, repo *gitlab.Project) (
 		ListOptions: gitlab.ListOptions{PerPage: 100},
 	}
 	for {
-		gitlabBranches, resp, err := g.client.Branches.ListBranches(repo.ID, opt)
+		gitlabBranches, resp, err := g.client.Branches.ListBranches(repo.RepositoryId, opt)
 		if err != nil {
 			return nil, err
 		}

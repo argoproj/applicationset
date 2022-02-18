@@ -43,6 +43,27 @@ func NewGithubProvider(ctx context.Context, organization string, token string, u
 	return &GithubProvider{client: client, organization: organization, allBranches: allBranches}, nil
 }
 
+func (g *GithubProvider) GetBranches(ctx context.Context, repo *Repository) ([]*Repository, error) {
+	repos := []*Repository{}
+	branches, err := g.listBranches(ctx, repo)
+	if err != nil {
+		return nil, fmt.Errorf("error listing branches for %s/%s: %v", repo.Organization, repo.Repository, err)
+	}
+
+	for _, branch := range branches {
+		repos = append(repos, &Repository{
+			Organization: repo.Organization,
+			Repository:   repo.Repository,
+			URL:          repo.URL,
+			Branch:       branch.GetName(),
+			SHA:          branch.GetCommit().GetSHA(),
+			Labels:       repo.Labels,
+			RepositoryId: repo.RepositoryId,
+		})
+	}
+	return repos, nil
+}
+
 func (g *GithubProvider) ListRepos(ctx context.Context, cloneProtocol string) ([]*Repository, error) {
 	opt := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{PerPage: 100},
@@ -64,22 +85,14 @@ func (g *GithubProvider) ListRepos(ctx context.Context, cloneProtocol string) ([
 			default:
 				return nil, fmt.Errorf("unknown clone protocol for GitHub %v", cloneProtocol)
 			}
-
-			branches, err := g.listBranches(ctx, githubRepo)
-			if err != nil {
-				return nil, fmt.Errorf("error listing branches for %s/%s: %v", githubRepo.Owner.GetLogin(), githubRepo.GetName(), err)
-			}
-
-			for _, branch := range branches {
-				repos = append(repos, &Repository{
-					Organization: githubRepo.Owner.GetLogin(),
-					Repository:   githubRepo.GetName(),
-					URL:          url,
-					Branch:       branch.GetName(),
-					SHA:          branch.GetCommit().GetSHA(),
-					Labels:       githubRepo.Topics,
-				})
-			}
+			repos = append(repos, &Repository{
+				Organization: githubRepo.Owner.GetLogin(),
+				Repository:   githubRepo.GetName(),
+				Branch:       githubRepo.GetDefaultBranch(),
+				URL:          url,
+				Labels:       githubRepo.Topics,
+				RepositoryId: githubRepo.ID,
+			})
 		}
 		if resp.NextPage == 0 {
 			break
@@ -103,10 +116,10 @@ func (g *GithubProvider) RepoHasPath(ctx context.Context, repo *Repository, path
 	return true, nil
 }
 
-func (g *GithubProvider) listBranches(ctx context.Context, repo *github.Repository) ([]github.Branch, error) {
+func (g *GithubProvider) listBranches(ctx context.Context, repo *Repository) ([]github.Branch, error) {
 	// If we don't specifically want to query for all branches, just use the default branch and call it a day.
 	if !g.allBranches {
-		defaultBranch, _, err := g.client.Repositories.GetBranch(ctx, repo.Owner.GetLogin(), repo.GetName(), repo.GetDefaultBranch())
+		defaultBranch, _, err := g.client.Repositories.GetBranch(ctx, repo.Organization, repo.Repository, repo.Branch)
 		if err != nil {
 			var githubErrorResponse *github.ErrorResponse
 			if errors.As(err, &githubErrorResponse) {
@@ -125,7 +138,7 @@ func (g *GithubProvider) listBranches(ctx context.Context, repo *github.Reposito
 	}
 	branches := []github.Branch{}
 	for {
-		githubBranches, resp, err := g.client.Repositories.ListBranches(ctx, repo.Owner.GetLogin(), repo.GetName(), opt)
+		githubBranches, resp, err := g.client.Repositories.ListBranches(ctx, repo.Organization, repo.Repository, opt)
 		if err != nil {
 			return nil, err
 		}

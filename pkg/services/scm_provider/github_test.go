@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/argoproj/applicationset/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,6 +39,7 @@ func TestGithubListRepos(t *testing.T) {
 		name, proto, url      string
 		hasError, allBranches bool
 		branches              []string
+		filters               []v1alpha1.SCMProviderGeneratorFilter
 	}{
 		{
 			name:     "blank protocol",
@@ -70,7 +72,7 @@ func TestGithubListRepos(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			provider, _ := NewGithubProvider(context.Background(), "argoproj", "", "", c.allBranches)
-			rawRepos, err := provider.ListRepos(context.Background(), c.proto)
+			rawRepos, err := ListRepos(context.Background(), provider, c.filters, c.proto)
 			if c.hasError {
 				assert.Error(t, err)
 			} else {
