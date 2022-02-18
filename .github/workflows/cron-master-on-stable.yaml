@@ -32,10 +32,6 @@ jobs:
 #
     steps:
 
-      - name: Login to GitHub
-        run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
-
       - name: Call GitHub CLI to find latest stable Argo CD release
         id: get-argocd-stable
         run: |

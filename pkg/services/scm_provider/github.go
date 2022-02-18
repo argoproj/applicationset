@@ -2,6 +2,7 @@ package scm_provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -120,6 +121,13 @@ func (g *GithubProvider) listBranches(ctx context.Context, repo *Repository) ([]
 	if !g.allBranches {
 		defaultBranch, _, err := g.client.Repositories.GetBranch(ctx, repo.Organization, repo.Repository, repo.Branch)
 		if err != nil {
+			var githubErrorResponse *github.ErrorResponse
+			if errors.As(err, &githubErrorResponse) {
+				if githubErrorResponse.Response.StatusCode == 404 {
+					// Default branch doesn't exist, so the repo is empty.
+					return []github.Branch{}, nil
+				}
+			}
 			return nil, err
 		}
 		return []github.Branch{*defaultBranch}, nil

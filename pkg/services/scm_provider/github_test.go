@@ -74,10 +74,10 @@ func TestGithubListRepos(t *testing.T) {
 			provider, _ := NewGithubProvider(context.Background(), "argoproj", "", "", c.allBranches)
 			rawRepos, err := ListRepos(context.Background(), provider, c.filters, c.proto)
 			if c.hasError {
-				assert.NotNil(t, err)
+				assert.Error(t, err)
 			} else {
 				checkRateLimit(t, err)
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				// Just check that this one project shows up. Not a great test but better thing nothing?
 				repos := []*Repository{}
 				branches := []string{}

@@ -257,7 +257,7 @@ func TestNoFilters(t *testing.T) {
 	assert.Equal(t, "three", repos[2].Repository)
 }
 
-// tests the getApplicableFilters function, passing in all the filters, and an unset filter, plus an additional
+// tests the filters segmentation functions, passing in all the filters, and an unset filter, plus an additional
 // branch filter
 func TestApplicableFilterMap(t *testing.T) {
 	branchFilter := Filter{

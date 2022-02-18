@@ -10,6 +10,10 @@ Thus the ApplicationSet controller:
 - Does not connect to clusters other than the one Argo CD is deployed to
 - Does not interact with namespaces other than the one Argo CD is deployed within
 
+!!!important "Use the Argo CD namespace"
+    All ApplicationSet resources and the ApplicationSet controller must be installed in the same namespace as Argo CD. 
+    ApplicationSet resources in a different namespace will be ignored.
+
 It is Argo CD itself that is responsible for the actual deployment of the generated child `Application` resources, such as Deployments, Services, and ConfigMaps.
 
 The ApplicationSet controller can thus be thought of as an `Application` 'factory', taking an `ApplicationSet` resource as input, and outputting one or more Argo CD `Application` resources that correspond to the parameters of that set.
