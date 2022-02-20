@@ -6458,6 +6458,11 @@ spec:
                 - metadata
                 - spec
                 type: object
+              templateOptions:
+                properties:
+                  gotemplateEnabled:
+                    type: boolean
+                type: object
             required:
             - generators
             - template

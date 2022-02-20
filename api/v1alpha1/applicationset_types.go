@@ -48,9 +48,10 @@ type ApplicationSet struct {
 
 // ApplicationSetSpec represents a class of application set state.
 type ApplicationSetSpec struct {
-	Generators []ApplicationSetGenerator `json:"generators"`
-	Template   ApplicationSetTemplate    `json:"template"`
-	SyncPolicy *ApplicationSetSyncPolicy `json:"syncPolicy,omitempty"`
+	Generators      []ApplicationSetGenerator      `json:"generators"`
+	Template        ApplicationSetTemplate         `json:"template"`
+	SyncPolicy      *ApplicationSetSyncPolicy      `json:"syncPolicy,omitempty"`
+	TemplateOptions *ApplicationSetTemplateOptions `json:"templateOptions,omitempty"`
 }
 
 // ApplicationSetSyncPolicy configures how generated Applications will relate to their
@@ -58,6 +59,12 @@ type ApplicationSetSpec struct {
 type ApplicationSetSyncPolicy struct {
 	// PreserveResourcesOnDeletion will preserve resources on deletion. If PreserveResourcesOnDeletion is set to true, these Applications will not be deleted.
 	PreserveResourcesOnDeletion bool `json:"preserveResourcesOnDeletion,omitempty"`
+}
+
+// ApplicationSetTemplateOptions configures how template rendering behaves
+type ApplicationSetTemplateOptions struct {
+	// GotemplateEnabled will switch to Go template rendering engine.
+	GotemplateEnabled bool `json:"gotemplateEnabled,omitempty"`
 }
 
 // ApplicationSetTemplate represents argocd ApplicationSpec

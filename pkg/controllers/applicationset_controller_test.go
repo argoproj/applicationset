@@ -59,7 +59,7 @@ func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Appl
 	return args.Get(0).(time.Duration)
 }
 
-func (r *rendererMock) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, params map[string]string) (*argov1alpha1.Application, error) {
+func (r *rendererMock) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, templateOptions *argoprojiov1alpha1.ApplicationSetTemplateOptions, params map[string]string) (*argov1alpha1.Application, error) {
 	args := r.Called(tmpl, params)
 
 	if args.Error(1) != nil {

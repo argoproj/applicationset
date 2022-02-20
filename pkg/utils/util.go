@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,21 +9,24 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
 	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasttemplate"
+	"gopkg.in/yaml.v3"
 )
 
 type Renderer interface {
-	RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, params map[string]string) (*argov1alpha1.Application, error)
+	RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, templateOptions *argoprojiov1alpha1.ApplicationSetTemplateOptions, params map[string]string) (*argov1alpha1.Application, error)
 }
 
 type Render struct {
 }
 
-func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, params map[string]string) (*argov1alpha1.Application, error) {
+func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, templateOptions *argoprojiov1alpha1.ApplicationSetTemplateOptions, params map[string]string) (*argov1alpha1.Application, error) {
 	if tmpl == nil {
 		return nil, fmt.Errorf("application template is empty ")
 	}
@@ -31,21 +35,47 @@ func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy
 		return tmpl, nil
 	}
 
-	tmplBytes, err := json.Marshal(tmpl)
-	if err != nil {
-		return nil, err
-	}
-
-	fstTmpl := fasttemplate.New(string(tmplBytes), "{{", "}}")
-	replacedTmplStr, err := r.replace(fstTmpl, params, true)
-	if err != nil {
-		return nil, err
-	}
-
 	var replacedTmpl argov1alpha1.Application
-	err = json.Unmarshal([]byte(replacedTmplStr), &replacedTmpl)
-	if err != nil {
-		return nil, err
+	var replacedTmplStr string
+
+	if templateOptions == nil || !templateOptions.GotemplateEnabled {
+		tmplBytes, err := json.Marshal(tmpl)
+		if err != nil {
+			return nil, err
+		}
+
+		fstTmpl := fasttemplate.New(string(tmplBytes), "{{", "}}")
+		replacedTmplStr, err = r.replaceWithFastTemplate(fstTmpl, params, true)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(replacedTmplStr), &replacedTmpl)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+
+		// as opposed to json, yaml escapes double quote sign with only one slash and hence allow to use {{ "string" }} scalar variables for various use-cases
+		tmplBytes, err := yaml.Marshal(tmpl)
+		if err != nil {
+			return nil, err
+		}
+
+		// missingkey=zero - replace unmatched variables with ""
+		goTemplate, err := template.New("argocd-app").Option("missingkey=zero").Funcs(sprig.TxtFuncMap()).Parse(string(tmplBytes))
+		if err != nil {
+			return nil, err
+		}
+		replacedTmplStr, err = r.replaceWithGoTemplate(goTemplate, params)
+		if err != nil {
+			return nil, err
+		}
+
+		err = yaml.Unmarshal([]byte(replacedTmplStr), &replacedTmpl)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Add the 'resources-finalizer' finalizer if:
@@ -62,10 +92,10 @@ func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy
 	return &replacedTmpl, nil
 }
 
-// Replace executes basic string substitution of a template with replacement values.
+// replaceWithFastTemplate executes basic string substitution of a template with replacement values.
 // 'allowUnresolved' indicates whether or not it is acceptable to have unresolved variables
 // remaining in the substituted template.
-func (r *Render) replace(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allowUnresolved bool) (string, error) {
+func (r *Render) replaceWithFastTemplate(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allowUnresolved bool) (string, error) {
 	var unresolvedErr error
 	replacedTmpl := fstTmpl.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
 
@@ -91,6 +121,18 @@ func (r *Render) replace(fstTmpl *fasttemplate.Template, replaceMap map[string]s
 	}
 
 	return replacedTmpl, nil
+}
+
+// replaceWithGoTemplate applies a parsed Go template to replacement values
+func (r *Render) replaceWithGoTemplate(goTemplate *template.Template, replaceMap map[string]string) (string, error) {
+	var tplString bytes.Buffer
+
+	err := goTemplate.Execute(&tplString, replaceMap)
+	if err != nil {
+		return "", err
+	}
+
+	return tplString.String(), nil
 }
 
 // Log a warning if there are unrecognized generators
