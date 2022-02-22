@@ -16,7 +16,7 @@ import (
 	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasttemplate"
-	"gopkg.in/yaml.v3"
+	"sigs.k8s.io/yaml"
 )
 
 type Renderer interface {
