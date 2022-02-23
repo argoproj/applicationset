@@ -10,10 +10,10 @@ import (
 
 func TestGitlabListRepos(t *testing.T) {
 	cases := []struct {
-		name, proto, url                        string
-		hasError, allBranches, includeSubgroups bool
-		branches                                []string
-		filters                                 []v1alpha1.SCMProviderGeneratorFilter
+		name, proto, url                                         string
+		hasError, allBranches, includeSubgroups, allPullRequests bool
+		branches                                                 []string
+		filters                                                  []v1alpha1.SCMProviderGeneratorFilter
 	}{
 		{
 			name:     "blank protocol",
@@ -45,7 +45,7 @@ func TestGitlabListRepos(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			provider, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", c.allBranches, c.includeSubgroups)
+			provider, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", c.allBranches, c.includeSubgroups, c.allPullRequests)
 			rawRepos, err := ListRepos(context.Background(), provider, c.filters, c.proto)
 			if c.hasError {
 				assert.NotNil(t, err)
@@ -72,7 +72,7 @@ func TestGitlabListRepos(t *testing.T) {
 }
 
 func TestGitlabHasPath(t *testing.T) {
-	host, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", false, true)
+	host, _ := NewGitlabProvider(context.Background(), "test-argocd-proton", "", "", false, true, false)
 	repo := &Repository{
 		Organization: "test-argocd-proton",
 		Repository:   "argocd",

@@ -2778,6 +2778,10 @@ spec:
                                           items:
                                             type: string
                                           type: array
+                                        pullRequestLabelMatch:
+                                          type: string
+                                        pullRequestTitleMatch:
+                                          type: string
                                         repositoryMatch:
                                           type: string
                                       type: object
@@ -2785,6 +2789,8 @@ spec:
                                   github:
                                     properties:
                                       allBranches:
+                                        type: boolean
+                                      allPullRequests:
                                         type: boolean
                                       api:
                                         type: string
@@ -2806,6 +2812,8 @@ spec:
                                   gitlab:
                                     properties:
                                       allBranches:
+                                        type: boolean
+                                      allPullRequests:
                                         type: boolean
                                       api:
                                         type: string
@@ -4920,6 +4928,10 @@ spec:
                                           items:
                                             type: string
                                           type: array
+                                        pullRequestLabelMatch:
+                                          type: string
+                                        pullRequestTitleMatch:
+                                          type: string
                                         repositoryMatch:
                                           type: string
                                       type: object
@@ -4927,6 +4939,8 @@ spec:
                                   github:
                                     properties:
                                       allBranches:
+                                        type: boolean
+                                      allPullRequests:
                                         type: boolean
                                       api:
                                         type: string
@@ -4948,6 +4962,8 @@ spec:
                                   gitlab:
                                     properties:
                                       allBranches:
+                                        type: boolean
+                                      allPullRequests:
                                         type: boolean
                                       api:
                                         type: string
@@ -5851,6 +5867,10 @@ spec:
                                 items:
                                   type: string
                                 type: array
+                              pullRequestLabelMatch:
+                                type: string
+                              pullRequestTitleMatch:
+                                type: string
                               repositoryMatch:
                                 type: string
                             type: object
@@ -5858,6 +5878,8 @@ spec:
                         github:
                           properties:
                             allBranches:
+                              type: boolean
+                            allPullRequests:
                               type: boolean
                             api:
                               type: string
@@ -5879,6 +5901,8 @@ spec:
                         gitlab:
                           properties:
                             allBranches:
+                              type: boolean
+                            allPullRequests:
                               type: boolean
                             api:
                               type: string

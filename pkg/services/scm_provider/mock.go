@@ -3,7 +3,8 @@ package scm_provider
 import "context"
 
 type MockProvider struct {
-	Repos []*Repository
+	Repos           []*Repository
+	allPullRequests bool
 }
 
 var _ SCMProviderService = &MockProvider{}
@@ -44,7 +45,28 @@ func (m *MockProvider) GetBranches(_ context.Context, repo *Repository) ([]*Repo
 				branchRepos = append(branchRepos, candidateRepo)
 			}
 		}
-
 	}
 	return branchRepos, nil
+}
+
+func (m *MockProvider) GetPullRequests(_ context.Context, repo *Repository) ([]*Repository, error) {
+	pullRequestRepos := []*Repository{}
+	if !m.allPullRequests {
+		return pullRequestRepos, nil
+	}
+	for _, candidateRepo := range m.Repos {
+		if candidateRepo.Repository == repo.Repository {
+			found := false
+			for _, alreadySetRepo := range pullRequestRepos {
+				if alreadySetRepo.Branch == candidateRepo.Branch {
+					found = true
+					break
+				}
+			}
+			if !found {
+				pullRequestRepos = append(pullRequestRepos, candidateRepo)
+			}
+		}
+	}
+	return pullRequestRepos, nil
 }

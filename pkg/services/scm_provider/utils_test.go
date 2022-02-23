@@ -171,6 +171,7 @@ func TestFilterBranchMatch(t *testing.T) {
 
 func TestMultiFilterAnd(t *testing.T) {
 	provider := &MockProvider{
+		allPullRequests: false,
 		Repos: []*Repository{
 			{
 				Repository: "one",
