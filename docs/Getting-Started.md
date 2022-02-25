@@ -11,16 +11,25 @@ This guide assumes you are familiar with Argo CD and its basic concepts. See the
 
 There are a few options for installing the ApplicationSet controller.
 
-**Note:** Starting `v2.3` of Argo CD, we don't need to install ApplicationSet Controller separately. It would be instead as part of Argo CD installation.
 
-### A) Install ApplicationSet into an existing Argo CD install
+### A) Install ApplicationSet as part of Argo CD
+
+Starting with Argo CD v2.3, the ApplicationSet controller is bundled with Argo CD. It is no longer necessary to install the ApplicationSet controller separately from Argo CD.
+
+Follow the [Argo CD Getting Started](https://argo-cd.readthedocs.io/en/stable/getting_started/) instructions for more information.
+
+
+
+### B) Install ApplicationSet into an existing Argo CD install (pre-Argo CD v2.3)
+
+**Note**: These instruction only apply to versions of Argo CD before v2.3.0.
 
 The ApplicationSet controller *must* be installed into the same namespace as the Argo CD it is targetting.
 
 Presuming that Argo CD is installed into the `argocd` namespace, run the following command:
 
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/v0.3.0/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/v0.4.0/manifests/install.yaml
 ```
 
 Once installed, the ApplicationSet controller requires no additional setup.
@@ -33,19 +42,6 @@ The `manifests/install.yaml` file contains the Kubernetes manifests required to 
 - Role granting RBAC access to needed resources, for ServiceAccount
 - RoleBinding to bind the ServiceAccount and Role
 
-
-### B) Install ApplicationSet and Argo CD together
-
-You may instead install both the ApplicationSet controller and the latest stable Argo CD together, by creating a namespace and applying `manifests/install-with-argo-cd.yaml`:
-
-```bash
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/v0.3.0/manifests/install-with-argo-cd.yaml
-```
-
-Once installed, follow the [Argo CD Getting Started](https://argo-cd.readthedocs.io/en/stable/getting_started/) to access Argo CD and log-in to the Web UI.
-
-The ApplicationSet controller requires no additional setup.
 
 ### C) Install development builds of ApplicationSet controller for access to the latest features
 
@@ -67,18 +63,11 @@ How it works:
 See the `master` branch [Read the Docs](https://argocd-applicationset.readthedocs.io/en/master/) page for documentation on post-release features.
 
 
-### D) Customized install using Kustomize
-
-To extend or customize the ApplicationSet controller installation, [Kustomize](https://kustomize.io/) may be used with the existing namespace install [manifests/namespace-install/kustomize.yaml](https://github.com/argoproj/applicationset/blob/master/manifests/namespace-install/kustomization.yaml) file.
-
 ## Upgrading to a Newer Release
 
 To upgrade from an older release (eg 0.1.0, 0.2.0) to a newer release (eg 0.3.0), you only need to `kubectl apply` the `install.yaml` for the new release, as described under *Installation* above.
 
 There are no manual upgrade steps required between any release of ApplicationSet controller, (including 0.1.0, 0.2.0, and 0.3.0) as of this writing, however, see the behaviour changes in ApplicationSet controller v0.3.0, below.
-
-!!! note 
-    If you installed using the combined 'ApplicationSet and Argo CD' bundle, you may wish to consult the [Argo CD release upgrade docs](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) as well, to familiarize yourself with Argo CD upgrades, and to confirm if there is anything on the Argo CD side you need to be aware of.
 
 ### Behaviour changes in ApplicationSet controller v0.3.0
 
