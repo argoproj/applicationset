@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	"github.com/argoproj/argo-cd/v2/util/db"
 	"github.com/argoproj/argo-cd/v2/util/git"
-	"github.com/pkg/errors"
 )
 
 // RepositoryDB Is a lean facade for ArgoDB,
@@ -41,7 +41,7 @@ func NewArgoCDService(db db.ArgoDB, repoServerAddress string) Repos {
 func (a *argoCDService) GetFiles(ctx context.Context, repoURL string, revision string, pattern string) (map[string][]byte, error) {
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error in GetRepository")
+		return nil, fmt.Errorf("Error in GetRepository: %w", err)
 	}
 
 	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
@@ -57,7 +57,7 @@ func (a *argoCDService) GetFiles(ctx context.Context, repoURL string, revision s
 
 	paths, err := gitRepoClient.LsFiles(pattern)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error during listing files of local repo")
+		return nil, fmt.Errorf("Error during listing files of local repo: %w", err)
 	}
 
 	res := map[string][]byte{}
@@ -76,7 +76,7 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 
 	repo, err := a.repositoriesDB.GetRepository(ctx, repoURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error in GetRepository")
+		return nil, fmt.Errorf("Error in GetRepository: %w", err)
 	}
 
 	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
@@ -129,21 +129,21 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 func checkoutRepo(gitRepoClient git.Client, revision string) error {
 	err := gitRepoClient.Init()
 	if err != nil {
-		return errors.Wrap(err, "Error during initializing repo")
+		return fmt.Errorf("Error during initializing repo: %w", err)
 	}
 
 	err = gitRepoClient.Fetch(revision)
 	if err != nil {
-		return errors.Wrap(err, "Error during fetching repo")
+		return fmt.Errorf("Error during fetching repo: %w", err)
 	}
 
 	commitSHA, err := gitRepoClient.LsRemote(revision)
 	if err != nil {
-		return errors.Wrap(err, "Error during fetching commitSHA")
+		return fmt.Errorf("Error during fetching commitSHA: %w", err)
 	}
 	err = gitRepoClient.Checkout(commitSHA)
 	if err != nil {
-		return errors.Wrap(err, "Error during repo checkout")
+		return fmt.Errorf("Error during repo checkout: %w", err)
 	}
 	return nil
 }

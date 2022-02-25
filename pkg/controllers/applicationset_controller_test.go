@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -103,7 +102,7 @@ func TestExtractApplications(t *testing.T) {
 		},
 		{
 			name:                "Handles error from the generator",
-			generateParamsError: errors.New("error"),
+			generateParamsError: fmt.Errorf("error"),
 			expectErr:           true,
 			expectedReason:      v1alpha1.ApplicationSetReasonApplicationParamsGenerationError,
 		},
@@ -118,7 +117,7 @@ func TestExtractApplications(t *testing.T) {
 				},
 				Spec: argov1alpha1.ApplicationSpec{},
 			},
-			rendererError:  errors.New("error"),
+			rendererError:  fmt.Errorf("error"),
 			expectErr:      true,
 			expectedReason: v1alpha1.ApplicationSetReasonRenderTemplateParamsError,
 		},
@@ -1620,7 +1619,7 @@ func TestValidateGeneratedApplications(t *testing.T) {
 				},
 			},
 			expectedErrors:   []string{"application destination can't have both name and server defined"},
-			validationErrors: map[int]error{0: errors.New("application destination spec is invalid: application destination can't have both name and server defined: my-cluster my-server")},
+			validationErrors: map[int]error{0: fmt.Errorf("application destination spec is invalid: application destination can't have both name and server defined: my-cluster my-server")},
 		},
 		{
 			name: "project mismatch should return error",
@@ -1643,7 +1642,7 @@ func TestValidateGeneratedApplications(t *testing.T) {
 				},
 			},
 			expectedErrors:   []string{"application references project DOES-NOT-EXIST which does not exist"},
-			validationErrors: map[int]error{0: errors.New("application references project DOES-NOT-EXIST which does not exist")},
+			validationErrors: map[int]error{0: fmt.Errorf("application references project DOES-NOT-EXIST which does not exist")},
 		},
 		{
 			name: "valid app should return true",
@@ -1689,7 +1688,7 @@ func TestValidateGeneratedApplications(t *testing.T) {
 				},
 			},
 			expectedErrors:   []string{"there are no clusters with this name: nonexistent-cluster"},
-			validationErrors: map[int]error{0: errors.New("application destination spec is invalid: unable to find destination server: there are no clusters with this name: nonexistent-cluster")},
+			validationErrors: map[int]error{0: fmt.Errorf("application destination spec is invalid: unable to find destination server: there are no clusters with this name: nonexistent-cluster")},
 		},
 	} {
 

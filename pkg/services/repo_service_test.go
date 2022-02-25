@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -60,9 +60,9 @@ func TestGetDirectories(t *testing.T) {
 			repoRes: &v1alpha1.Repository{
 				Repo: "https://github.com/argoproj/argocd-example-apps/",
 			},
-			repoErr:       errors.New("Simulated error from GetRepository"),
+			repoErr:       fmt.Errorf("Simulated error from GetRepository"),
 			expected:      nil,
-			expectedError: errors.New("Error in GetRepository: Simulated error from GetRepository"),
+			expectedError: fmt.Errorf("Error in GetRepository: Simulated error from GetRepository"),
 		},
 		{
 			name: "Test against repository containing no directories",
@@ -162,7 +162,7 @@ func TestGetFiles(t *testing.T) {
 			revision:            "this-tag-does-not-exist",
 			pattern:             "*",
 			expectSubsetOfPaths: []string{},
-			expectedError:       errors.New("Error during fetching repo: `git fetch origin this-tag-does-not-exist --tags --force` failed exit status 128: fatal: couldn't find remote ref this-tag-does-not-exist"),
+			expectedError:       fmt.Errorf("Error during fetching repo: `git fetch origin this-tag-does-not-exist --tags --force` failed exit status 128: fatal: couldn't find remote ref this-tag-does-not-exist"),
 		},
 		{
 			name: "pull a specific revision of example apps, and use a ** pattern",

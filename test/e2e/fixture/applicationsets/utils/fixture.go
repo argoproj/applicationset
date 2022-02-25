@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -112,9 +111,7 @@ func EnsureCleanState(t *testing.T) {
 		}
 		if list != nil && len(list.Items) > 0 {
 			// Fail
-			msg := fmt.Sprintf("Waiting for list of ApplicationSets to be size zero: %d", len(list.Items))
-			// Intentionally not making this an Errorf, so it can be printf-ed for debugging purposes.
-			return errors.New(msg)
+			return fmt.Errorf("Waiting for list of ApplicationSets to be size zero: %d", len(list.Items))
 		}
 
 		return nil // Pass
@@ -160,9 +157,7 @@ func waitForExpectedClusterState() error {
 		}
 		if list != nil && len(list.Items) > 0 {
 			// Fail
-			msg := fmt.Sprintf("Waiting for list of ApplicationSets to be size zero: %d", len(list.Items))
-			// Intentionally not making this an Errorf, so it can be printf-ed for debugging purposes.
-			return errors.New(msg)
+			return fmt.Errorf("Waiting for list of ApplicationSets to be size zero: %d", len(list.Items))
 		}
 
 		return nil // Pass
@@ -178,8 +173,7 @@ func waitForExpectedClusterState() error {
 		}
 		if appList != nil && len(appList.Items) > 0 {
 			// Fail
-			msg := fmt.Sprintf("Waiting for list of Applications to be size zero: %d", len(appList.Items))
-			return errors.New(msg)
+			return fmt.Errorf("Waiting for list of Applications to be size zero: %d", len(appList.Items))
 		}
 		return nil // Pass
 
@@ -206,7 +200,7 @@ func waitForExpectedClusterState() error {
 			msg = err.Error()
 		}
 
-		return errors.New(msg)
+		return fmt.Errorf(msg)
 
 	}, time.Now().Add(120*time.Second)); err != nil {
 		return err

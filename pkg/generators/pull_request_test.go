@@ -2,7 +2,7 @@ package generators
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,11 +49,11 @@ func TestPullRequestGithubGenerateParams(t *testing.T) {
 				return pullrequest.NewFakeService(
 					ctx,
 					nil,
-					errors.New("fake error"),
+					fmt.Errorf("fake error"),
 				)
 			},
 			expected:    nil,
-			expectedErr: errors.New("error listing repos: fake error"),
+			expectedErr: fmt.Errorf("error listing repos: fake error"),
 		},
 	}
 

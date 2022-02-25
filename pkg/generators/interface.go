@@ -1,7 +1,7 @@
 package generators
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
@@ -23,7 +23,7 @@ type Generator interface {
 	GetTemplate(appSetGenerator *argoprojiov1alpha1.ApplicationSetGenerator) *argoprojiov1alpha1.ApplicationSetTemplate
 }
 
-var EmptyAppSetGeneratorError = errors.New("ApplicationSet is empty")
+var EmptyAppSetGeneratorError = fmt.Errorf("ApplicationSet is empty")
 var NoRequeueAfter time.Duration
 
 // DefaultRequeueAfterSeconds is used when GetRequeueAfter is not specified, it is the default time to wait before the next reconcile loop

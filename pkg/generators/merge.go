@@ -2,7 +2,6 @@ package generators
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -13,9 +12,9 @@ import (
 var _ Generator = (*MergeGenerator)(nil)
 
 var (
-	ErrLessThanTwoGeneratorsInMerge = errors.New("found less than two generators, Merge requires two or more")
-	ErrNoMergeKeys                  = errors.New("no merge keys were specified, Merge requires at least one")
-	ErrNonUniqueParamSets           = errors.New("the parameters from a generator were not unique by the given mergeKeys, Merge requires all param sets to be unique")
+	ErrLessThanTwoGeneratorsInMerge = fmt.Errorf("found less than two generators, Merge requires two or more")
+	ErrNoMergeKeys                  = fmt.Errorf("no merge keys were specified, Merge requires at least one")
+	ErrNonUniqueParamSets           = fmt.Errorf("the parameters from a generator were not unique by the given mergeKeys, Merge requires all param sets to be unique")
 )
 
 type MergeGenerator struct {
