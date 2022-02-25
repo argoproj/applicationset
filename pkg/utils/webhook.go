@@ -169,6 +169,7 @@ func getGitGeneratorInfo(payload interface{}) *gitGeneratorInfo {
 	return &gitGeneratorInfo{
 		RepoRegexp:  repoRegexp,
 		TouchedHead: touchedHead,
+		Revision:    revision,
 	}
 }
 
