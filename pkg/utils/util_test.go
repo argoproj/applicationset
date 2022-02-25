@@ -353,13 +353,24 @@ func TestRenderGoTemplateParams(t *testing.T) {
 		},
 		{
 			name:        "sprig functions are avilable",
-			fieldVal:    "{{upper .one}}{{default \"four\" .three}}",
+			fieldVal:    `{{upper .one}}{{default "four" .three}}`,
 			expectedVal: "TWOfour",
 			templateOptions: &argoprojiov1alpha1.ApplicationSetTemplateOptions{
 				GotemplateEnabled: true,
 			},
 			params: map[string]string{
 				"one": "two",
+			},
+		},
+		{
+			name:        "the output application structure is imutable",
+			fieldVal:    "{{ .yamlPiece }}\n\tsomeother: element",
+			expectedVal: "targetRevision: my-other-branch\n\tsomeother: element",
+			templateOptions: &argoprojiov1alpha1.ApplicationSetTemplateOptions{
+				GotemplateEnabled: true,
+			},
+			params: map[string]string{
+				"yamlPiece": "targetRevision: my-other-branch",
 			},
 		},
 	}
