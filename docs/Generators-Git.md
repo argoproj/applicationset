@@ -29,6 +29,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: cluster-addons
+  namespace: argocd
 spec:
   generators:
   - git:
@@ -73,6 +74,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: cluster-addons
+  namespace: argocd
 spec:
   generators:
   - git:
@@ -197,6 +199,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: guestbook
+  namespace: argocd
 spec:
   generators:
   - git:

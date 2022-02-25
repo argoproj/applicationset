@@ -6,6 +6,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: guestbook
+  namespace: argocd
 spec:
   generators:
   - list:

@@ -2,6 +2,7 @@ package scm_provider
 
 import (
 	"context"
+	"regexp"
 	"testing"
 
 	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
@@ -254,4 +255,37 @@ func TestNoFilters(t *testing.T) {
 	assert.Equal(t, "one", repos[0].Repository)
 	assert.Equal(t, "two", repos[1].Repository)
 	assert.Equal(t, "three", repos[2].Repository)
+}
+
+// tests the getApplicableFilters function, passing in all the filters, and an unset filter, plus an additional
+// branch filter
+func TestApplicableFilterMap(t *testing.T) {
+	branchFilter := Filter{
+		BranchMatch: &regexp.Regexp{},
+		FilterType:  FilterTypeBranch,
+	}
+	repoFilter := Filter{
+		RepositoryMatch: &regexp.Regexp{},
+		FilterType:      FilterTypeRepo,
+	}
+	pathExistsFilter := Filter{
+		PathsExist: []string{"test"},
+		FilterType: FilterTypeBranch,
+	}
+	labelMatchFilter := Filter{
+		LabelMatch: &regexp.Regexp{},
+		FilterType: FilterTypeRepo,
+	}
+	unsetFilter := Filter{
+		LabelMatch: &regexp.Regexp{},
+	}
+	additionalBranchFilter := Filter{
+		BranchMatch: &regexp.Regexp{},
+		FilterType:  FilterTypeBranch,
+	}
+	filterMap := getApplicableFilters([]*Filter{&branchFilter, &repoFilter,
+		&pathExistsFilter, &labelMatchFilter, &unsetFilter, &additionalBranchFilter})
+
+	assert.Len(t, filterMap[FilterTypeRepo], 2)
+	assert.Len(t, filterMap[FilterTypeBranch], 3)
 }

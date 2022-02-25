@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
+    types: [ labeled, unlabeled, opened, synchronize, reopened ]
 
 jobs:
   publish:
@@ -19,9 +23,16 @@ jobs:
           path: src/applicationset
 
       # Build the image
+      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-buildx-action@v1
       - run: |
-          docker images -a --format "{{.ID}}" | xargs -I {} docker rmi {}
-          CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=argoproj IMAGE_TAG=latest make image
+          IMAGE_PLATFORMS=linux/amd64
+          if [[ "${{ github.event_name }}" == "push" || "${{ contains(github.event.pull_request.labels.*.name, 'test-arm-image') }}" == "true" ]]
+          then
+            IMAGE_PLATFORMS=linux/amd64,linux/arm64
+          fi
+          echo "Building image for platforms: $IMAGE_PLATFORMS"
+          make image DOCKER_PUSH=false CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=argoproj IMAGE_TAG=latest IMAGE_PLATFORMS=${IMAGE_PLATFORMS}
         working-directory: ./src/applicationset
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -32,6 +43,7 @@ jobs:
       - run: |
           docker login quay.io --username $USERNAME --password $PASSWORD
           docker push quay.io/argoproj/argocd-applicationset:latest
+        if: github.event_name == 'push'
         env:
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.TOKEN }}
