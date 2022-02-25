@@ -42,5 +42,5 @@ cd ${SRCROOT}/manifests/namespace-install && ${KUSTOMIZE} build . >> ${TEMPFILE}
 mv ${TEMPFILE} ${SRCROOT}/manifests/install.yaml
 cd ${SRCROOT} && chmod 644 manifests/install.yaml
 
-# Verify that the GitHub actions is targetting the expected Argo CD version
+# Verify that the GitHub Actions is targeting the expected Argo CD version
 "${SRCROOT}/hack/verify-argo-cd-versions.sh"
