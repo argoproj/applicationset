@@ -72,21 +72,23 @@ func (b *BitbucketServerProvider) ListRepos(_ context.Context, cloneProtocol str
 				return nil, fmt.Errorf("unknown clone protocol for Bitbucket Server %v", cloneProtocol)
 			}
 
-			branches, err := b.listBranches(&bitbucketRepo)
+			org := bitbucketRepo.Project.Key
+			repo := bitbucketRepo.Name
+			// Bitbucket doesn't return the default branch in the repo query, fetch it here
+			branch, err := b.getDefaultBranch(org, repo)
 			if err != nil {
-				return nil, fmt.Errorf("error listing branches for %s/%s: %v", b.projectKey, bitbucketRepo.Name, err)
+				return nil, err
 			}
 
-			for _, branch := range branches {
-				repos = append(repos, &Repository{
-					Organization: bitbucketRepo.Project.Key,
-					Repository:   bitbucketRepo.Name,
-					URL:          url,
-					Branch:       branch.DisplayID,
-					SHA:          branch.LatestCommit,
-					Labels:       []string{},
-				})
-			}
+			repos = append(repos, &Repository{
+				Organization: org,
+				Repository:   repo,
+				URL:          url,
+				Branch:       branch.DisplayID,
+				SHA:          branch.LatestCommit,
+				Labels:       []string{}, // Not supported by library
+				RepositoryId: bitbucketRepo.ID,
+			})
 		}
 		hasNextPage, nextPageStart := bitbucketv1.HasNextPage(response)
 		if !hasNextPage {
@@ -129,18 +131,35 @@ func (b *BitbucketServerProvider) RepoHasPath(_ context.Context, repo *Repositor
 	return true, nil
 }
 
-func (b *BitbucketServerProvider) listBranches(repo *bitbucketv1.Repository) ([]bitbucketv1.Branch, error) {
+func (b *BitbucketServerProvider) GetBranches(_ context.Context, repo *Repository) ([]*Repository, error) {
+	repos := []*Repository{}
+	branches, err := b.listBranches(repo)
+	if err != nil {
+		return nil, fmt.Errorf("error listing branches for %s/%s: %v", repo.Organization, repo.Repository, err)
+	}
+
+	for _, branch := range branches {
+		repos = append(repos, &Repository{
+			Organization: repo.Organization,
+			Repository:   repo.Repository,
+			URL:          repo.URL,
+			Branch:       branch.DisplayID,
+			SHA:          branch.LatestCommit,
+			Labels:       repo.Labels,
+			RepositoryId: repo.RepositoryId,
+		})
+	}
+	return repos, nil
+}
+
+func (b *BitbucketServerProvider) listBranches(repo *Repository) ([]bitbucketv1.Branch, error) {
 	// If we don't specifically want to query for all branches, just use the default branch and call it a day.
 	if !b.allBranches {
-		response, err := b.client.DefaultApi.GetDefaultBranch(repo.Project.Key, repo.Name)
+		branch, err := b.getDefaultBranch(repo.Organization, repo.Repository)
 		if err != nil {
 			return nil, err
 		}
-		branch, err := bitbucketv1.GetBranchResponse(response)
-		if err != nil {
-			return nil, err
-		}
-		return []bitbucketv1.Branch{branch}, nil
+		return []bitbucketv1.Branch{*branch}, nil
 	}
 	// Otherwise, scrape the GetBranches API.
 	branches := []bitbucketv1.Branch{}
@@ -148,9 +167,9 @@ func (b *BitbucketServerProvider) listBranches(repo *bitbucketv1.Repository) ([]
 		"limit": 100,
 	}
 	for {
-		response, err := b.client.DefaultApi.GetBranches(repo.Project.Key, repo.Name, paged)
+		response, err := b.client.DefaultApi.GetBranches(repo.Organization, repo.Repository, paged)
 		if err != nil {
-			return nil, fmt.Errorf("error listing branches for %s/%s: %v", repo.Project.Key, repo.Name, err)
+			return nil, fmt.Errorf("error listing branches for %s/%s: %v", repo.Organization, repo.Repository, err)
 		}
 		bitbucketBranches, err := bitbucketv1.GetBranchesResponse(response)
 		if err != nil {
@@ -166,6 +185,18 @@ func (b *BitbucketServerProvider) listBranches(repo *bitbucketv1.Repository) ([]
 		paged["start"] = nextPageStart
 	}
 	return branches, nil
+}
+
+func (b *BitbucketServerProvider) getDefaultBranch(org string, repo string) (*bitbucketv1.Branch, error) {
+	response, err := b.client.DefaultApi.GetDefaultBranch(org, repo)
+	if err != nil {
+		return nil, err
+	}
+	branch, err := bitbucketv1.GetBranchResponse(response)
+	if err != nil {
+		return nil, err
+	}
+	return &branch, nil
 }
 
 func getCloneURLFromLinks(links []bitbucketv1.CloneLink, name string) string {

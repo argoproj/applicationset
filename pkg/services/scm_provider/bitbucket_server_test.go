@@ -22,6 +22,7 @@ func defaultHandler(t *testing.T) func(http.ResponseWriter, *http.Request) {
 				"isLastPage": true,
 				"values": [
 					{
+						"id": 1,
 						"name": "REPO",
 						"project": {
 							"key": "PROJECT"
@@ -59,6 +60,15 @@ func defaultHandler(t *testing.T) func(http.ResponseWriter, *http.Request) {
 				],
 				"start": 0
 			}`)
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/branches/default":
+			_, err = io.WriteString(w, `{
+				"id": "refs/heads/main",
+				"displayId": "main",
+				"type": "BRANCH",
+				"latestCommit": "8d51122def5632836d1cb1026e879069e10a1e13",
+				"latestChangeset": "8d51122def5632836d1cb1026e879069e10a1e13",
+				"isDefault": true
+			}`)
 		default:
 			t.Fail()
 		}
@@ -78,6 +88,7 @@ func verifyDefaultRepo(t *testing.T, err error, repos []*Repository) {
 		Branch:       "main",
 		SHA:          "8d51122def5632836d1cb1026e879069e10a1e13",
 		Labels:       []string{},
+		RepositoryId: 1,
 	}, *repos[0])
 }
 
@@ -105,6 +116,7 @@ func TestListReposPagination(t *testing.T) {
 				"isLastPage": false,
 				"values": [
 					{
+						"id": 100,
 						"name": "REPO",
 						"project": {
 							"key": "PROJECT"
@@ -133,6 +145,7 @@ func TestListReposPagination(t *testing.T) {
 				"isLastPage": true,
 				"values": [
 					{
+						"id": 200,
 						"name": "REPO2",
 						"project": {
 							"key": "PROJECT"
@@ -153,39 +166,21 @@ func TestListReposPagination(t *testing.T) {
 				],
 				"start": 200
 			}`)
-		case "/rest/api/1.0/projects/PROJECT/repos/REPO/branches?limit=100":
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/branches/default":
 			_, err = io.WriteString(w, `{
-				"size": 1,
-				"limit": 100,
-				"isLastPage": true,
-				"values": [
-					{
-						"id": "refs/heads/main",
-						"displayId": "main",
-						"type": "BRANCH",
-						"latestCommit": "8d51122def5632836d1cb1026e879069e10a1e13",
-						"latestChangeset": "8d51122def5632836d1cb1026e879069e10a1e13",
-						"isDefault": true
-					}
-				],
-				"start": 0
+				"id": "refs/heads/main",
+				"displayId": "main",
+				"type": "BRANCH",
+				"latestCommit": "8d51122def5632836d1cb1026e879069e10a1e13",
+				"isDefault": true
 			}`)
-		case "/rest/api/1.0/projects/PROJECT/repos/REPO2/branches?limit=100":
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO2/branches/default":
 			_, err = io.WriteString(w, `{
-				"size": 1,
-				"limit": 100,
-				"isLastPage": true,
-				"values": [
-					{
-						"id": "refs/heads/development",
-						"displayId": "development",
-						"type": "BRANCH",
-						"latestCommit": "2d51122def5632836d1cb1026e879069e10a1e13",
-						"latestChangeset": "2d51122def5632836d1cb1026e879069e10a1e13",
-						"isDefault": true
-					}
-				],
-				"start": 0
+				"id": "refs/heads/development",
+				"displayId": "development",
+				"type": "BRANCH",
+				"latestCommit": "2d51122def5632836d1cb1026e879069e10a1e13",
+				"isDefault": true
 			}`)
 		default:
 			t.Fail()
@@ -207,6 +202,7 @@ func TestListReposPagination(t *testing.T) {
 		Branch:       "main",
 		SHA:          "8d51122def5632836d1cb1026e879069e10a1e13",
 		Labels:       []string{},
+		RepositoryId: 100,
 	}, *repos[0])
 
 	assert.Equal(t, Repository{
@@ -216,10 +212,11 @@ func TestListReposPagination(t *testing.T) {
 		Branch:       "development",
 		SHA:          "2d51122def5632836d1cb1026e879069e10a1e13",
 		Labels:       []string{},
+		RepositoryId: 200,
 	}, *repos[1])
 }
 
-func TestListReposBranchPagination(t *testing.T) {
+func TestGetBranchesBranchPagination(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Empty(t, r.Header.Get("Authorization"))
 		switch r.RequestURI {
@@ -272,7 +269,13 @@ func TestListReposBranchPagination(t *testing.T) {
 	defer ts.Close()
 	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", true)
 	assert.NoError(t, err)
-	repos, err := provider.ListRepos(context.Background(), "ssh")
+	repos, err := provider.GetBranches(context.Background(), &Repository{
+		Organization: "PROJECT",
+		Repository:   "REPO",
+		URL:          "ssh://git@mycompany.bitbucket.org/PROJECT/REPO.git",
+		Labels:       []string{},
+		RepositoryId: 1,
+	})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(repos))
 	assert.Equal(t, Repository{
@@ -282,6 +285,7 @@ func TestListReposBranchPagination(t *testing.T) {
 		Branch:       "main",
 		SHA:          "8d51122def5632836d1cb1026e879069e10a1e13",
 		Labels:       []string{},
+		RepositoryId: 1,
 	}, *repos[0])
 
 	assert.Equal(t, Repository{
@@ -291,7 +295,51 @@ func TestListReposBranchPagination(t *testing.T) {
 		Branch:       "feature",
 		SHA:          "9d51122def5632836d1cb1026e879069e10a1e13",
 		Labels:       []string{},
+		RepositoryId: 1,
 	}, *repos[1])
+}
+
+func TestGetBranchesDefaultOnly(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Empty(t, r.Header.Get("Authorization"))
+		switch r.RequestURI {
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/branches/default":
+			_, err := io.WriteString(w, `{
+				"id": "refs/heads/default",
+				"displayId": "default",
+				"type": "BRANCH",
+				"latestCommit": "ab51122def5632836d1cb1026e879069e10a1e13",
+				"latestChangeset": "ab51122def5632836d1cb1026e879069e10a1e13",
+				"isDefault": true
+			}`)
+			if err != nil {
+				t.Fail()
+			}
+			return
+		}
+		defaultHandler(t)(w, r)
+	}))
+	defer ts.Close()
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", false)
+	assert.NoError(t, err)
+	repos, err := provider.GetBranches(context.Background(), &Repository{
+		Organization: "PROJECT",
+		Repository:   "REPO",
+		URL:          "ssh://git@mycompany.bitbucket.org/PROJECT/REPO.git",
+		Labels:       []string{},
+		RepositoryId: 1,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(repos))
+	assert.Equal(t, Repository{
+		Organization: "PROJECT",
+		Repository:   "REPO",
+		URL:          "ssh://git@mycompany.bitbucket.org/PROJECT/REPO.git",
+		Branch:       "default",
+		SHA:          "ab51122def5632836d1cb1026e879069e10a1e13",
+		Labels:       []string{},
+		RepositoryId: 1,
+	}, *repos[0])
 }
 
 func TestListReposBasicAuth(t *testing.T) {
@@ -340,6 +388,7 @@ func TestListReposDefaultBranch(t *testing.T) {
 		Branch:       "default",
 		SHA:          "1d51122def5632836d1cb1026e879069e10a1e13",
 		Labels:       []string{},
+		RepositoryId: 1,
 	}, *repos[0])
 }
 
@@ -361,6 +410,7 @@ func TestListReposCloneProtocol(t *testing.T) {
 		Branch:       "main",
 		SHA:          "8d51122def5632836d1cb1026e879069e10a1e13",
 		Labels:       []string{},
+		RepositoryId: 1,
 	}, *repos[0])
 }
 
