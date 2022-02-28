@@ -3,8 +3,8 @@ package scm_provider
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	"github.com/argoproj/applicationset/pkg/utils"
 	bitbucketv1 "github.com/gfleury/go-bitbucket-v1"
 )
 
@@ -34,9 +34,7 @@ func NewBitbucketServerProviderNoAuth(ctx context.Context, url, projectKey strin
 }
 
 func newBitbucketServerProvider(ctx context.Context, bitbucketConfig *bitbucketv1.Configuration, projectKey string, allBranches bool) (*BitbucketServerProvider, error) {
-	if !strings.HasSuffix(bitbucketConfig.BasePath, "/rest") {
-		bitbucketConfig.BasePath = bitbucketConfig.BasePath + "/rest"
-	}
+	bitbucketConfig.BasePath = utils.NormalizeBitbucketBasePath(bitbucketConfig.BasePath)
 	bitbucketClient := bitbucketv1.NewAPIClient(ctx, bitbucketConfig)
 
 	return &BitbucketServerProvider{

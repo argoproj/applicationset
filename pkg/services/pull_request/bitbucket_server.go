@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 
+	"github.com/argoproj/applicationset/pkg/utils"
 	bitbucketv1 "github.com/gfleury/go-bitbucket-v1"
 )
 
@@ -38,9 +38,7 @@ func NewBitbucketServiceNoAuth(ctx context.Context, url, projectKey, repositoryS
 }
 
 func newBitbucketService(ctx context.Context, bitbucketConfig *bitbucketv1.Configuration, projectKey, repositorySlug string, branchMatch *string) (PullRequestService, error) {
-	if !strings.HasSuffix(bitbucketConfig.BasePath, "/rest") {
-		bitbucketConfig.BasePath = bitbucketConfig.BasePath + "/rest"
-	}
+	bitbucketConfig.BasePath = utils.NormalizeBitbucketBasePath(bitbucketConfig.BasePath)
 	bitbucketClient := bitbucketv1.NewAPIClient(ctx, bitbucketConfig)
 
 	var branchMatchRegexp *regexp.Regexp
