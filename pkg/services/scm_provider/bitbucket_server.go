@@ -6,6 +6,7 @@ import (
 
 	"github.com/argoproj/applicationset/pkg/utils"
 	bitbucketv1 "github.com/gfleury/go-bitbucket-v1"
+	log "github.com/sirupsen/logrus"
 )
 
 type BitbucketServerProvider struct {
@@ -56,7 +57,8 @@ func (b *BitbucketServerProvider) ListRepos(_ context.Context, cloneProtocol str
 		}
 		repositories, err := bitbucketv1.GetRepositoriesResponse(response)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing repositories response %s: %v", response.Values, err)
+			log.Errorf("error parsing repositories response '%v'", response.Values)
+			return nil, fmt.Errorf("error parsing repositories response %s: %v", b.projectKey, err)
 		}
 		for _, bitbucketRepo := range repositories {
 			var url string
@@ -171,7 +173,8 @@ func (b *BitbucketServerProvider) listBranches(repo *Repository) ([]bitbucketv1.
 		}
 		bitbucketBranches, err := bitbucketv1.GetBranchesResponse(response)
 		if err != nil {
-			return nil, fmt.Errorf("error parsing branches response %s: %v", response.Values, err)
+			log.Errorf("error parsing branches response '%v'", response.Values)
+			return nil, fmt.Errorf("error parsing branches response for %s/%s: %v", repo.Organization, repo.Repository, err)
 		}
 
 		branches = append(branches, bitbucketBranches...)
