@@ -20,7 +20,7 @@ Thus the lifecycle of the `ApplicationSet`, the `Application`, and the `Applicat
 
 It *is* still possible to delete an `ApplicationSet` resource, while preventing `Application`s (and their deployed resources) from also being deleted, using a non-cascading delete:
 ```
-kubectl delete ApplicationSet (NAME) --cascade=false
+kubectl delete ApplicationSet (NAME) --cascade=orphan
 ```
 
 !!! warning
