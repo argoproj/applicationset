@@ -5730,6 +5730,8 @@ spec:
                                                   type: boolean
                                                 api:
                                                   type: string
+                                                excludeArchived:
+                                                  type: boolean
                                                 group:
                                                   type: string
                                                 includeSubgroups:
@@ -7546,6 +7548,8 @@ spec:
                                                   type: boolean
                                                 api:
                                                   type: string
+                                                excludeArchived:
+                                                  type: boolean
                                                 group:
                                                   type: string
                                                 includeSubgroups:
@@ -8187,6 +8191,8 @@ spec:
                                         type: boolean
                                       api:
                                         type: string
+                                      excludeArchived:
+                                        type: boolean
                                       group:
                                         type: string
                                       includeSubgroups:
@@ -11449,6 +11455,8 @@ spec:
                                                   type: boolean
                                                 api:
                                                   type: string
+                                                excludeArchived:
+                                                  type: boolean
                                                 group:
                                                   type: string
                                                 includeSubgroups:
@@ -13265,6 +13273,8 @@ spec:
                                                   type: boolean
                                                 api:
                                                   type: string
+                                                excludeArchived:
+                                                  type: boolean
                                                 group:
                                                   type: string
                                                 includeSubgroups:
@@ -13906,6 +13916,8 @@ spec:
                                         type: boolean
                                       api:
                                         type: string
+                                      excludeArchived:
+                                        type: boolean
                                       group:
                                         type: string
                                       includeSubgroups:
@@ -14813,6 +14825,8 @@ spec:
                               type: boolean
                             api:
                               type: string
+                            excludeArchived:
+                              type: boolean
                             group:
                               type: string
                             includeSubgroups:
