@@ -283,6 +283,8 @@ type SCMProviderGeneratorGitlab struct {
 	TokenRef *SecretRef `json:"tokenRef,omitempty"`
 	// Scan all branches instead of just the default branch.
 	AllBranches bool `json:"allBranches,omitempty"`
+	// Exclude archived projects.
+	ExcludeArchived bool `json:"excludeArchived,omitempty"`
 }
 
 // SCMProviderGeneratorFilter is a single repository filter.
