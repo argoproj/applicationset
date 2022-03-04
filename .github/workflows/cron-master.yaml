@@ -64,8 +64,9 @@ jobs:
           "hack/ci-e2e-setup.sh"
 
       - name: Run E2E tests
-        timeout-minutes: 20
+        timeout-minutes: 25
         run: |
+          sleep 60s
           cd "$GITHUB_WORKSPACE/applicationset"
           "hack/ci-e2e-run.sh"
 
