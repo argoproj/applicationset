@@ -1,5 +1,76 @@
 # Changelog
 
+# v0.4.0
+
+## Contributors
+
+Thanks to all the folks who have contributed to the ApplicationSet controller since our last release. 
+
+- Michael Crenshaw (@crenshaw-dev)
+- Ricardo Rosales (@missingcharacter)
+- Ishita Sequeira  (@ishitasequeira)
+- stempher (@stempher)
+- Jonathan West (@jgwest)
+- Hüseyin Celal Öner (@hcelaloner)
+- William Tam (@wtam2018)
+- Marco Kilchhofer (@mkilchhofer)
+- Chetan Banavikalmutt (@chetan-rns)
+- Ahmed AbouZaid (@aabouzaid)
+- Matthias Lisin  (@ml-)
+
+Want to join us for our next release? Check out the project repository (https://github.com/argoproj/applicationset) or visit us on #argo-cd-appset on Slack (https://argoproj.github.io/community/join-slack/).
+
+## New in this release
+
+### ApplicationSet controller is now integrated with Argo CD install
+
+The ApplicationSet controller is now installed by default with the latest release of Argo CD. This means that users of Argo CD now get all the benefits of ApplicationSets, without the requirement of a standalone install.
+
+Contributed by [@ishitasequeira](https://github.com/argoproj/applicationset/pull/455) and [@jgwest](https://github.com/argoproj/applicationset/pull/470).
+
+### Git generator: Add support for extraction of components of paths
+
+The Git generator now supports the extraction of individual components of the path, with the new `path[n]` parameter: 
+- `{{path[n]}}`: The path to the matching configuration file within the Git repository, split into array elements (`n` - array index). 
+- For example, for a path of `/clusters/clusterA`, the individual components can be extracted like so: `path[0]: clusters`, `path[1]: clusterA`
+
+Contributed by [@stempher](https://github.com/argoproj/applicationset/pull/389).
+
+### Git generator: Sanitize basename param by replacing unsupported characters
+
+When using the Git generator, with a basename name param that contains an unsupported character, you may now use the `{{path.basenameNormalized}}` parameter to normalize these resources. This prevents rendering invalid Kubernetes resources with names like `my_cluster-app1`, and instead would convert them to `my-cluster-app1`.
+
+Contributed by [@missingcharacter](https://github.com/argoproj/applicationset/pull/436).
+
+### Make webhook address configurable 
+
+When using a webhook, the address of the webhook can now be configured using the `--webhook-addr` parameter on the `argocd-applicationset` controller.
+
+Example:
+```
+./dist/argocd-applicationset --webhook-addr=":9999" --logformat=json
+```
+
+Contributed by [@chetan-rns](https://github.com/argoproj/applicationset/pull/450).
+
+
+
+#### Fixes / Chores
+
+- ApplicationSet CRD size reduction, by removing validation (CRD defn) of nested merge/matrix generator (#463, contributed by @jgwest)
+- Reap zombie processes in argocd-applicationset-controller pod using tini (#453, contributed by @hcelaloner)
+- Log all validation errors (#439, contributed by @crenshaw-dev)
+- Set applicationset-controller containerPort name (#444, contributed by @aabouzaid)
+- Append missing s to matchExpression (#449, contributed by @ml-)
+- Set controller logger if we don't use JSON format (#451, contributed by @mkilchhofer)
+- Remove hardcoded namespace from manifests (#474, contributed by @ishitasequeira)
+- Fix docs typo (#493 and #481, contributed by @crenshaw-dev)
+
+#### Test/infrastructure improvements:
+- E2E tests should use application-controller serviceaccount, rather than applicationset-controller serviceaccount (#434, contributed by @jgwest)
+- Add GitHub action to run E2E tests against nightly Argo CD, w/ ApplicationSet master branch (#470, contributed by @jgwest)
+
+
 # v0.3.0
 
 I am happy to announce the latest release of the Argo CD ApplicationSet controller, v0.3.0. Many new features were contributed as part of this release, including two new generators, improved error reporting and handling, support for webhook-based refresh trigger, plus doc updates, usability improvements, stability fixes, and more. 

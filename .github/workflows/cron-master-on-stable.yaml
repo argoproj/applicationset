@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         k3s-version: [v1.20.2]
-        argo-release: [Latest, v2.1, v2.2]
+        argo-release: [Latest, v2.1, v2.2, v2.3]
     env:
       GOPATH: /home/runner/go
       ARGOCD_FAKE_IN_CLUSTER: 'true'
