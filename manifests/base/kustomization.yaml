@@ -4,7 +4,7 @@ kind: Kustomization
 images:
 - name: quay.io/argoproj/argocd-applicationset
   newName: quay.io/argoproj/argocd-applicationset
-  newTag: latest
+  newTag: v0.4.0
 
 resources:
 - deployment.yaml

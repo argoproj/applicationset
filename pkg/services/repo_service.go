@@ -44,7 +44,7 @@ func (a *argoCDService) GetFiles(ctx context.Context, repoURL string, revision s
 		return nil, errors.Wrap(err, "Error in GetRepository")
 	}
 
-	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(git.NoopCredsStore{}), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
 
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 		return nil, errors.Wrap(err, "Error in GetRepository")
 	}
 
-	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(git.NoopCredsStore{}), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func checkoutRepo(gitRepoClient git.Client, revision string) error {
 	if err != nil {
 		return errors.Wrap(err, "Error during fetching commitSHA")
 	}
-	err = gitRepoClient.Checkout(commitSHA)
+	err = gitRepoClient.Checkout(commitSHA, true)
 	if err != nil {
 		return errors.Wrap(err, "Error during repo checkout")
 	}
