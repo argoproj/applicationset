@@ -1,3 +1,9 @@
+
+FROM quay.io/argoproj/argocd:v2.3.0 as argocd
+
+# https://github.com/argoproj/argo-cd/pull/8516 now requires us to copy Argo CD binary into the ApplicationSet controller
+
+
 # Build the binary
 FROM docker.io/library/golang:1.17.6 as builder
 
@@ -26,10 +32,12 @@ RUN apt-get update && apt-get dist-upgrade -y && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists /var/cache/apt/archives /tmp/* /var/tmp/*
 
+
 # Add Argo CD helper scripts that are required by 'github.com/argoproj/argo-cd/util/git' package
-COPY hack/from-argo-cd/git-ask-pass.sh /usr/local/bin/git-ask-pass.sh
 COPY hack/from-argo-cd/gpg-wrapper.sh /usr/local/bin/gpg-wrapper.sh
 COPY hack/from-argo-cd/git-verify-wrapper.sh /usr/local/bin/git-verify-wrapper.sh
+
+COPY --from=argocd /usr/local/bin/argocd /usr/local/bin/argocd
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
