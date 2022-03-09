@@ -88,7 +88,15 @@ func TestGitlabHasPath(t *testing.T) {
 			exists: true,
 		},
 		{
+			path:   "argocd/install.yaml",
+			exists: true,
+		},
+		{
 			path:   "notathing",
+			exists: false,
+		},
+		{
+			path:   "argocd/notathing.yaml",
 			exists: false,
 		},
 	}
