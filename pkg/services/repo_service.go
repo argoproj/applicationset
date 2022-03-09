@@ -44,7 +44,7 @@ func (a *argoCDService) GetFiles(ctx context.Context, repoURL string, revision s
 		return nil, errors.Wrap(err, "Error in GetRepository")
 	}
 
-	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(git.NoopCredsStore{}), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
 
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (a *argoCDService) GetDirectories(ctx context.Context, repoURL string, revi
 		return nil, errors.Wrap(err, "Error in GetRepository")
 	}
 
-	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(git.NoopCredsStore{}), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
+	gitRepoClient, err := git.NewClient(repo.Repo, repo.GetGitCreds(), repo.IsInsecure(), repo.IsLFSEnabled(), repo.Proxy)
 	if err != nil {
 		return nil, err
 	}
