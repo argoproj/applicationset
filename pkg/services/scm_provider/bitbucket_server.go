@@ -79,6 +79,10 @@ func (b *BitbucketServerProvider) ListRepos(_ context.Context, cloneProtocol str
 			if err != nil {
 				return nil, err
 			}
+			if branch == nil {
+				log.Debugf("%s/%s does not have a default branch, skipping", org, repo)
+				continue
+			}
 
 			repos = append(repos, &Repository{
 				Organization: org,
@@ -159,6 +163,9 @@ func (b *BitbucketServerProvider) listBranches(repo *Repository) ([]bitbucketv1.
 		if err != nil {
 			return nil, err
 		}
+		if branch == nil {
+			return []bitbucketv1.Branch{}, nil
+		}
 		return []bitbucketv1.Branch{*branch}, nil
 	}
 	// Otherwise, scrape the GetBranches API.
@@ -190,6 +197,10 @@ func (b *BitbucketServerProvider) listBranches(repo *Repository) ([]bitbucketv1.
 
 func (b *BitbucketServerProvider) getDefaultBranch(org string, repo string) (*bitbucketv1.Branch, error) {
 	response, err := b.client.DefaultApi.GetDefaultBranch(org, repo)
+	if response != nil && response.StatusCode == 404 {
+		// There's no default branch i.e. empty repo, not an error
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}

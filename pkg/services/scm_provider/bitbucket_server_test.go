@@ -342,6 +342,51 @@ func TestGetBranchesDefaultOnly(t *testing.T) {
 	}, *repos[0])
 }
 
+func TestGetBranchesMissingDefault(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Empty(t, r.Header.Get("Authorization"))
+		switch r.RequestURI {
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/branches/default":
+			http.Error(w, "Not found", 404)
+		}
+		defaultHandler(t)(w, r)
+	}))
+	defer ts.Close()
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", false)
+	assert.NoError(t, err)
+	repos, err := provider.GetBranches(context.Background(), &Repository{
+		Organization: "PROJECT",
+		Repository:   "REPO",
+		URL:          "ssh://git@mycompany.bitbucket.org/PROJECT/REPO.git",
+		Labels:       []string{},
+		RepositoryId: 1,
+	})
+	assert.NoError(t, err)
+	assert.Empty(t, repos)
+}
+
+func TestGetBranchesErrorDefaultBranch(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Empty(t, r.Header.Get("Authorization"))
+		switch r.RequestURI {
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/branches/default":
+			http.Error(w, "Internal server error", 500)
+		}
+		defaultHandler(t)(w, r)
+	}))
+	defer ts.Close()
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", false)
+	assert.NoError(t, err)
+	_, err = provider.GetBranches(context.Background(), &Repository{
+		Organization: "PROJECT",
+		Repository:   "REPO",
+		URL:          "ssh://git@mycompany.bitbucket.org/PROJECT/REPO.git",
+		Labels:       []string{},
+		RepositoryId: 1,
+	})
+	assert.Error(t, err)
+}
+
 func TestListReposBasicAuth(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "Basic dXNlcjpwYXNzd29yZA==", r.Header.Get("Authorization"))
@@ -390,6 +435,39 @@ func TestListReposDefaultBranch(t *testing.T) {
 		Labels:       []string{},
 		RepositoryId: 1,
 	}, *repos[0])
+}
+
+func TestListReposMissingDefaultBranch(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Empty(t, r.Header.Get("Authorization"))
+		switch r.RequestURI {
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/branches/default":
+			http.Error(w, "Not found", 404)
+		}
+		defaultHandler(t)(w, r)
+	}))
+	defer ts.Close()
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", false)
+	assert.NoError(t, err)
+	repos, err := provider.ListRepos(context.Background(), "ssh")
+	assert.NoError(t, err)
+	assert.Empty(t, repos)
+}
+
+func TestListReposErrorDefaultBranch(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Empty(t, r.Header.Get("Authorization"))
+		switch r.RequestURI {
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/branches/default":
+			http.Error(w, "Internal server error", 500)
+		}
+		defaultHandler(t)(w, r)
+	}))
+	defer ts.Close()
+	provider, err := NewBitbucketServerProviderNoAuth(context.Background(), ts.URL, "PROJECT", false)
+	assert.NoError(t, err)
+	_, err = provider.ListRepos(context.Background(), "ssh")
+	assert.Error(t, err)
 }
 
 func TestListReposCloneProtocol(t *testing.T) {
