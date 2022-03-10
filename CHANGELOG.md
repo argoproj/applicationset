@@ -1,5 +1,15 @@
 # Changelog
 
+# v0.4.1
+
+## Contributors
+- Alexander Matyushentsev (@alexmt)
+
+## New in this release
+
+This is a bug-fix release that fixes an issue with Git credential acquisition by the ApplicationSet controller in the v0.4.0 ApplicationSet controller and Argo CD v2.3.0 (due to packaging ApplicationSet controller v0.4.0).
+- [ArgoCD v2.3.0 - ARGOCD_GIT_ASKPASS_NONCE is not set](https://github.com/argoproj/argo-cd/issues/8716)
+
 # v0.4.0
 
 ## Contributors
