@@ -94,6 +94,42 @@ For label filtering, the repository tags are used.
 
 Available clone protocols are `ssh` and `https`.
 
+## Bitbucket
+
+The Bitbucket mode uses the Bitbucket API V2 to scan a workspace in bitbucket.org.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapps
+spec:
+  generators:
+  - scmProvider:
+      bitbucket:
+        # The workspace id (slug).  
+        owner: "mmerrill"
+        # The user to use for basic authentication with an app password.
+        user: "mmerrill"
+        # If true, scan every branch of every repository. If false, scan only the main branch. Defaults to false.
+        allBranches: true
+        # Reference to a Secret containing an app password.
+        appPasswordRef:
+          secretName: appPassword
+          key: password
+  template:
+  # ...
+```
+
+* `owner`: The workspace ID (slug) to use when looking up repositories.
+* `user`: The user to use for authentication to the Bitbucket API V2 at bitbucket.org.
+* `allBranches`: By default (false) the template will only be evaluated for the main branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
+* `appPasswordRef`: A `Secret` name and key containing the bitbucket app password to use for requests.
+
+This SCM provider does not yet support label filtering
+
+Available clone protocols are `ssh` and `https`.
+
 ## Filters
 
 Filters allow selecting which repositories to generate for. Each filter can declare one or more conditions, all of which must pass. If multiple filters are present, any can match for a repository to be included. If no filters are specified, all repositories will be processed.
