@@ -362,6 +362,8 @@ type PullRequestGenerator struct {
 	// Which provider to use and config for it.
 	Github          *PullRequestGeneratorGithub          `json:"github,omitempty"`
 	BitbucketServer *PullRequestGeneratorBitbucketServer `json:"bitbucketServer,omitempty"`
+	// Filters for which pull requests should be considered.
+	Filters []PullRequestGeneratorFilter `json:"filters,omitempty"`
 	// Standard parameters.
 	RequeueAfterSeconds *int64                 `json:"requeueAfterSeconds,omitempty"`
 	Template            ApplicationSetTemplate `json:"template,omitempty"`
@@ -389,8 +391,6 @@ type PullRequestGeneratorBitbucketServer struct {
 	Repo string `json:"repo"`
 	// The Bitbucket REST API URL to talk to e.g. https://bitbucket.org/rest Required.
 	API string `json:"api"`
-	// A regex which must match the branch name.
-	BranchMatch *string `json:"branchMatch,omitempty"`
 	// Credentials for Basic auth
 	BasicAuth *BasicAuthBitbucketServer `json:"basicAuth,omitempty"`
 }
@@ -401,6 +401,13 @@ type BasicAuthBitbucketServer struct {
 	Username string `json:"username"`
 	// Password (or personal access token) reference.
 	PasswordRef *SecretRef `json:"passwordRef"`
+}
+
+// PullRequestGeneratorFilter is a single pull request filter.
+// If multiple filter types are set on a single struct, they will be AND'd together. All filters must
+// pass for a pull request to be included.
+type PullRequestGeneratorFilter struct {
+	BranchMatch *string `json:"branchMatch,omitempty"`
 }
 
 // ApplicationSetStatus defines the observed state of ApplicationSet

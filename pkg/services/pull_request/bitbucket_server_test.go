@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/argoproj/applicationset/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,9 +48,9 @@ func TestListPullRequestNoAuth(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
+	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO")
 	assert.NoError(t, err)
-	pullRequests, err := svc.List(context.Background())
+	pullRequests, err := ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(pullRequests))
 	assert.Equal(t, 101, pullRequests[0].Number)
@@ -112,9 +113,9 @@ func TestListPullRequestPagination(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
+	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO")
 	assert.NoError(t, err)
-	pullRequests, err := svc.List(context.Background())
+	pullRequests, err := ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(pullRequests))
 	assert.Equal(t, PullRequest{
@@ -142,9 +143,9 @@ func TestListPullRequestBasicAuth(t *testing.T) {
 		defaultHandler(t)(w, r)
 	}))
 	defer ts.Close()
-	svc, err := NewBitbucketServiceBasicAuth(context.Background(), "user", "password", ts.URL, "PROJECT", "REPO", nil)
+	svc, err := NewBitbucketServiceBasicAuth(context.Background(), "user", "password", ts.URL, "PROJECT", "REPO")
 	assert.NoError(t, err)
-	pullRequests, err := svc.List(context.Background())
+	pullRequests, err := ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(pullRequests))
 	assert.Equal(t, 101, pullRequests[0].Number)
@@ -157,9 +158,9 @@ func TestListResponseError(t *testing.T) {
 		w.WriteHeader(500)
 	}))
 	defer ts.Close()
-	svc, _ := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
-	_, err := svc.List(context.Background())
-	assert.NotNil(t, err, err)
+	svc, _ := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO")
+	_, err := ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{})
+	assert.Error(t, err)
 }
 
 func TestListResponseMalformed(t *testing.T) {
@@ -182,9 +183,9 @@ func TestListResponseMalformed(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	svc, _ := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
-	_, err := svc.List(context.Background())
-	assert.NotNil(t, err, err)
+	svc, _ := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO")
+	_, err := ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{})
+	assert.Error(t, err)
 }
 
 func TestListResponseEmpty(t *testing.T) {
@@ -207,9 +208,9 @@ func TestListResponseEmpty(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
-	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", nil)
+	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO")
 	assert.NoError(t, err)
-	pullRequests, err := svc.List(context.Background())
+	pullRequests, err := ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{})
 	assert.NoError(t, err)
 	assert.Empty(t, pullRequests)
 }
@@ -270,9 +271,13 @@ func TestListPullRequestBranchMatch(t *testing.T) {
 	}))
 	defer ts.Close()
 	regexp := `feature-1[\d]{2}`
-	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", &regexp)
+	svc, err := NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO")
 	assert.NoError(t, err)
-	pullRequests, err := svc.List(context.Background())
+	pullRequests, err := ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{
+		{
+			BranchMatch: &regexp,
+		},
+	})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(pullRequests))
 	assert.Equal(t, PullRequest{
@@ -287,9 +292,13 @@ func TestListPullRequestBranchMatch(t *testing.T) {
 	}, *pullRequests[1])
 
 	regexp = `.*2$`
-	svc, err = NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", &regexp)
+	svc, err = NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO")
 	assert.NoError(t, err)
-	pullRequests, err = svc.List(context.Background())
+	pullRequests, err = ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{
+		{
+			BranchMatch: &regexp,
+		},
+	})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(pullRequests))
 	assert.Equal(t, PullRequest{
@@ -299,6 +308,12 @@ func TestListPullRequestBranchMatch(t *testing.T) {
 	}, *pullRequests[0])
 
 	regexp = `[\d{2}`
-	_, err = NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO", &regexp)
-	assert.NotNil(t, err)
+	svc, err = NewBitbucketServiceNoAuth(context.Background(), ts.URL, "PROJECT", "REPO")
+	assert.NoError(t, err)
+	_, err = ListPullRequests(context.Background(), svc, []v1alpha1.PullRequestGeneratorFilter{
+		{
+			BranchMatch: &regexp,
+		},
+	})
+	assert.Error(t, err)
 }

@@ -2481,8 +2481,6 @@ spec:
                                         - passwordRef
                                         - username
                                         type: object
-                                      branchMatch:
-                                        type: string
                                       project:
                                         type: string
                                       repo:
@@ -2492,6 +2490,13 @@ spec:
                                     - project
                                     - repo
                                     type: object
+                                  filters:
+                                    items:
+                                      properties:
+                                        branchMatch:
+                                          type: string
+                                      type: object
+                                    type: array
                                   github:
                                     properties:
                                       api:
@@ -4686,8 +4691,6 @@ spec:
                                         - passwordRef
                                         - username
                                         type: object
-                                      branchMatch:
-                                        type: string
                                       project:
                                         type: string
                                       repo:
@@ -4697,6 +4700,13 @@ spec:
                                     - project
                                     - repo
                                     type: object
+                                  filters:
+                                    items:
+                                      properties:
+                                        branchMatch:
+                                          type: string
+                                      type: object
+                                    type: array
                                   github:
                                     properties:
                                       api:
@@ -5680,8 +5690,6 @@ spec:
                               - passwordRef
                               - username
                               type: object
-                            branchMatch:
-                              type: string
                             project:
                               type: string
                             repo:
@@ -5691,6 +5699,13 @@ spec:
                           - project
                           - repo
                           type: object
+                        filters:
+                          items:
+                            properties:
+                              branchMatch:
+                                type: string
+                            type: object
+                          type: array
                         github:
                           properties:
                             api:
