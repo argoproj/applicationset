@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	pathpkg "path"
 
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -112,10 +113,34 @@ func (g *GitlabProvider) RepoHasPath(_ context.Context, repo *Repository, path s
 	if err != nil {
 		return false, err
 	}
-	if resp.TotalItems == 0 {
-		return false, nil
+	// if it's a directory, we're done
+	if resp.TotalItems > 0 {
+		return true, nil
 	}
-	return true, nil
+
+	// let's try if path is a file
+	dir := pathpkg.Dir(path)
+	options := gitlab.ListTreeOptions{
+		Path: &dir,
+		Ref:  &repo.Branch,
+	}
+	for {
+		treeNode, resp, err := g.client.Repositories.ListTree(p.ID, &options)
+		if err != nil {
+			return false, err
+		}
+		for _, node := range treeNode {
+			if path == node.Path {
+				return true, nil
+			}
+		}
+		if resp.NextPage == 0 {
+			// no future pages
+			break
+		}
+		options.Page = resp.NextPage
+	}
+	return false, nil
 }
 
 func (g *GitlabProvider) listBranches(_ context.Context, repo *Repository) ([]gitlab.Branch, error) {
