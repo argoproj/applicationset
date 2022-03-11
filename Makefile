@@ -1,7 +1,8 @@
 VERSION_PACKAGE=github.com/argoproj/applicationset/common
 VERSION?=$(shell cat VERSION)
 IMAGE_NAMESPACE?=argoproj
-IMAGE_PLATFORMS?=linux/amd64
+ARCHITECTURE?=$(shell go env GOARCH)
+IMAGE_PLATFORMS?=linux/${ARCHITECTURE}
 IMAGE_NAME?=argocd-applicationset
 IMAGE_TAG?=latest
 CONTAINER_REGISTRY?=quay.io
