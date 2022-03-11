@@ -1,10 +1,11 @@
 VERSION_PACKAGE=github.com/argoproj/applicationset/common
 VERSION?=$(shell cat VERSION)
 IMAGE_NAMESPACE?=argoproj
-IMAGE_PLATFORMS?=linux/amd64
+IMAGE_PLATFORMS?=linux/amd64,linux/arm64
 IMAGE_NAME?=argocd-applicationset
 IMAGE_TAG?=latest
 CONTAINER_REGISTRY?=quay.io
+DOCKER_PUSH?=false
 GIT_COMMIT = $(shell git rev-parse HEAD)
 LDFLAGS = -w -s -X ${VERSION_PACKAGE}.version=${VERSION} \
 	-X ${VERSION_PACKAGE}.gitCommit=${GIT_COMMIT}
@@ -47,11 +48,15 @@ test: generate fmt vet manifests
 
 .PHONY: image
 image: test
-	docker buildx build --platform $(IMAGE_PLATFORMS) -t ${IMAGE_PREFIX}${IMAGE_NAME}:${IMAGE_TAG} .
+	docker build -t ${IMAGE_PREFIX}${IMAGE_NAME}:${IMAGE_TAG} .
 
 .PHONY: image-push
 image-push: image
 	docker push ${IMAGE_PREFIX}${IMAGE_NAME}:${IMAGE_TAG}
+
+.PHONY: multi-images
+multi-images: test
+	docker buildx build --platform ${IMAGE_PLATFORMS} -t ${IMAGE_PREFIX}${IMAGE_NAME}:${IMAGE_TAG} -o type=image,push=${DOCKER_PUSH} .
 
 .PHONY: deploy
 deploy: kustomize manifests

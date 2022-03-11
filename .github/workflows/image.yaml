@@ -47,8 +47,8 @@ jobs:
             IMAGE_PLATFORMS=linux/amd64,linux/arm64
           fi
           echo "Building image for platforms: $IMAGE_PLATFORMS"
-          docker buildx build --platform $IMAGE_PLATFORMS --push="${{ github.event_name == 'push' }}" \
-          -t quay.io/argoproj/argocd-applicationset:latest .
+          make multi-images DOCKER_PUSH="${{ github.event_name == 'push' }}" \
+          CONTAINER_REGISTRY=quay.io IMAGE_NAMESPACE=argoproj IMAGE_TAG=latest IMAGE_PLATFORMS=${IMAGE_PLATFORMS}
         working-directory: ./src/applicationset
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
