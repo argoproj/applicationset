@@ -59,7 +59,7 @@ func (g *generatorMock) GetRequeueAfter(appSetGenerator *argoprojiov1alpha1.Appl
 	return args.Get(0).(time.Duration)
 }
 
-func (r *rendererMock) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, templateOptions *argoprojiov1alpha1.ApplicationSetTemplateOptions, params map[string]string) (*argov1alpha1.Application, error) {
+func (r *rendererMock) RenderTemplateParams(tmpl *argov1alpha1.Application, untypedTemplate *argoprojiov1alpha1.ApplicationSetUntypedTemplate, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, params map[string]string) (*argov1alpha1.Application, error) {
 	args := r.Called(tmpl, params)
 
 	if args.Error(1) != nil {
@@ -187,7 +187,7 @@ func TestExtractApplications(t *testing.T) {
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{generator},
-					Template:   cc.template,
+					Template:   &cc.template,
 				},
 			})
 
@@ -300,7 +300,7 @@ func TestMergeTemplateApplications(t *testing.T) {
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
 					Generators: []argoprojiov1alpha1.ApplicationSetGenerator{generator},
-					Template:   cc.template,
+					Template:   &cc.template,
 				},
 			},
 			)
@@ -370,7 +370,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -428,7 +428,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -486,7 +486,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -548,7 +548,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -608,7 +608,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -680,7 +680,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project:     "project",
 							Source:      argov1alpha1.ApplicationSource{Path: "path", TargetRevision: "revision", RepoURL: "repoURL"},
@@ -760,7 +760,7 @@ func TestCreateOrUpdateInCluster(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -900,7 +900,7 @@ func TestRemoveFinalizerOnInvalidDestination_FinalizerTypes(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -1060,7 +1060,7 @@ func TestRemoveFinalizerOnInvalidDestination_DestinationTypes(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -1186,7 +1186,7 @@ func TestCreateApplications(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -1243,7 +1243,7 @@ func TestCreateApplications(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -1355,7 +1355,7 @@ func TestDeleteInCluster(t *testing.T) {
 					Namespace: "namespace",
 				},
 				Spec: argoprojiov1alpha1.ApplicationSetSpec{
-					Template: argoprojiov1alpha1.ApplicationSetTemplate{
+					Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 						Spec: argov1alpha1.ApplicationSpec{
 							Project: "project",
 						},
@@ -1797,7 +1797,7 @@ func TestReconcilerValidationErrorBehaviour(t *testing.T) {
 					},
 				},
 			},
-			Template: argoprojiov1alpha1.ApplicationSetTemplate{
+			Template: &argoprojiov1alpha1.ApplicationSetTemplate{
 				ApplicationSetTemplateMeta: argoprojiov1alpha1.ApplicationSetTemplateMeta{
 					Name:      "{{cluster}}",
 					Namespace: "argocd",
@@ -1883,7 +1883,7 @@ func TestSetApplicationSetStatusCondition(t *testing.T) {
 					}},
 				}},
 			},
-			Template: argoprojiov1alpha1.ApplicationSetTemplate{},
+			Template: &argoprojiov1alpha1.ApplicationSetTemplate{},
 		},
 	}
 

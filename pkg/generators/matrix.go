@@ -103,7 +103,7 @@ func (m *MatrixGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Appli
 			Merge:                   mergeGenerator,
 		},
 		m.supportedGenerators,
-		argoprojiov1alpha1.ApplicationSetTemplate{},
+		&argoprojiov1alpha1.ApplicationSetTemplate{},
 		appSet)
 
 	if err != nil {

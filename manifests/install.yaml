@@ -6457,14 +6457,10 @@ spec:
                 - metadata
                 - spec
                 type: object
-              templateOptions:
-                properties:
-                  gotemplateEnabled:
-                    type: boolean
-                type: object
+              untypedTemplate:
+                type: string
             required:
             - generators
-            - template
             type: object
           status:
             properties:

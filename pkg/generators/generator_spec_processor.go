@@ -32,7 +32,7 @@ type TransformResult struct {
 }
 
 //Transform a spec generator to list of paramSets and a template
-func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, allGenerators map[string]Generator, baseTemplate argoprojiov1alpha1.ApplicationSetTemplate, appSet *argoprojiov1alpha1.ApplicationSet) ([]TransformResult, error) {
+func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, allGenerators map[string]Generator, baseTemplate *argoprojiov1alpha1.ApplicationSetTemplate, appSet *argoprojiov1alpha1.ApplicationSet) ([]TransformResult, error) {
 	res := []TransformResult{}
 	var firstError error
 
@@ -50,6 +50,7 @@ func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, al
 		}
 
 		params, err := g.GenerateParams(&requestedGenerator, appSet)
+
 		if err != nil {
 			log.WithError(err).WithField("generator", g).
 				Error("error generating params")
@@ -70,13 +71,19 @@ func Transform(requestedGenerator argoprojiov1alpha1.ApplicationSetGenerator, al
 
 }
 
-func mergeGeneratorTemplate(g Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetTemplate argoprojiov1alpha1.ApplicationSetTemplate) (argoprojiov1alpha1.ApplicationSetTemplate, error) {
+func mergeGeneratorTemplate(g Generator, requestedGenerator *argoprojiov1alpha1.ApplicationSetGenerator, applicationSetTemplate *argoprojiov1alpha1.ApplicationSetTemplate) (argoprojiov1alpha1.ApplicationSetTemplate, error) {
 
 	// Make a copy of the value from `GetTemplate()` before merge, rather than copying directly into
 	// the provided parameter (which will touch the original resource object returned by client-go)
 	dest := g.GetTemplate(requestedGenerator).DeepCopy()
 
-	err := mergo.Merge(dest, applicationSetTemplate)
+	var err error
+
+	if applicationSetTemplate != nil {
+		err = mergo.Merge(dest, applicationSetTemplate)
+	} else {
+		log.Warn("generator template won't be applied when standard application template is not used")
+	}
 
 	return *dest, err
 }
