@@ -107,27 +107,13 @@ func (b *BitbucketServerProvider) RepoHasPath(_ context.Context, repo *Repositor
 	opts := map[string]interface{}{
 		"limit": 100,
 		"at":    repo.Branch,
+		"type_": true,
 	}
 	// No need to query for all pages here
-	response, err := b.client.DefaultApi.StreamFiles_42(repo.Organization, repo.Repository, path, opts)
+	response, err := b.client.DefaultApi.GetContent_0(repo.Organization, repo.Repository, path, opts)
 	if response != nil && response.StatusCode == 404 {
-		// The path requested does not exist at the supplied commit.
+		// File/directory not found
 		return false, nil
-	}
-	if response != nil && response.StatusCode == 400 {
-		// If the path is a file, the first call will return 400: The path requested is not a directory at the supplied commit.
-		// Simply retry with an API call that works with files and expect a 200 return code
-		opts["type_"] = true // Only request the type, we don't need the content
-		response, err := b.client.DefaultApi.GetContent_0(repo.Organization, repo.Repository, path, opts)
-		if response != nil && response.StatusCode == 404 {
-			// File not found
-			return false, nil
-		}
-		if err != nil {
-			return false, err
-		}
-		// 200 ok
-		return true, nil
 	}
 	if err != nil {
 		return false, err

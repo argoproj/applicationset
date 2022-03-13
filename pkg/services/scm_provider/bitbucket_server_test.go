@@ -508,28 +508,25 @@ func TestBitbucketServerHasPath(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		switch r.RequestURI {
-		case "/rest/api/1.0/projects/PROJECT/repos/REPO/files/pkg/?at=main&limit=100":
-			_, err = io.WriteString(w, `{
-				"size": 1,
-				"limit": 100,
-				"isLastPage": true,
-				"values": [
-					"pkg/file.txt"
-				],
-				"start": 0
-			}`)
-
-		case "/rest/api/1.0/projects/PROJECT/repos/REPO/files/anotherpkg/file.txt?at=main&limit=100":
-			http.Error(w, "The path requested is not a directory at the supplied commit.", 400)
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/browse/pkg?at=main&limit=100&type=true":
+			_, err = io.WriteString(w, `{"type":"DIRECTORY"}`)
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/browse/pkg/?at=main&limit=100&type=true":
+			_, err = io.WriteString(w, `{"type":"DIRECTORY"}`)
 		case "/rest/api/1.0/projects/PROJECT/repos/REPO/browse/anotherpkg/file.txt?at=main&limit=100&type=true":
 			_, err = io.WriteString(w, `{"type":"FILE"}`)
-		case "/rest/api/1.0/projects/PROJECT/repos/REPO/files/anotherpkg/missing.txt?at=main&limit=100":
-			http.Error(w, "The path requested is not a directory at the supplied commit.", 400)
+
 		case "/rest/api/1.0/projects/PROJECT/repos/REPO/browse/anotherpkg/missing.txt?at=main&limit=100&type=true":
 			http.Error(w, "The path \"anotherpkg/missing.txt\" does not exist at revision \"main\"", 404)
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/browse/notathing?at=main&limit=100&type=true":
+			http.Error(w, "The path \"notathing\" does not exist at revision \"main\"", 404)
 
-		case "/rest/api/1.0/projects/PROJECT/repos/REPO/files/notathing/?at=main&limit=100":
-			http.Error(w, "The path requested does not exist at the supplied commit.", 404)
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/browse/return-redirect?at=main&limit=100&type=true":
+			http.Redirect(w, r, "http://"+r.Host+"/rest/api/1.0/projects/PROJECT/repos/REPO/browse/redirected?at=main&limit=100&type=true", 301)
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/browse/redirected?at=main&limit=100&type=true":
+			_, err = io.WriteString(w, `{"type":"DIRECTORY"}`)
+
+		case "/rest/api/1.0/projects/PROJECT/repos/REPO/browse/unauthorized-response?at=main&limit=100&type=true":
+			http.Error(w, "Authentication failed", 401)
 
 		default:
 			t.Fail()
@@ -546,7 +543,11 @@ func TestBitbucketServerHasPath(t *testing.T) {
 		Repository:   "REPO",
 		Branch:       "main",
 	}
-	ok, err := provider.RepoHasPath(context.Background(), repo, "pkg/")
+	ok, err := provider.RepoHasPath(context.Background(), repo, "pkg")
+	assert.NoError(t, err)
+	assert.True(t, ok)
+
+	ok, err = provider.RepoHasPath(context.Background(), repo, "pkg/")
 	assert.NoError(t, err)
 	assert.True(t, ok)
 
@@ -558,8 +559,14 @@ func TestBitbucketServerHasPath(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, ok)
 
-	ok, err = provider.RepoHasPath(context.Background(), repo, "notathing/")
+	ok, err = provider.RepoHasPath(context.Background(), repo, "notathing")
 	assert.NoError(t, err)
 	assert.False(t, ok)
 
+	ok, err = provider.RepoHasPath(context.Background(), repo, "return-redirect")
+	assert.NoError(t, err)
+	assert.True(t, ok)
+
+	_, err = provider.RepoHasPath(context.Background(), repo, "unauthorized-response")
+	assert.Error(t, err)
 }
