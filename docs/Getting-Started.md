@@ -62,7 +62,7 @@ How it works:
 
 See the `master` branch [Read the Docs](https://argocd-applicationset.readthedocs.io/en/master/) page for documentation on post-release features.
 
-## Enabling HA mode
+## Enabling high availability mode
 
 To enable high availability, you have to set the command ``` --enable-leader-election=true  ``` in argocd-applicationset-controller container and increase the replicas. 
 
