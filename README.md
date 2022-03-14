@@ -1,5 +1,9 @@
 # Argo CD ApplicationSet Controller 
 
+## :warning: This project code has been moved to the main Argo CD repository
+
+This repository is no longer active. ApplicationSet has been merged with Argo CD and will be released along with it. Further development will happen in [Argo CD](https://github.com/argoproj/argo-cd).
+
 The ApplicationSet controller is a Kubernetes controller that adds support for a new custom `ApplicationSet` CustomResourceDefinition (CRD). This controller/CRD enables both automation and greater flexibility when managing Argo CD Applications across a large number of clusters and within monorepos, plus it makes self-service usage possible on multitenant Kubernetes clusters.
 
 The ApplicationSet controller provides the ability:
