@@ -10,6 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
+	"github.com/argoproj/applicationset/pkg/services/pull_request"
 	pullrequest "github.com/argoproj/applicationset/pkg/services/pull_request"
 )
 
@@ -61,7 +62,7 @@ func (g *PullRequestGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha
 		return nil, fmt.Errorf("failed to select pull request service provider: %v", err)
 	}
 
-	pulls, err := svc.List(ctx)
+	pulls, err := pull_request.ListPullRequests(ctx, svc, appSetGenerator.PullRequest.Filters)
 	if err != nil {
 		return nil, fmt.Errorf("error listing repos: %v", err)
 	}
@@ -85,6 +86,18 @@ func (g *PullRequestGenerator) selectServiceProvider(ctx context.Context, genera
 			return nil, fmt.Errorf("error fetching Secret token: %v", err)
 		}
 		return pullrequest.NewGithubService(ctx, token, providerConfig.API, providerConfig.Owner, providerConfig.Repo, providerConfig.Labels)
+	}
+	if generatorConfig.BitbucketServer != nil {
+		providerConfig := generatorConfig.BitbucketServer
+		if providerConfig.BasicAuth != nil {
+			password, err := g.getSecretRef(ctx, providerConfig.BasicAuth.PasswordRef, applicationSetInfo.Namespace)
+			if err != nil {
+				return nil, fmt.Errorf("error fetching Secret token: %v", err)
+			}
+			return pullrequest.NewBitbucketServiceBasicAuth(ctx, providerConfig.BasicAuth.Username, password, providerConfig.API, providerConfig.Project, providerConfig.Repo)
+		} else {
+			return pullrequest.NewBitbucketServiceNoAuth(ctx, providerConfig.API, providerConfig.Project, providerConfig.Repo)
+		}
 	}
 	return nil, fmt.Errorf("no Pull Request provider implementation configured")
 }

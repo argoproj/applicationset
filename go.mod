@@ -6,6 +6,7 @@ require (
 	github.com/argoproj/argo-cd/v2 v2.3.0-rc5.0.20220225234205-31676e2aea6f
 	github.com/argoproj/gitops-engine v0.6.0
 	github.com/argoproj/pkg v0.11.1-0.20211203175135-36c59d8fafe0
+	github.com/gfleury/go-bitbucket-v1 v0.0.0-20220125132502-90a950f9bcba
 	github.com/go-logr/logr v1.2.2
 	github.com/google/go-github/v35 v35.0.0
 	github.com/imdario/mergo v0.3.12
@@ -89,6 +90,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
+	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/moby/spdystream v0.2.0 // indirect
 	github.com/moby/term v0.0.0-20210610120745-9d4ed1856297 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
