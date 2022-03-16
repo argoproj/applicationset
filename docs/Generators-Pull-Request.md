@@ -42,7 +42,7 @@ spec:
         # Labels is used to filter the PRs that you want to target. (optional)
         labels:
         - preview
-  requeueAfterSeconds: 1800
+      requeueAfterSeconds: 1800
   template:
   # ...
 ```
