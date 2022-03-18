@@ -25,6 +25,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/argoproj/argo-cd/v2/reposerver/askpass"
+
 	log "github.com/sirupsen/logrus"
 
 	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
@@ -164,10 +166,12 @@ func main() {
 		startWebhookServer(webhookHandler, webhookAddr)
 	}
 
+	askPassServer := askpass.NewServer()
+
 	terminalGenerators := map[string]generators.Generator{
 		"List":                    generators.NewListGenerator(),
 		"Clusters":                generators.NewClusterGenerator(mgr.GetClient(), context.Background(), k8s, namespace),
-		"Git":                     generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, argocdRepoServer)),
+		"Git":                     generators.NewGitGenerator(services.NewArgoCDService(argoCDDB, askPassServer, argocdRepoServer)),
 		"SCMProvider":             generators.NewSCMProviderGenerator(mgr.GetClient()),
 		"ClusterDecisionResource": generators.NewDuckTypeGenerator(context.Background(), dynClient, k8s, namespace),
 		"PullRequest":             generators.NewPullRequestGenerator(mgr.GetClient()),
