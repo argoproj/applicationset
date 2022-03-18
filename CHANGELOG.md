@@ -818,7 +818,7 @@ Once installed, the ApplicationSet controller requires no additional setup. You 
 - The --namespace controller param and NAMESPACE environment variable should override to produce one canonical value (#70) (#109)
 - Cluster generator cannot select local cluster (#116)
 - Fix leader election (#125)
-- Git Directory Generator only matches directories that contain valid Helm/ksonnet/Kustomize artifacts (#132)
+- Git Directory Generator only matches directories that contain valid Helm/Kustomize artifacts (#132)
 - Prevent ApplicationSet controller from creating invalid Applications, causing 'unable to delete application resource' in Argo CD (#136)
 - Git generator may never detect new commits, if using default 'GetRequeueAfter' value (#137)
 - 'Error generating params' error when using JSON array in Git files generator file (#139)

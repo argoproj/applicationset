@@ -229,25 +229,6 @@ spec:
                                         version:
                                           type: string
                                       type: object
-                                    ksonnet:
-                                      properties:
-                                        environment:
-                                          type: string
-                                        parameters:
-                                          items:
-                                            properties:
-                                              component:
-                                                type: string
-                                              name:
-                                                type: string
-                                              value:
-                                                type: string
-                                            required:
-                                            - name
-                                            - value
-                                            type: object
-                                          type: array
-                                      type: object
                                     kustomize:
                                       properties:
                                         commonAnnotations:
@@ -534,25 +515,6 @@ spec:
                                           type: string
                                         version:
                                           type: string
-                                      type: object
-                                    ksonnet:
-                                      properties:
-                                        environment:
-                                          type: string
-                                        parameters:
-                                          items:
-                                            properties:
-                                              component:
-                                                type: string
-                                              name:
-                                                type: string
-                                              value:
-                                                type: string
-                                            required:
-                                            - name
-                                            - value
-                                            type: object
-                                          type: array
                                       type: object
                                     kustomize:
                                       properties:
@@ -843,25 +805,6 @@ spec:
                                         version:
                                           type: string
                                       type: object
-                                    ksonnet:
-                                      properties:
-                                        environment:
-                                          type: string
-                                        parameters:
-                                          items:
-                                            properties:
-                                              component:
-                                                type: string
-                                              name:
-                                                type: string
-                                              value:
-                                                type: string
-                                            required:
-                                            - name
-                                            - value
-                                            type: object
-                                          type: array
-                                      type: object
                                     kustomize:
                                       properties:
                                         commonAnnotations:
@@ -1126,25 +1069,6 @@ spec:
                                           type: string
                                         version:
                                           type: string
-                                      type: object
-                                    ksonnet:
-                                      properties:
-                                        environment:
-                                          type: string
-                                        parameters:
-                                          items:
-                                            properties:
-                                              component:
-                                                type: string
-                                              name:
-                                                type: string
-                                              value:
-                                                type: string
-                                            required:
-                                            - name
-                                            - value
-                                            type: object
-                                          type: array
                                       type: object
                                     kustomize:
                                       properties:
@@ -1441,25 +1365,6 @@ spec:
                                                   version:
                                                     type: string
                                                 type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
-                                                type: object
                                               kustomize:
                                                 properties:
                                                   commonAnnotations:
@@ -1746,25 +1651,6 @@ spec:
                                                     type: string
                                                   version:
                                                     type: string
-                                                type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
                                                 type: object
                                               kustomize:
                                                 properties:
@@ -2055,25 +1941,6 @@ spec:
                                                   version:
                                                     type: string
                                                 type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
-                                                type: object
                                               kustomize:
                                                 properties:
                                                   commonAnnotations:
@@ -2338,25 +2205,6 @@ spec:
                                                     type: string
                                                   version:
                                                     type: string
-                                                type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
                                                 type: object
                                               kustomize:
                                                 properties:
@@ -2650,25 +2498,6 @@ spec:
                                                     type: string
                                                   version:
                                                     type: string
-                                                type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
                                                 type: object
                                               kustomize:
                                                 properties:
@@ -2992,25 +2821,6 @@ spec:
                                                   version:
                                                     type: string
                                                 type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
-                                                type: object
                                               kustomize:
                                                 properties:
                                                   commonAnnotations:
@@ -3268,25 +3078,6 @@ spec:
                                           type: string
                                         version:
                                           type: string
-                                      type: object
-                                    ksonnet:
-                                      properties:
-                                        environment:
-                                          type: string
-                                        parameters:
-                                          items:
-                                            properties:
-                                              component:
-                                                type: string
-                                              name:
-                                                type: string
-                                              value:
-                                                type: string
-                                            required:
-                                            - name
-                                            - value
-                                            type: object
-                                          type: array
                                       type: object
                                     kustomize:
                                       properties:
@@ -3583,25 +3374,6 @@ spec:
                                                   version:
                                                     type: string
                                                 type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
-                                                type: object
                                               kustomize:
                                                 properties:
                                                   commonAnnotations:
@@ -3888,25 +3660,6 @@ spec:
                                                     type: string
                                                   version:
                                                     type: string
-                                                type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
                                                 type: object
                                               kustomize:
                                                 properties:
@@ -4197,25 +3950,6 @@ spec:
                                                   version:
                                                     type: string
                                                 type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
-                                                type: object
                                               kustomize:
                                                 properties:
                                                   commonAnnotations:
@@ -4480,25 +4214,6 @@ spec:
                                                     type: string
                                                   version:
                                                     type: string
-                                                type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
                                                 type: object
                                               kustomize:
                                                 properties:
@@ -4792,25 +4507,6 @@ spec:
                                                     type: string
                                                   version:
                                                     type: string
-                                                type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
                                                 type: object
                                               kustomize:
                                                 properties:
@@ -5134,25 +4830,6 @@ spec:
                                                   version:
                                                     type: string
                                                 type: object
-                                              ksonnet:
-                                                properties:
-                                                  environment:
-                                                    type: string
-                                                  parameters:
-                                                    items:
-                                                      properties:
-                                                        component:
-                                                          type: string
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
-                                                type: object
                                               kustomize:
                                                 properties:
                                                   commonAnnotations:
@@ -5414,25 +5091,6 @@ spec:
                                           type: string
                                         version:
                                           type: string
-                                      type: object
-                                    ksonnet:
-                                      properties:
-                                        environment:
-                                          type: string
-                                        parameters:
-                                          items:
-                                            properties:
-                                              component:
-                                                type: string
-                                              name:
-                                                type: string
-                                              value:
-                                                type: string
-                                            required:
-                                            - name
-                                            - value
-                                            type: object
-                                          type: array
                                       type: object
                                     kustomize:
                                       properties:
@@ -5723,25 +5381,6 @@ spec:
                                           type: string
                                         version:
                                           type: string
-                                      type: object
-                                    ksonnet:
-                                      properties:
-                                        environment:
-                                          type: string
-                                        parameters:
-                                          items:
-                                            properties:
-                                              component:
-                                                type: string
-                                              name:
-                                                type: string
-                                              value:
-                                                type: string
-                                            required:
-                                            - name
-                                            - value
-                                            type: object
-                                          type: array
                                       type: object
                                     kustomize:
                                       properties:
@@ -6065,25 +5704,6 @@ spec:
                                         version:
                                           type: string
                                       type: object
-                                    ksonnet:
-                                      properties:
-                                        environment:
-                                          type: string
-                                        parameters:
-                                          items:
-                                            properties:
-                                              component:
-                                                type: string
-                                              name:
-                                                type: string
-                                              value:
-                                                type: string
-                                            required:
-                                            - name
-                                            - value
-                                            type: object
-                                          type: array
-                                      type: object
                                     kustomize:
                                       properties:
                                         commonAnnotations:
@@ -6346,25 +5966,6 @@ spec:
                                 type: string
                               version:
                                 type: string
-                            type: object
-                          ksonnet:
-                            properties:
-                              environment:
-                                type: string
-                              parameters:
-                                items:
-                                  properties:
-                                    component:
-                                      type: string
-                                    name:
-                                      type: string
-                                    value:
-                                      type: string
-                                  required:
-                                  - name
-                                  - value
-                                  type: object
-                                type: array
                             type: object
                           kustomize:
                             properties:
