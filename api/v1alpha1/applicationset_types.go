@@ -48,9 +48,10 @@ type ApplicationSet struct {
 
 // ApplicationSetSpec represents a class of application set state.
 type ApplicationSetSpec struct {
-	Generators []ApplicationSetGenerator `json:"generators"`
-	Template   ApplicationSetTemplate    `json:"template"`
-	SyncPolicy *ApplicationSetSyncPolicy `json:"syncPolicy,omitempty"`
+	Generators      []ApplicationSetGenerator      `json:"generators"`
+	Template        *ApplicationSetTemplate        `json:"template,omitempty"`
+	UntypedTemplate *ApplicationSetUntypedTemplate `json:"untypedTemplate,omitempty"`
+	SyncPolicy      *ApplicationSetSyncPolicy      `json:"syncPolicy,omitempty"`
 }
 
 // ApplicationSetSyncPolicy configures how generated Applications will relate to their
@@ -65,6 +66,9 @@ type ApplicationSetTemplate struct {
 	ApplicationSetTemplateMeta `json:"metadata"`
 	Spec                       v1alpha1.ApplicationSpec `json:"spec"`
 }
+
+// ApplicationSetUntypedTemplate represents argocd ApplicationSpec without type check
+type ApplicationSetUntypedTemplate string
 
 // ApplicationSetTemplateMeta represents the Argo CD application fields that may
 // be used for Applications generated from the ApplicationSet (based on metav1.ObjectMeta)

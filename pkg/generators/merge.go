@@ -162,7 +162,7 @@ func (m *MergeGenerator) getParams(appSetBaseGenerator argoprojiov1alpha1.Applic
 			Merge:                   mergeGenerator,
 		},
 		m.supportedGenerators,
-		argoprojiov1alpha1.ApplicationSetTemplate{},
+		&argoprojiov1alpha1.ApplicationSetTemplate{},
 		appSet)
 
 	if err != nil {

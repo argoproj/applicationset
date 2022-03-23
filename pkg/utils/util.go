@@ -2,96 +2,13 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"reflect"
 	"sort"
-	"strconv"
 	"strings"
 
 	argoprojiov1alpha1 "github.com/argoproj/applicationset/api/v1alpha1"
-	argov1alpha1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 	log "github.com/sirupsen/logrus"
-	"github.com/valyala/fasttemplate"
 )
-
-type Renderer interface {
-	RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, params map[string]string) (*argov1alpha1.Application, error)
-}
-
-type Render struct {
-}
-
-func (r *Render) RenderTemplateParams(tmpl *argov1alpha1.Application, syncPolicy *argoprojiov1alpha1.ApplicationSetSyncPolicy, params map[string]string) (*argov1alpha1.Application, error) {
-	if tmpl == nil {
-		return nil, fmt.Errorf("application template is empty ")
-	}
-
-	if len(params) == 0 {
-		return tmpl, nil
-	}
-
-	tmplBytes, err := json.Marshal(tmpl)
-	if err != nil {
-		return nil, err
-	}
-
-	fstTmpl := fasttemplate.New(string(tmplBytes), "{{", "}}")
-	replacedTmplStr, err := r.replace(fstTmpl, params, true)
-	if err != nil {
-		return nil, err
-	}
-
-	var replacedTmpl argov1alpha1.Application
-	err = json.Unmarshal([]byte(replacedTmplStr), &replacedTmpl)
-	if err != nil {
-		return nil, err
-	}
-
-	// Add the 'resources-finalizer' finalizer if:
-	// The template application doesn't have any finalizers, and:
-	// a) there is no syncPolicy, or
-	// b) there IS a syncPolicy, but preserveResourcesOnDeletion is set to false
-	// See TestRenderTemplateParamsFinalizers in util_test.go for test-based definition of behaviour
-	if (syncPolicy == nil || !syncPolicy.PreserveResourcesOnDeletion) &&
-		(replacedTmpl.ObjectMeta.Finalizers == nil || len(replacedTmpl.ObjectMeta.Finalizers) == 0) {
-
-		replacedTmpl.ObjectMeta.Finalizers = []string{"resources-finalizer.argocd.argoproj.io"}
-	}
-
-	return &replacedTmpl, nil
-}
-
-// Replace executes basic string substitution of a template with replacement values.
-// 'allowUnresolved' indicates whether or not it is acceptable to have unresolved variables
-// remaining in the substituted template.
-func (r *Render) replace(fstTmpl *fasttemplate.Template, replaceMap map[string]string, allowUnresolved bool) (string, error) {
-	var unresolvedErr error
-	replacedTmpl := fstTmpl.ExecuteFuncString(func(w io.Writer, tag string) (int, error) {
-
-		trimmedTag := strings.TrimSpace(tag)
-
-		replacement, ok := replaceMap[trimmedTag]
-		if len(trimmedTag) == 0 || !ok {
-			if allowUnresolved {
-				// just write the same string back
-				return w.Write([]byte(fmt.Sprintf("{{%s}}", tag)))
-			}
-			unresolvedErr = fmt.Errorf("failed to resolve {{%s}}", tag)
-			return 0, nil
-		}
-		// The following escapes any special characters (e.g. newlines, tabs, etc...)
-		// in preparation for substitution
-		replacement = strconv.Quote(replacement)
-		replacement = replacement[1 : len(replacement)-1]
-		return w.Write([]byte(replacement))
-	})
-	if unresolvedErr != nil {
-		return "", unresolvedErr
-	}
-
-	return replacedTmpl, nil
-}
 
 // Log a warning if there are unrecognized generators
 func CheckInvalidGenerators(applicationSetInfo *argoprojiov1alpha1.ApplicationSet) {
