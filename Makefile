@@ -117,7 +117,7 @@ lint-docs:
 
 
 controller-gen: ## Download controller-gen to '(project root)/bin', if not already present.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0)
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0)
 
 
 kustomize: ## Download kustomize to '(project root)/bin', if not already present.

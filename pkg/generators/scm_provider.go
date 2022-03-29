@@ -86,6 +86,15 @@ func (g *SCMProviderGenerator) GenerateParams(appSetGenerator *argoprojiov1alpha
 		if err != nil {
 			return nil, fmt.Errorf("error initializing Bitbucket cloud service: %v", err)
 		}
+	} else if providerConfig.Gitea != nil {
+		token, err := g.getSecretRef(ctx, providerConfig.Gitea.TokenRef, applicationSetInfo.Namespace)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching Gitea token: %v", err)
+		}
+		provider, err = scm_provider.NewGiteaProvider(ctx, providerConfig.Gitea.Owner, token, providerConfig.Gitea.API, providerConfig.Gitea.AllBranches, providerConfig.Gitea.Insecure)
+		if err != nil {
+			return nil, fmt.Errorf("error initializing Gitea service: %v", err)
+		}
 	} else {
 		return nil, fmt.Errorf("no SCM provider implementation configured")
 	}

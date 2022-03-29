@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
   name: applicationsets.argoproj.io
 spec:
@@ -2458,6 +2458,31 @@ spec:
                                 x-kubernetes-preserve-unknown-fields: true
                               pullRequest:
                                 properties:
+                                  gitea:
+                                    properties:
+                                      api:
+                                        type: string
+                                      insecure:
+                                        type: boolean
+                                      owner:
+                                        type: string
+                                      repo:
+                                        type: string
+                                      tokenRef:
+                                        properties:
+                                          key:
+                                            type: string
+                                          secretName:
+                                            type: string
+                                        required:
+                                        - key
+                                        - secretName
+                                        type: object
+                                    required:
+                                    - api
+                                    - owner
+                                    - repo
+                                    type: object
                                   github:
                                     properties:
                                       api:
@@ -2804,6 +2829,30 @@ spec:
                                           type: string
                                       type: object
                                     type: array
+                                  gitea:
+                                    properties:
+                                      allBranches:
+                                        type: boolean
+                                      api:
+                                        type: string
+                                      insecure:
+                                        type: boolean
+                                      owner:
+                                        type: string
+                                      tokenRef:
+                                        properties:
+                                          key:
+                                            type: string
+                                          secretName:
+                                            type: string
+                                        required:
+                                        - key
+                                        - secretName
+                                        type: object
+                                    required:
+                                    - api
+                                    - owner
+                                    type: object
                                   github:
                                     properties:
                                       allBranches:
@@ -4623,6 +4672,31 @@ spec:
                                 x-kubernetes-preserve-unknown-fields: true
                               pullRequest:
                                 properties:
+                                  gitea:
+                                    properties:
+                                      api:
+                                        type: string
+                                      insecure:
+                                        type: boolean
+                                      owner:
+                                        type: string
+                                      repo:
+                                        type: string
+                                      tokenRef:
+                                        properties:
+                                          key:
+                                            type: string
+                                          secretName:
+                                            type: string
+                                        required:
+                                        - key
+                                        - secretName
+                                        type: object
+                                    required:
+                                    - api
+                                    - owner
+                                    - repo
+                                    type: object
                                   github:
                                     properties:
                                       api:
@@ -4969,6 +5043,30 @@ spec:
                                           type: string
                                       type: object
                                     type: array
+                                  gitea:
+                                    properties:
+                                      allBranches:
+                                        type: boolean
+                                      api:
+                                        type: string
+                                      insecure:
+                                        type: boolean
+                                      owner:
+                                        type: string
+                                      tokenRef:
+                                        properties:
+                                          key:
+                                            type: string
+                                          secretName:
+                                            type: string
+                                        required:
+                                        - key
+                                        - secretName
+                                        type: object
+                                    required:
+                                    - api
+                                    - owner
+                                    type: object
                                   github:
                                     properties:
                                       allBranches:
@@ -5577,6 +5675,31 @@ spec:
                       type: object
                     pullRequest:
                       properties:
+                        gitea:
+                          properties:
+                            api:
+                              type: string
+                            insecure:
+                              type: boolean
+                            owner:
+                              type: string
+                            repo:
+                              type: string
+                            tokenRef:
+                              properties:
+                                key:
+                                  type: string
+                                secretName:
+                                  type: string
+                              required:
+                              - key
+                              - secretName
+                              type: object
+                          required:
+                          - api
+                          - owner
+                          - repo
+                          type: object
                         github:
                           properties:
                             api:
@@ -5923,6 +6046,30 @@ spec:
                                 type: string
                             type: object
                           type: array
+                        gitea:
+                          properties:
+                            allBranches:
+                              type: boolean
+                            api:
+                              type: string
+                            insecure:
+                              type: boolean
+                            owner:
+                              type: string
+                            tokenRef:
+                              properties:
+                                key:
+                                  type: string
+                                secretName:
+                                  type: string
+                              required:
+                              - key
+                              - secretName
+                              type: object
+                          required:
+                          - api
+                          - owner
+                          type: object
                         github:
                           properties:
                             allBranches:
