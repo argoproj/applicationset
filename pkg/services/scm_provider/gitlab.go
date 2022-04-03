@@ -106,39 +106,36 @@ func (g *GitlabProvider) RepoHasPath(_ context.Context, repo *Repository, path s
 	if err != nil {
 		return false, err
 	}
-	_, resp, err := g.client.Repositories.ListTree(p.ID, &gitlab.ListTreeOptions{
-		Path: &path,
-		Ref:  &repo.Branch,
-	})
-	if err != nil {
-		return false, err
+	directories := []string{
+		path,
+		pathpkg.Dir(path),
 	}
-	// if it's a directory, we're done
-	if resp.TotalItems > 0 {
-		return true, nil
-	}
-
-	// let's try if path is a file
-	dir := pathpkg.Dir(path)
-	options := gitlab.ListTreeOptions{
-		Path: &dir,
-		Ref:  &repo.Branch,
-	}
-	for {
-		treeNode, resp, err := g.client.Repositories.ListTree(p.ID, &options)
-		if err != nil {
-			return false, err
+	for _, directory := range directories {
+		options := gitlab.ListTreeOptions{
+			Path: &directory,
+			Ref:  &repo.Branch,
 		}
-		for _, node := range treeNode {
-			if path == node.Path {
-				return true, nil
+		for {
+			treeNode, resp, err := g.client.Repositories.ListTree(p.ID, &options)
+			if err != nil {
+				return false, err
 			}
+			if path == directory {
+				if resp.TotalItems > 0 {
+					return true, nil
+				}
+			}
+			for i := range treeNode {
+				if treeNode[i].Path == path {
+					return true, nil
+				}
+			}
+			if resp.NextPage == 0 {
+				// no future pages
+				break
+			}
+			options.Page = resp.NextPage
 		}
-		if resp.NextPage == 0 {
-			// no future pages
-			break
-		}
-		options.Page = resp.NextPage
 	}
 	return false, nil
 }
