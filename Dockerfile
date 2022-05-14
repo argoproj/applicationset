@@ -24,10 +24,17 @@ RUN make build
 FROM docker.io/library/ubuntu:21.10
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get dist-upgrade -y && \
-  apt-get install -y git git-lfs gpg tini && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists /var/cache/apt/archives /tmp/* /var/tmp/*
+RUN groupadd -g 999 applicationset && \
+    useradd -r -u 999 -g applicationset applicationset && \
+    mkdir -p /home/applicationset && \
+    chown applicationset:0 /home/applicationset && \
+    chmod g=u /home/applicationset && \
+    apt-get update && \
+    apt-get dist-upgrade -y && \
+    apt-get install -y \
+      git git-lfs gpg tini && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives /tmp/* /var/tmp/*
 
 
 # Add Argo CD helper scripts that are required by 'github.com/argoproj/argo-cd/util/git' package
@@ -50,3 +57,7 @@ RUN mkdir -p /app/config/gpg/source && \
 
 WORKDIR /
 COPY --from=builder /workspace/dist/argocd-applicationset /usr/local/bin/applicationset-controller
+
+ENV USER=applicationset
+
+USER 999
