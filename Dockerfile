@@ -2,7 +2,7 @@
 
 
 # Build the binary
-FROM docker.io/library/golang:1.17.6 as builder
+FROM docker.io/library/golang:1.17 as builder
 
 WORKDIR /workspace
 
@@ -21,7 +21,7 @@ RUN rm -f ./bin/*
 # Build
 RUN make build
 
-FROM docker.io/library/ubuntu:21.10
+FROM docker.io/library/ubuntu:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get dist-upgrade -y && \
