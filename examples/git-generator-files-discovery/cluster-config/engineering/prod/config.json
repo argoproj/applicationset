@@ -2,8 +2,8 @@
   "aws_account": "123456",
   "asset_id": "11223344",
   "cluster": {
-    "owner": "cluster-admin@company.com",
+    "owner": "cassie.souza@harness.io",
     "name": "engineering-prod",
-    "address": "http://1.2.3.4"
+    "address": "https://35.222.218.57"
   }
 }
