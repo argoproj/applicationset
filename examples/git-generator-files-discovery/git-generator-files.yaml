@@ -13,7 +13,7 @@ spec:
     metadata:
       name: '{{cluster.name}}-guestbook'
     spec:
-      project: Demo_Sandbox
+      project: 8f777467
       source:
         repoURL: https://github.com/csouza-harness/applicationset.git
         targetRevision: HEAD
