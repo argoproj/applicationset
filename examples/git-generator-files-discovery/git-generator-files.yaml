@@ -11,7 +11,7 @@ spec:
         - path: "examples/git-generator-files-discovery/cluster-config/**/config.json"
   template:
     metadata:
-      name: '{{cluster.name}}-guestbook'
+      name: '{{cluster_name}}-guestbook'
     spec:
       project: 8f777467
       source:
@@ -20,7 +20,7 @@ spec:
         path: "examples/git-generator-files-discovery/apps/guestbook"
       destination:
         server: https://kubernetes.default.svc
-        #server: '{{cluster.address}}'
+        #server: '{{cluster_address}}'
         namespace: default
       syncPolicy:
         automated: {}
