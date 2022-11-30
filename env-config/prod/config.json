@@ -1,6 +1,5 @@
 {
   "cluster_address" : "https://kubernetes.default.svc",
-  "cluster_name" : "engineering-prod",
-  "aws_account" : "123456",
+  "cluster_name" : "prod",
   "asset_id" : "12345678"
 }
