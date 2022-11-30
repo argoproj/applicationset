@@ -13,7 +13,7 @@ spec:
     metadata:
       name: '{{cluster_name}}-guestbook'
     spec:
-      project: 8f777467
+      project: 1b89578d
       source:
         repoURL: https://github.com/csouza-harness/guestbook-appset.git
         targetRevision: master
