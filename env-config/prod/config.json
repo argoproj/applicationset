@@ -1,5 +1,5 @@
 {
-  "cluster_address" : "https://kubernetes.default.svc",
   "cluster_name" : "prod",
-  "asset_id" : "12345678"
+  "asset_id" : "123456",
+  "cluster_address" : "https://kubernetes.default.svc"
 }
