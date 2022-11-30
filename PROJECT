@@ -1,6 +1,0 @@
-repo: github.com/argoproj/applicationset
-resources:
-- group: argoproj.io
-  kind: ApplicationSet
-  version: v1alpha1
-version: "2"
