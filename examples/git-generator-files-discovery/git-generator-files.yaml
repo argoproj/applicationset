@@ -19,8 +19,8 @@ spec:
         targetRevision: HEAD
         path: "examples/git-generator-files-discovery/apps/guestbook"
       destination:
-        #server: https://kubernetes.default.svc
-        server: '{{cluster.address}}'
+        server: https://kubernetes.default.svc
+        #server: '{{cluster.address}}'
         namespace: default
       syncPolicy:
         automated: {}
