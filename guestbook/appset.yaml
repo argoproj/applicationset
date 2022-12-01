@@ -11,13 +11,13 @@ spec:
         - path: "guestbook/env-config/**/config.json"
   template:
     metadata:
-      name: '{{cluster_name}}-guestbook'
+      name: 'guestbook-{{cluster_name}}'
     spec:
       project: 1b89578d
       source:
         repoURL: https://github.com/csouza-harness/appset-examples.git
         targetRevision: master
-        path: "guestbook"
+        path: "guestbook/deployment"
       destination:
         #server: https://kubernetes.default.svc
         server: '{{cluster_address}}'
