@@ -1,26 +1,26 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: guestbook
+  name: prometheus
 spec:
   generators:
     - git:
-        repoURL: https://github.com/csouza-harness/guestbook-appset.git
+        repoURL: https://github.com/csouza-harness/appset-examples.git
         revision: master
         files:
-        - path: "env-config/**/config.json"
+        - path: "prometheus/env-config/**/config.json"
   template:
     metadata:
-      name: '{{cluster_name}}-guestbook'
+      name: '{{cluster_name}}-prometheus'
     spec:
       project: 1b89578d
       source:
-        repoURL: https://github.com/csouza-harness/guestbook-appset.git
+        repoURL: https://github.com/csouza-harness/appset-examples.git
         targetRevision: master
-        path: "apps/guestbook"
+        path: "prometheus"
       destination:
         #server: https://kubernetes.default.svc
         server: '{{cluster_address}}'
-        namespace: guestbook
+        namespace: monitoring
       syncPolicy:
         automated: {}

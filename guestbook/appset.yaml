@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: guestbook
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/csouza-harness/appset-examples.git
+        revision: master
+        files:
+        - path: "guestbook/env-config/**/config.json"
+  template:
+    metadata:
+      name: '{{cluster_name}}-guestbook'
+    spec:
+      project: 1b89578d
+      source:
+        repoURL: https://github.com/csouza-harness/appset-examples.git
+        targetRevision: master
+        path: "guestbook"
+      destination:
+        #server: https://kubernetes.default.svc
+        server: '{{cluster_address}}'
+        namespace: guestbook
+      syncPolicy:
+        automated: {}
