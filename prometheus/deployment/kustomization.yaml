@@ -5,6 +5,6 @@ helmCharts:
 - name: prometheus
   repo: https://prometheus-community.github.io/helm-charts
   version: 14.3.0
-  releaseName: prometheus
+  releaseName: my-prometheus
   namespace: monitoring
   valuesFile: prom-values-overrides.yaml
