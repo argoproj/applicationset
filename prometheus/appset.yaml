@@ -8,7 +8,7 @@ spec:
         repoURL: https://github.com/csouza-harness/appset-examples.git
         revision: master
         files:
-        - path: "prometheus/env-config/*/config.json"
+        - path: "prometheus/env-config/**/config.json"
   template:
     metadata:
       name: 'prometheus-{{cluster_name}}'
