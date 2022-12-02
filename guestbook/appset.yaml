@@ -8,7 +8,7 @@ spec:
         repoURL: https://github.com/csouza-harness/appset-examples.git
         revision: master
         files:
-        - path: "guestbook/env-config/**/config.json"
+        - path: "guestbook/env-config/*/config.json"
   template:
     metadata:
       name: 'guestbook-{{cluster_name}}'

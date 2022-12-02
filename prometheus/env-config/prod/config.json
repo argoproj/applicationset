@@ -1,5 +1,0 @@
-{
-  "cluster_name" : "prod",
-  "cluster_address" : "https://kubernetes.default.svc",
-  "target_revision" : "master"
-}
