@@ -1,3 +1,5 @@
+<div id='announce-msg'>The ApplicationSet project has been merged with Argo CD and will be managed along with it, <a href='https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/'>click here to go to the ApplicationSet section of the Argo CD docs.</a></div>
+
 # Introduction to ApplicationSet controller
 
 ## Introduction
