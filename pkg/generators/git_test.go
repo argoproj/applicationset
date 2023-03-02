@@ -198,6 +198,54 @@ func TestGitGenerateParamsFromFiles(t *testing.T) {
 		expectedError  error
 	}{
 		{
+			name: "my test case",
+			files: []argoprojiov1alpha1.GitFileGeneratorItem{
+				{Path: "app-config/*/app.json"},
+				{Path: "app-config/envs/production/app.json"},
+			},
+			repoFileContents: map[string][]byte{
+				"app-config/envs/production/app.json": []byte(`{
+   "test1": 123
+}`),
+				"app-config/envs/staging/app.json": []byte(`{
+   "test2": 456
+}`),
+				"app-config/envs/app.json": []byte(`{
+   "test3": 789
+}`),
+			},
+			repoPathsError: nil,
+			expected: []map[string]string{
+				{
+					"test1":                   "123",
+					"path":                    "app-config/envs/production",
+					"path.basename":           "production",
+					"path.basenameNormalized": "production",
+					"path[0]":                 "app-config",
+					"path[1]":                 "envs",
+				},
+				{
+					/*
+						THIS SHOULD NOT BE INCLUDED BUT IT IS
+					*/
+					"test2":                   "456",
+					"path":                    "app-config/envs/staging",
+					"path.basename":           "staging",
+					"path.basenameNormalized": "staging",
+					"path[0]":                 "app-config",
+					"path[1]":                 "envs",
+				},
+				{
+					"test3":                   "789",
+					"path":                    "app-config/envs",
+					"path.basename":           "envs",
+					"path.basenameNormalized": "envs",
+					"path[0]":                 "app-config",
+				},
+			},
+			expectedError: nil,
+		},
+		{
 			name:  "happy flow: create params from git files",
 			files: []argoprojiov1alpha1.GitFileGeneratorItem{{Path: "**/config.json"}},
 			repoFileContents: map[string][]byte{
