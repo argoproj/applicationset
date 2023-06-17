@@ -36,14 +36,14 @@ jobs:
         run: |
           LATEST_RELEASE=`gh release list --repo argoproj/argo-cd | grep "$RELEASE_LIST_SEARCH_STRING" | head -n 1 | cut -f 1`
           echo Latest release for $RELEASE_LIST_SEARCH_STRING is $LATEST_RELEASE
-          echo "::set-output name=latestRelease::$LATEST_RELEASE"
+          echo "latestRelease=$LATEST_RELEASE" >> $GITHUB_OUTPUT
 
       - name: Call GitHub CLI to find latest stable ApplicationSet release
         id: get-appset-stable
         run: |
           LATEST_RELEASE=`gh release list --repo argoproj-labs/applicationset | grep "Latest" | cut -f 1`
           echo Latest release for ApplicationSet is $LATEST_RELEASE
-          echo "::set-output name=latestRelease::$LATEST_RELEASE"
+          echo "latestRelease=$LATEST_RELEASE" >> $GITHUB_OUTPUT
 
 
       - name: Checkout latest Argo CD code
