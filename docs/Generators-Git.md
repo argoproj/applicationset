@@ -2,6 +2,8 @@
 
 The Git generator contains two subtypes: the Git directory generator, and Git file generator.
 
+Warning: The directory and file generators cannot be combined. As such, there is currently no way to exclude paths using the file generator.
+
 ## Git Generator: Directories
 
 The Git directory generator, one of two subtypes of the Git generator, generates parameters using the directory structure of a specified Git repository.
