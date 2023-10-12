@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Template/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Template//](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Template//). Redirecting to the new page.
+
 # Templates
 
 The template fields of the ApplicationSet `spec` are used to generate Argo CD `Application` resources.

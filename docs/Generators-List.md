@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-List/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-List//](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-List//). Redirecting to the new page.
+
 # List Generator
 
 The List generator generates parameters based on an arbitrary list of key/value pairs (as long as the values are string values). In this example, we're targeting a local cluster named `engineering-dev`:
