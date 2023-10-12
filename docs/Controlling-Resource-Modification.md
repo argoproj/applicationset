@@ -1,8 +1,7 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Controlling-Resource-Modification/'" />
 
 !!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Controlling-Resource-Modification/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Controlling-Resource-Modification/). Redirecting to the new page.
-
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Controlling-Resource-Modification//](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Controlling-Resource-Modification//). Redirecting to the new page.
 
 # Controlling if/when the ApplicationSet controller modifies `Application` resources
 

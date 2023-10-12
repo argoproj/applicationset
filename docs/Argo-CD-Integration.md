@@ -1,8 +1,7 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Argo-CD-Integration/'" />
 
 !!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Argo-CD-Integration/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Argo-CD-Integration/). Redirecting to the new page.
-
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Argo-CD-Integration//](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Argo-CD-Integration//). Redirecting to the new page.
 
 # How ApplicationSet controller interacts with Argo CD
 

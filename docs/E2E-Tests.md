@@ -1,8 +1,7 @@
 <meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
 
 !!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/E2E-Tests/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/E2E-Tests/). Redirecting to the new page.
-
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/). Redirecting to the new page.
 
 # Running Application Set E2E tests
 

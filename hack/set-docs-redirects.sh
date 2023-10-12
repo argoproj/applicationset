@@ -22,16 +22,20 @@ for file in $files; do
 
   # Add the new redirect.
   # Default to an empty path.
+  file_path_plain=""
   file_path_regex=""
-  if curl -s -o /dev/null -w "%{http_code}" "$new_docs_base_path$file_path/" | grep -q 200; then
+  if curl -s -o /dev/null -w "%{http_code}" "$new_docs_base_path$file_path" | grep -q 200; then
     # If the destination path exists, use it.
+    file_path_plain="$file_path/"
     file_path_regex=$(echo "$file_path" | sed 's/\//\\\//g')
+  else
+    echo "WARNING: $new_docs_base_path$file_path does not exist. Using empty path."
   fi
 
-  notice="!!! important \"This page has moved\"\n    This page has moved to [$new_docs_base_path$file_path]($new_docs_base_path$file_path). Redirecting to the new page.\n"
+  notice="!!! important \"This page has moved\"\n    This page has moved to [$new_docs_base_path$file_path_plain]($new_docs_base_path$file_path_plain). Redirecting to the new page.\n"
 
   notice_regex=$(echo "$notice" | sed 's/\//\\\//g')
 
-  sed "1s/^/<meta http-equiv=\"refresh\" content=\"1; url='$new_docs_base_path_regex$file_path_regex'\" \/>\\n\\n$notice_regex\\n\\n/" "$file" > "$file.tmp"
+  sed "1s/^/<meta http-equiv=\"refresh\" content=\"1; url='$new_docs_base_path_regex$file_path_regex'\" \/>\\n\\n$notice_regex\\n/" "$file" > "$file.tmp"
   mv "$file.tmp" "$file"
 done

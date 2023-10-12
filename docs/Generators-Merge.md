@@ -1,8 +1,7 @@
-<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Merge/'" />
 
 !!! important "This page has moved"
-    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Merge/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Merge/). Redirecting to the new page.
-
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Merge//](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Merge//). Redirecting to the new page.
 
 # Merge Generator
 
