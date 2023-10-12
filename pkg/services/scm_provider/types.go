@@ -14,21 +14,25 @@ type Repository struct {
 	SHA          string
 	Labels       []string
 	RepositoryId interface{}
+	PullRequest  PullRequest
 }
 
 type SCMProviderService interface {
 	ListRepos(context.Context, string) ([]*Repository, error)
 	RepoHasPath(context.Context, *Repository, string) (bool, error)
 	GetBranches(context.Context, *Repository) ([]*Repository, error)
+	GetPullRequests(context.Context, *Repository) ([]*Repository, error)
 }
 
 // A compiled version of SCMProviderGeneratorFilter for performance.
 type Filter struct {
-	RepositoryMatch *regexp.Regexp
-	PathsExist      []string
-	LabelMatch      *regexp.Regexp
-	BranchMatch     *regexp.Regexp
-	FilterType      FilterType
+	RepositoryMatch        *regexp.Regexp
+	PathsExist             []string
+	LabelMatch             *regexp.Regexp
+	BranchMatch            *regexp.Regexp
+	PullRequestBranchMatch *regexp.Regexp
+	PullRequestLabelMatch  *regexp.Regexp
+	FilterType             FilterType
 }
 
 // A convenience type for indicating where to apply a filter
@@ -39,4 +43,10 @@ const (
 	FilterTypeUndefined FilterType = iota
 	FilterTypeBranch
 	FilterTypeRepo
+	FilterTypePullRequest
 )
+
+type PullRequest struct {
+	Number interface{}
+	Labels []string
+}

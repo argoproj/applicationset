@@ -11,14 +11,15 @@ import (
 )
 
 type GithubProvider struct {
-	client       *github.Client
-	organization string
-	allBranches  bool
+	client          *github.Client
+	organization    string
+	allBranches     bool
+	allPullRequests bool
 }
 
 var _ SCMProviderService = &GithubProvider{}
 
-func NewGithubProvider(ctx context.Context, organization string, token string, url string, allBranches bool) (*GithubProvider, error) {
+func NewGithubProvider(ctx context.Context, organization string, token string, url string, allBranches bool, allPullRequests bool) (*GithubProvider, error) {
 	var ts oauth2.TokenSource
 	// Undocumented environment variable to set a default token, to be used in testing to dodge anonymous rate limits.
 	if token == "" {
@@ -40,7 +41,7 @@ func NewGithubProvider(ctx context.Context, organization string, token string, u
 			return nil, err
 		}
 	}
-	return &GithubProvider{client: client, organization: organization, allBranches: allBranches}, nil
+	return &GithubProvider{client: client, organization: organization, allBranches: allBranches, allPullRequests: allPullRequests}, nil
 }
 
 func (g *GithubProvider) GetBranches(ctx context.Context, repo *Repository) ([]*Repository, error) {
@@ -59,6 +60,36 @@ func (g *GithubProvider) GetBranches(ctx context.Context, repo *Repository) ([]*
 			SHA:          branch.GetCommit().GetSHA(),
 			Labels:       repo.Labels,
 			RepositoryId: repo.RepositoryId,
+		})
+	}
+	return repos, nil
+}
+
+func (g *GithubProvider) GetPullRequests(ctx context.Context, repo *Repository) ([]*Repository, error) {
+	repos := []*Repository{}
+	if !g.allPullRequests {
+		return repos, nil
+	}
+	pullRequests, err := g.listPullRequests(ctx, repo)
+	if err != nil {
+		return nil, fmt.Errorf("error listing pull requests for %s/%s: %v", repo.Organization, repo.Repository, err)
+	}
+
+	// go-github's PullRequest type does not have a GetLabel() function.
+	var labels []string
+	for _, pullRequest := range pullRequests {
+		for _, label := range pullRequest.Labels {
+			labels = append(labels, label.GetName())
+		}
+		repos = append(repos, &Repository{
+			Organization: repo.Organization,
+			Repository:   repo.Repository,
+			URL:          repo.URL,
+			Branch:       pullRequest.GetHead().GetRef(),
+			SHA:          pullRequest.GetHead().GetSHA(),
+			Labels:       repo.Labels,
+			RepositoryId: repo.RepositoryId,
+			PullRequest:  PullRequest{Labels: labels, Number: pullRequest.Number},
 		})
 	}
 	return repos, nil
@@ -104,7 +135,7 @@ func (g *GithubProvider) ListRepos(ctx context.Context, cloneProtocol string) ([
 
 func (g *GithubProvider) RepoHasPath(ctx context.Context, repo *Repository, path string) (bool, error) {
 	_, _, resp, err := g.client.Repositories.GetContents(ctx, repo.Organization, repo.Repository, path, &github.RepositoryContentGetOptions{
-		Ref: repo.Branch,
+		Ref: repo.SHA,
 	})
 	// 404s are not an error here, just a normal false.
 	if resp != nil && resp.StatusCode == 404 {
@@ -152,4 +183,29 @@ func (g *GithubProvider) listBranches(ctx context.Context, repo *Repository) ([]
 		opt.Page = resp.NextPage
 	}
 	return branches, nil
+}
+
+func (g *GithubProvider) listPullRequests(ctx context.Context, repo *Repository) ([]github.PullRequest, error) {
+	opt := &github.PullRequestListOptions{
+		ListOptions: github.ListOptions{PerPage: 100},
+	}
+
+	githubPullRequests := []github.PullRequest{}
+
+	for {
+		allPullRequests, resp, err := g.client.PullRequests.List(ctx, repo.Organization, repo.Repository, opt)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, pr := range allPullRequests {
+			githubPullRequests = append(githubPullRequests, *pr)
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+	return githubPullRequests, nil
 }
