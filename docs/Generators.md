@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators//](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators//). Redirecting to the new page.
+
 # Generators
 
 Generators are responsible for generating *parameters*, which are then rendered into the `template:` fields of the ApplicationSet resource. See the [Introduction](index.md) for an example of how generators work with templates, to create Argo CD Applications.

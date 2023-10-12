@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/). Redirecting to the new page.
+
 # Running Application Set E2E tests
 
 The E2E tests will run automatically on each PR/commit as part of a GitHub action. You may also run these tests locally to verify the functionality, as described below.
