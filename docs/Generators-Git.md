@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Git/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Git/). Redirecting to the new page.
+
+
 # Git Generator
 
 The Git generator contains two subtypes: the Git directory generator, and Git file generator.

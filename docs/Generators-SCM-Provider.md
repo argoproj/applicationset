@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-SCM-Provider/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-SCM-Provider/). Redirecting to the new page.
+
+
 # SCM Provider Generator
 
 The SCM Provider generator uses the API of an SCMaaS provider (eg GitHub) to automatically discover repositories within an organization. This fits well with GitOps layout patterns that split microservices across many repositories.

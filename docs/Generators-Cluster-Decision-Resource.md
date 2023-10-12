@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Cluster-Decision-Resource/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Cluster-Decision-Resource/). Redirecting to the new page.
+
+
 # Cluster Decision Resource Generator
 
 The cluster decision resource generates a list of Argo CD clusters. This is done using [duck-typing](https://pkg.go.dev/knative.dev/pkg/apis/duck), which does not require knowledge of the full shape of the referenced kubernetes resource. The following is an example of a cluster-decision-resource-based ApplicationSet generator:

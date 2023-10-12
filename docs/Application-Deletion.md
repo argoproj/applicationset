@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Application-Deletion/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Application-Deletion/). Redirecting to the new page.
+
+
 # Application Pruning & Resource Deletion
 
 All `Application` resources created by the ApplicationSet controller (from an ApplicationSet) will contain:

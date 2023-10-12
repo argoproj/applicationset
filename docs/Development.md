@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Development/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Development/). Redirecting to the new page.
+
+
 # Development
 
 ## Running the ApplicationSet controller as an image within Kubernetes

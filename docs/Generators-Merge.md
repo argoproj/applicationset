@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Merge/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Merge/). Redirecting to the new page.
+
+
 # Merge Generator
 
 The Merge generator combines parameters produced by the base (first) generator with matching parameter sets produced by subsequent generators. A _matching_ parameter set has the same values for the configured _merge keys_. _Non-matching_ parameter sets are discarded. Override precedence is bottom-to-top: the values from a matching parameter set produced by generator 3 will take precedence over the values from the corresponding parameter set produced by generator 2.

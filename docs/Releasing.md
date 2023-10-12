@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Releasing/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Releasing/). Redirecting to the new page.
+
+
 # Releasing an ApplicationSet release
 
 The ApplicationSet controller release process and scripts are based on the process/scripts used by the [Argo CD Image Updater](https://github.com/argoproj-labs/argocd-image-updater), a sibling project in the Argo organization.

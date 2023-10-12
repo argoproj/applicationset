@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Use-Cases/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Use-Cases/). Redirecting to the new page.
+
+
 # Use cases supported by the ApplicationSet controller
 
 With the concept of generators, the ApplicationSet controller provides a powerful set of tools to automate the templating and modification of Argo CD Applications. Generators produce template parameter data from a variety of sources, including Argo CD clusters and Git repositories, supporting and enabling new use cases. 

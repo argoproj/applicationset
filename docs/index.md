@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/index/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/index/). Redirecting to the new page.
+
+
 # Introduction to ApplicationSet controller
 
 ## Introduction

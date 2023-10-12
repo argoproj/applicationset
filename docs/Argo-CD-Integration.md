@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Argo-CD-Integration/](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Argo-CD-Integration/). Redirecting to the new page.
+
+
 # How ApplicationSet controller interacts with Argo CD
 
 When you create, update, or delete an `ApplicationSet` resource, the ApplicationSet controller responds by creating, updating, or deleting one or more corresponding Argo CD `Application` resources.
