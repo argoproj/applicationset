@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Controlling-Resource-Modification/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Controlling-Resource-Modification//](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Controlling-Resource-Modification//). Redirecting to the new page.
+
 # Controlling if/when the ApplicationSet controller modifies `Application` resources
 
 The ApplicationSet controller supports a number of settings that limit the ability of the controller to make changes to generated Applications, for example, preventing the controller from deleting child Applications.

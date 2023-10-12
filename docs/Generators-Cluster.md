@@ -1,3 +1,8 @@
+<meta http-equiv="refresh" content="1; url='https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Cluster/'" />
+
+!!! important "This page has moved"
+    This page has moved to [https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Cluster//](https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Cluster//). Redirecting to the new page.
+
 # Cluster Generator
 
 In Argo CD, managed clusters [are stored within Secrets](https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters) in the Argo CD namespace. The ApplicationSet controller uses those same Secrets to generate parameters to identify and target available clusters.
