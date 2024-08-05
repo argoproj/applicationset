@@ -315,6 +315,8 @@ type SCMProviderGeneratorGithub struct {
 	TokenRef *SecretRef `json:"tokenRef,omitempty"`
 	// Scan all branches instead of just the default branch.
 	AllBranches bool `json:"allBranches,omitempty"`
+	// Scan all pull requests
+	AllPullRequests bool `json:"allPullRequests,omitempty"`
 }
 
 // SCMProviderGeneratorGitlab defines a connection info specific to Gitlab.
@@ -329,6 +331,8 @@ type SCMProviderGeneratorGitlab struct {
 	TokenRef *SecretRef `json:"tokenRef,omitempty"`
 	// Scan all branches instead of just the default branch.
 	AllBranches bool `json:"allBranches,omitempty"`
+	// Scan all pull requests
+	AllPullRequests bool `json:"allPullRequests,omitempty"`
 }
 
 // SCMProviderGeneratorBitbucket defines connection info specific to Bitbucket Cloud (API version 2).
@@ -355,6 +359,10 @@ type SCMProviderGeneratorFilter struct {
 	LabelMatch *string `json:"labelMatch,omitempty"`
 	// A regex which must match the branch name.
 	BranchMatch *string `json:"branchMatch,omitempty"`
+	// A regex which must match the branch name.
+	PullRequestBranchMatch *string `json:"pullRequestTitleMatch,omitempty"`
+	// A regex which must match at least one pull request label.
+	PullRequestLabelMatch *string `json:"pullRequestLabelMatch,omitempty"`
 }
 
 // PullRequestGenerator defines a generator that scrapes a PullRequest API to find candidate pull requests.

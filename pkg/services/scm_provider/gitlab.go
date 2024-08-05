@@ -13,11 +13,12 @@ type GitlabProvider struct {
 	organization     string
 	allBranches      bool
 	includeSubgroups bool
+	allPullRequests  bool
 }
 
 var _ SCMProviderService = &GitlabProvider{}
 
-func NewGitlabProvider(ctx context.Context, organization string, token string, url string, allBranches, includeSubgroups bool) (*GitlabProvider, error) {
+func NewGitlabProvider(ctx context.Context, organization string, token string, url string, allBranches, includeSubgroups, allPullRequests bool) (*GitlabProvider, error) {
 	// Undocumented environment variable to set a default token, to be used in testing to dodge anonymous rate limits.
 	if token == "" {
 		token = os.Getenv("GITLAB_TOKEN")
@@ -36,7 +37,7 @@ func NewGitlabProvider(ctx context.Context, organization string, token string, u
 			return nil, err
 		}
 	}
-	return &GitlabProvider{client: client, organization: organization, allBranches: allBranches, includeSubgroups: includeSubgroups}, nil
+	return &GitlabProvider{client: client, organization: organization, allBranches: allBranches, includeSubgroups: includeSubgroups, allPullRequests: allPullRequests}, nil
 }
 
 func (g *GitlabProvider) GetBranches(ctx context.Context, repo *Repository) ([]*Repository, error) {
@@ -55,6 +56,32 @@ func (g *GitlabProvider) GetBranches(ctx context.Context, repo *Repository) ([]*
 			SHA:          branch.Commit.ID,
 			Labels:       repo.Labels,
 			RepositoryId: repo.RepositoryId,
+		})
+	}
+	return repos, nil
+}
+
+func (g *GitlabProvider) GetPullRequests(ctx context.Context, repo *Repository) ([]*Repository, error) {
+	repos := []*Repository{}
+	if !g.allPullRequests {
+		return repos, nil
+	}
+
+	pullRequests, err := g.listPullRequests(ctx, repo)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, pullRequest := range pullRequests {
+		repos = append(repos, &Repository{
+			Organization: repo.Organization,
+			Repository:   repo.Repository,
+			URL:          repo.URL,
+			Branch:       pullRequest.SourceBranch,
+			SHA:          pullRequest.SHA,
+			Labels:       repo.Labels,
+			RepositoryId: repo.RepositoryId,
+			PullRequest:  PullRequest{Labels: pullRequest.Labels, Number: pullRequest.ID},
 		})
 	}
 	return repos, nil
@@ -148,4 +175,27 @@ func (g *GitlabProvider) listBranches(_ context.Context, repo *Repository) ([]gi
 		opt.Page = resp.NextPage
 	}
 	return branches, nil
+}
+
+func (g *GitlabProvider) listPullRequests(_ context.Context, repo *Repository) ([]gitlab.MergeRequest, error) {
+	opt := &gitlab.ListProjectMergeRequestsOptions{
+		ListOptions: gitlab.ListOptions{PerPage: 100},
+	}
+
+	pullRequests := []gitlab.MergeRequest{}
+	for {
+		gitlabPullRequests, resp, err := g.client.MergeRequests.ListProjectMergeRequests(repo.RepositoryId, opt)
+		if err != nil {
+			return nil, err
+		}
+		for _, gitlabPullRequest := range gitlabPullRequests {
+			pullRequests = append(pullRequests, *gitlabPullRequest)
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+	return pullRequests, nil
 }

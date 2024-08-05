@@ -36,10 +36,10 @@ func checkRateLimit(t *testing.T, err error) {
 
 func TestGithubListRepos(t *testing.T) {
 	cases := []struct {
-		name, proto, url      string
-		hasError, allBranches bool
-		branches              []string
-		filters               []v1alpha1.SCMProviderGeneratorFilter
+		name, proto, url                       string
+		hasError, allBranches, allPullRequests bool
+		branches                               []string
+		filters                                []v1alpha1.SCMProviderGeneratorFilter
 	}{
 		{
 			name:     "blank protocol",
@@ -67,11 +67,17 @@ func TestGithubListRepos(t *testing.T) {
 			url:         "git@github.com:argoproj/applicationset.git",
 			branches:    []string{"master", "release-0.1.0"},
 		},
+		{
+			name:            "all pull requests",
+			allPullRequests: true,
+			url:             "git@github.com:argoproj/applicationset.git",
+			branches:        []string{"pr-1", "pr-2"},
+		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			provider, _ := NewGithubProvider(context.Background(), "argoproj", "", "", c.allBranches)
+			provider, _ := NewGithubProvider(context.Background(), "argoproj", "", "", c.allBranches, c.allPullRequests)
 			rawRepos, err := ListRepos(context.Background(), provider, c.filters, c.proto)
 			if c.hasError {
 				assert.Error(t, err)
@@ -98,7 +104,7 @@ func TestGithubListRepos(t *testing.T) {
 }
 
 func TestGithubHasPath(t *testing.T) {
-	host, _ := NewGithubProvider(context.Background(), "argoproj", "", "", false)
+	host, _ := NewGithubProvider(context.Background(), "argoproj", "", "", false, false)
 	repo := &Repository{
 		Organization: "argoproj",
 		Repository:   "applicationset",
